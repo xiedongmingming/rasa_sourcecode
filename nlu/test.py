@@ -112,7 +112,7 @@ ResponseSelectionMetrics = Dict[Text, List[float]]
 
 
 def log_evaluation_table(
-    report: Text, precision: float, f1: float, accuracy: float
+        report: Text, precision: float, f1: float, accuracy: float
 ) -> None:  # pragma: no cover
     """Log the sklearn evaluation metrics."""
     logger.info(f"F1-Score:  {f1}")
@@ -122,7 +122,7 @@ def log_evaluation_table(
 
 
 def remove_empty_intent_examples(
-    intent_results: List[IntentEvaluationResult],
+        intent_results: List[IntentEvaluationResult],
 ) -> List[IntentEvaluationResult]:
     """Remove those examples without an intent.
 
@@ -145,7 +145,7 @@ def remove_empty_intent_examples(
 
 
 def remove_empty_response_examples(
-    response_results: List[ResponseSelectionEvaluationResult],
+        response_results: List[ResponseSelectionEvaluationResult],
 ) -> List[ResponseSelectionEvaluationResult]:
     """Remove those examples without a response.
 
@@ -174,7 +174,7 @@ def remove_empty_response_examples(
 
 
 def drop_intents_below_freq(
-    training_data: TrainingData, cutoff: int = 5
+        training_data: TrainingData, cutoff: int = 5
 ) -> TrainingData:
     """Remove intent groups with less than cutoff instances.
 
@@ -195,7 +195,7 @@ def drop_intents_below_freq(
 
 
 def write_intent_successes(
-    intent_results: List[IntentEvaluationResult], successes_filename: Text
+        intent_results: List[IntentEvaluationResult], successes_filename: Text
 ) -> None:
     """Write successful intent predictions to a file.
 
@@ -259,7 +259,7 @@ def _get_intent_errors(intent_results: List[IntentEvaluationResult]) -> List[Dic
 
 
 def write_response_successes(
-    response_results: List[ResponseSelectionEvaluationResult], successes_filename: Text
+        response_results: List[ResponseSelectionEvaluationResult], successes_filename: Text
 ) -> None:
     """Write successful response selection predictions to a file.
 
@@ -292,7 +292,7 @@ def write_response_successes(
 
 
 def _response_errors(
-    response_results: List[ResponseSelectionEvaluationResult],
+        response_results: List[ResponseSelectionEvaluationResult],
 ) -> List[Dict]:
     """Write incorrect response selection predictions to a file.
 
@@ -317,13 +317,13 @@ def _response_errors(
 
 
 def plot_attribute_confidences(
-    results: Union[
-        List[IntentEvaluationResult], List[ResponseSelectionEvaluationResult]
-    ],
-    hist_filename: Optional[Text],
-    target_key: Text,
-    prediction_key: Text,
-    title: Text,
+        results: Union[
+            List[IntentEvaluationResult], List[ResponseSelectionEvaluationResult]
+        ],
+        hist_filename: Optional[Text],
+        target_key: Text,
+        prediction_key: Text,
+        title: Text,
 ) -> None:
     """Create histogram of confidence distribution.
 
@@ -350,11 +350,11 @@ def plot_attribute_confidences(
 
 
 def plot_entity_confidences(
-    merged_targets: List[Text],
-    merged_predictions: List[Text],
-    merged_confidences: List[float],
-    hist_filename: Text,
-    title: Text,
+        merged_targets: List[Text],
+        merged_predictions: List[Text],
+        merged_confidences: List[float],
+        hist_filename: Text,
+        title: Text,
 ) -> None:
     """Creates histogram of confidence distribution.
 
@@ -385,12 +385,12 @@ def plot_entity_confidences(
 
 
 def evaluate_response_selections(
-    response_selection_results: List[ResponseSelectionEvaluationResult],
-    output_directory: Optional[Text],
-    successes: bool,
-    errors: bool,
-    disable_plotting: bool,
-    report_as_dict: Optional[bool] = None,
+        response_selection_results: List[ResponseSelectionEvaluationResult],
+        output_directory: Optional[Text],
+        successes: bool,
+        errors: bool,
+        disable_plotting: bool,
+        report_as_dict: Optional[bool] = None,
 ) -> Dict:  # pragma: no cover
     """Creates summary statistics for response selection.
 
@@ -501,10 +501,10 @@ def evaluate_response_selections(
 
 
 def _add_confused_labels_to_report(
-    report: Dict[Text, Dict[Text, Any]],
-    confusion_matrix: np.ndarray,
-    labels: List[Text],
-    exclude_labels: Optional[List[Text]] = None,
+        report: Dict[Text, Dict[Text, Any]],
+        confusion_matrix: np.ndarray,
+        labels: List[Text],
+        exclude_labels: Optional[List[Text]] = None,
 ) -> Dict[Text, Dict[Text, Union[Dict, Any]]]:
     """Adds a field "confused_with" to the evaluation report.
 
@@ -544,9 +544,9 @@ def _add_confused_labels_to_report(
             false_pos_label = labels[label_idx]
             false_positives = int(confusion_matrix[i, label_idx])
             if (
-                false_pos_label != label
-                and false_pos_label not in exclude_labels
-                and false_positives > 0
+                    false_pos_label != label
+                    and false_pos_label not in exclude_labels
+                    and false_positives > 0
             ):
                 report[label]["confused_with"][false_pos_label] = false_positives
 
@@ -554,12 +554,12 @@ def _add_confused_labels_to_report(
 
 
 def evaluate_intents(
-    intent_results: List[IntentEvaluationResult],
-    output_directory: Optional[Text],
-    successes: bool,
-    errors: bool,
-    disable_plotting: bool,
-    report_as_dict: Optional[bool] = None,
+        intent_results: List[IntentEvaluationResult],
+        output_directory: Optional[Text],
+        successes: bool,
+        errors: bool,
+        disable_plotting: bool,
+        report_as_dict: Optional[bool] = None,
 ) -> Dict:  # pragma: no cover
     """Creates summary statistics for intents.
 
@@ -653,11 +653,11 @@ def evaluate_intents(
 
 
 def _calculate_report(
-    output_directory: Optional[Text],
-    targets: Iterable[Any],
-    predictions: Iterable[Any],
-    report_as_dict: Optional[bool] = None,
-    exclude_label: Optional[Text] = None,
+        output_directory: Optional[Text],
+        targets: Iterable[Any],
+        predictions: Iterable[Any],
+        report_as_dict: Optional[bool] = None,
+        exclude_label: Optional[Text] = None,
 ) -> Tuple[Union[Text, Dict], float, float, float, np.ndarray, List[Text]]:
     from rasa.model_testing import get_evaluation_metrics
     import sklearn.metrics
@@ -693,7 +693,7 @@ def _dump_report(output_directory: Text, filename: Text, report: Dict) -> None:
 
 
 def merge_labels(
-    aligned_predictions: List[Dict], extractor: Optional[Text] = None
+        aligned_predictions: List[Dict], extractor: Optional[Text] = None
 ) -> List[Text]:
     """Concatenates all labels of the aligned predictions.
 
@@ -716,7 +716,7 @@ def merge_labels(
 
 
 def merge_confidences(
-    aligned_predictions: List[Dict], extractor: Optional[Text] = None
+        aligned_predictions: List[Dict], extractor: Optional[Text] = None
 ) -> List[float]:
     """Concatenates all confidences of the aligned predictions.
 
@@ -748,9 +748,9 @@ def substitute_labels(labels: List[Text], old: Text, new: Text) -> List[Text]:
 
 
 def collect_incorrect_entity_predictions(
-    entity_results: List[EntityEvaluationResult],
-    merged_predictions: List[Text],
-    merged_targets: List[Text],
+        entity_results: List[EntityEvaluationResult],
+        merged_predictions: List[Text],
+        merged_targets: List[Text],
 ) -> List["EntityPrediction"]:
     """Get incorrect entity predictions.
 
@@ -778,10 +778,10 @@ def collect_incorrect_entity_predictions(
 
 
 def write_successful_entity_predictions(
-    entity_results: List[EntityEvaluationResult],
-    merged_targets: List[Text],
-    merged_predictions: List[Text],
-    successes_filename: Text,
+        entity_results: List[EntityEvaluationResult],
+        merged_targets: List[Text],
+        merged_predictions: List[Text],
+        successes_filename: Text,
 ) -> None:
     """Write correct entity predictions to a file.
 
@@ -806,9 +806,9 @@ def write_successful_entity_predictions(
 
 
 def collect_successful_entity_predictions(
-    entity_results: List[EntityEvaluationResult],
-    merged_predictions: List[Text],
-    merged_targets: List[Text],
+        entity_results: List[EntityEvaluationResult],
+        merged_predictions: List[Text],
+        merged_targets: List[Text],
 ) -> List["EntityPrediction"]:
     """Get correct entity predictions.
 
@@ -824,8 +824,8 @@ def collect_successful_entity_predictions(
     for entity_result in entity_results:
         for i in range(offset, offset + len(entity_result.tokens)):
             if (
-                merged_targets[i] == merged_predictions[i]
-                and merged_targets[i] != NO_ENTITY
+                    merged_targets[i] == merged_predictions[i]
+                    and merged_targets[i] != NO_ENTITY
             ):
                 prediction: EntityPrediction = {
                     "text": entity_result.message,
@@ -839,13 +839,13 @@ def collect_successful_entity_predictions(
 
 
 def evaluate_entities(
-    entity_results: List[EntityEvaluationResult],
-    extractors: Set[Text],
-    output_directory: Optional[Text],
-    successes: bool,
-    errors: bool,
-    disable_plotting: bool,
-    report_as_dict: Optional[bool] = None,
+        entity_results: List[EntityEvaluationResult],
+        extractors: Set[Text],
+        output_directory: Optional[Text],
+        successes: bool,
+        errors: bool,
+        disable_plotting: bool,
+        report_as_dict: Optional[bool] = None,
 ) -> Dict:  # pragma: no cover
     """Creates summary statistics for each entity extractor.
 
@@ -887,7 +887,6 @@ def evaluate_entities(
             exclude_label=NO_ENTITY,
         )
         if output_directory:
-
             _dump_report(output_directory, f"{extractor}_report.json", report)
 
         if successes:
@@ -981,8 +980,8 @@ def do_entities_overlap(entities: List[Dict]) -> bool:
         curr_ent = sorted_entities[i]
         next_ent = sorted_entities[i + 1]
         if (
-            next_ent["start"] < curr_ent["end"]
-            and next_ent["entity"] != curr_ent["entity"]
+                next_ent["start"] < curr_ent["end"]
+                and next_ent["entity"] != curr_ent["entity"]
         ):
             logger.warning(f"Overlapping entity {curr_ent} with {next_ent}")
             return True
@@ -1014,7 +1013,7 @@ def find_intersecting_entities(token: Token, entities: List[Dict]) -> List[Dict]
 
 
 def pick_best_entity_fit(
-    token: Token, candidates: List[Dict[Text, Any]]
+        token: Token, candidates: List[Dict[Text, Any]]
 ) -> Optional[Dict[Text, Any]]:
     """
     Determines the best fitting entity given intersecting entities.
@@ -1037,10 +1036,10 @@ def pick_best_entity_fit(
 
 
 def determine_token_labels(
-    token: Token,
-    entities: List[Dict],
-    extractors: Optional[Set[Text]] = None,
-    attribute_key: Text = ENTITY_ATTRIBUTE_TYPE,
+        token: Token,
+        entities: List[Dict],
+        extractors: Optional[Set[Text]] = None,
+        attribute_key: Text = ENTITY_ATTRIBUTE_TYPE,
 ) -> Text:
     """
     Determines the token label for the provided attribute key given entities that do
@@ -1068,9 +1067,9 @@ def determine_token_labels(
 
 
 def determine_entity_for_token(
-    token: Token,
-    entities: List[Dict[Text, Any]],
-    extractors: Optional[Set[Text]] = None,
+        token: Token,
+        entities: List[Dict[Text, Any]],
+        extractors: Optional[Set[Text]] = None,
 ) -> Optional[Dict[Text, Any]]:
     """
     Determines the best fitting entity for the given token, given entities that do
@@ -1087,7 +1086,7 @@ def determine_entity_for_token(
     if entities is None or len(entities) == 0:
         return None
     if do_any_extractors_not_support_overlap(extractors) and do_entities_overlap(
-        entities
+            entities
     ):
         raise ValueError("The possible entities should not overlap.")
 
@@ -1116,7 +1115,7 @@ def do_any_extractors_not_support_overlap(extractors: Optional[Set[Text]]) -> bo
 
 
 def align_entity_predictions(
-    result: EntityEvaluationResult, extractors: Set[Text]
+        result: EntityEvaluationResult, extractors: Set[Text]
 ) -> Dict:
     """Aligns entity predictions to the message tokens.
 
@@ -1157,7 +1156,7 @@ def align_entity_predictions(
 
 
 def _concat_entity_labels(
-    token: Token, entities: List[Dict], extractors: Optional[Set[Text]] = None
+        token: Token, entities: List[Dict], extractors: Optional[Set[Text]] = None
 ) -> Text:
     """Concatenate labels for entity type, role, and group for evaluation.
 
@@ -1193,7 +1192,7 @@ def _concat_entity_labels(
 
 
 def _get_entity_confidences(
-    token: Token, entities: List[Dict], extractors: Optional[Set[Text]] = None
+        token: Token, entities: List[Dict], extractors: Optional[Set[Text]] = None
 ) -> float:
     """Get the confidence value of the best fitting entity.
 
@@ -1224,7 +1223,7 @@ def _get_entity_confidences(
 
 
 def align_all_entity_predictions(
-    entity_results: List[EntityEvaluationResult], extractors: Set[Text]
+        entity_results: List[EntityEvaluationResult], extractors: Set[Text]
 ) -> List[Dict]:
     """Aligns entity predictions to the message tokens for the whole dataset
     using align_entity_predictions.
@@ -1244,7 +1243,7 @@ def align_all_entity_predictions(
 
 
 async def get_eval_data(
-    processor: MessageProcessor, test_data: TrainingData
+        processor: MessageProcessor, test_data: TrainingData
 ) -> Tuple[
     List[IntentEvaluationResult],
     List[ResponseSelectionEvaluationResult],
@@ -1307,8 +1306,8 @@ async def get_eval_data(
                 RESPONSE_SELECTOR_RETRIEVAL_INTENTS, set()
             )
             if (
-                intent_target in response_selector_retrieval_intents
-                and intent_target in selector_properties
+                    intent_target in response_selector_retrieval_intents
+                    and intent_target in selector_properties
             ):
                 response_prediction_key = intent_target
             else:
@@ -1343,7 +1342,7 @@ async def get_eval_data(
 
 
 def _get_active_entity_extractors(
-    entity_results: List[EntityEvaluationResult],
+        entity_results: List[EntityEvaluationResult],
 ) -> Set[Text]:
     """Finds the names of entity extractors from the EntityEvaluationResults."""
     extractors: Set[Text] = set()
@@ -1355,7 +1354,7 @@ def _get_active_entity_extractors(
 
 
 def _remove_entities_of_extractors(
-    nlu_parse_result: Dict[Text, Any], extractor_names: Set[Text]
+        nlu_parse_result: Dict[Text, Any], extractor_names: Set[Text]
 ) -> None:
     """Removes the entities annotated by the given extractor names."""
     entities = nlu_parse_result.get(ENTITIES)
@@ -1366,14 +1365,14 @@ def _remove_entities_of_extractors(
 
 
 async def run_evaluation(
-    data_path: Text,
-    processor: MessageProcessor,
-    output_directory: Optional[Text] = None,
-    successes: bool = False,
-    errors: bool = False,
-    disable_plotting: bool = False,
-    report_as_dict: Optional[bool] = None,
-    domain_path: Optional[Text] = None,
+        data_path: Text,
+        processor: MessageProcessor,
+        output_directory: Optional[Text] = None,
+        successes: bool = False,
+        errors: bool = False,
+        disable_plotting: bool = False,
+        report_as_dict: Optional[bool] = None,
+        domain_path: Optional[Text] = None,
 ) -> Dict:  # pragma: no cover
     """Evaluate intent classification, response selection and entity extraction.
 
@@ -1455,7 +1454,7 @@ async def run_evaluation(
 
 
 def generate_folds(
-    n: int, training_data: TrainingData
+        n: int, training_data: TrainingData
 ) -> Iterator[Tuple[TrainingData, TrainingData]]:
     """Generates n cross validation folds for given training data."""
 
@@ -1490,16 +1489,16 @@ def generate_folds(
 
 
 async def combine_result(
-    intent_metrics: IntentMetrics,
-    entity_metrics: EntityMetrics,
-    response_selection_metrics: ResponseSelectionMetrics,
-    processor: MessageProcessor,
-    data: TrainingData,
-    intent_results: Optional[List[IntentEvaluationResult]] = None,
-    entity_results: Optional[List[EntityEvaluationResult]] = None,
-    response_selection_results: Optional[
-        List[ResponseSelectionEvaluationResult]
-    ] = None,
+        intent_metrics: IntentMetrics,
+        entity_metrics: EntityMetrics,
+        response_selection_metrics: ResponseSelectionMetrics,
+        processor: MessageProcessor,
+        data: TrainingData,
+        intent_results: Optional[List[IntentEvaluationResult]] = None,
+        entity_results: Optional[List[EntityEvaluationResult]] = None,
+        response_selection_results: Optional[
+            List[ResponseSelectionEvaluationResult]
+        ] = None,
 ) -> Tuple[IntentMetrics, EntityMetrics, ResponseSelectionMetrics]:
     """Collects intent, response selection and entity metrics for cross validation
     folds.
@@ -1552,7 +1551,6 @@ async def combine_result(
 
 
 def _contains_entity_labels(entity_results: List[EntityEvaluationResult]) -> bool:
-
     for result in entity_results:
         if result.entity_targets or result.entity_predictions:
             return True
@@ -1560,14 +1558,14 @@ def _contains_entity_labels(entity_results: List[EntityEvaluationResult]) -> boo
 
 
 async def cross_validate(
-    data: TrainingData,
-    n_folds: int,
-    nlu_config: Union[Text, Dict],
-    output: Optional[Text] = None,
-    successes: bool = False,
-    errors: bool = False,
-    disable_plotting: bool = False,
-    report_as_dict: Optional[bool] = None,
+        data: TrainingData,
+        n_folds: int,
+        nlu_config: Union[Text, Dict],
+        output: Optional[Text] = None,
+        successes: bool = False,
+        errors: bool = False,
+        disable_plotting: bool = False,
+        report_as_dict: Optional[bool] = None,
 ) -> Tuple[CVEvaluationResult, CVEvaluationResult, CVEvaluationResult]:
     """Stratified cross validation on data.
 
@@ -1695,17 +1693,17 @@ async def cross_validate(
 
 
 def _targets_predictions_from(
-    results: Union[
-        List[IntentEvaluationResult], List[ResponseSelectionEvaluationResult]
-    ],
-    target_key: Text,
-    prediction_key: Text,
+        results: Union[
+            List[IntentEvaluationResult], List[ResponseSelectionEvaluationResult]
+        ],
+        target_key: Text,
+        prediction_key: Text,
 ) -> Iterator[Iterable[Optional[Text]]]:
     return zip(*[(getattr(r, target_key), getattr(r, prediction_key)) for r in results])
 
 
 async def compute_metrics(
-    processor: MessageProcessor, training_data: TrainingData
+        processor: MessageProcessor, training_data: TrainingData
 ) -> Tuple[
     IntentMetrics,
     EntityMetrics,
@@ -1762,13 +1760,13 @@ async def compute_metrics(
 
 
 async def compare_nlu(
-    configs: List[Text],
-    data: TrainingData,
-    exclusion_percentages: List[int],
-    f_score_results: Dict[Text, List[List[float]]],
-    model_names: List[Text],
-    output: Text,
-    runs: int,
+        configs: List[Text],
+        data: TrainingData,
+        exclusion_percentages: List[int],
+        f_score_results: Dict[Text, List[List[float]]],
+        model_names: List[Text],
+        output: Text,
+        runs: int,
 ) -> List[int]:
     """
     Trains and compares multiple NLU models.
@@ -1859,11 +1857,11 @@ async def compare_nlu(
 
 
 def _compute_metrics(
-    results: Union[
-        List[IntentEvaluationResult], List[ResponseSelectionEvaluationResult]
-    ],
-    target_key: Text,
-    prediction_key: Text,
+        results: Union[
+            List[IntentEvaluationResult], List[ResponseSelectionEvaluationResult]
+        ],
+        target_key: Text,
+        prediction_key: Text,
 ) -> Union[IntentMetrics, ResponseSelectionMetrics]:
     """Computes evaluation metrics for a given corpus and returns the results.
 
@@ -1886,7 +1884,7 @@ def _compute_metrics(
 
 
 def _compute_entity_metrics(
-    entity_results: List[EntityEvaluationResult],
+        entity_results: List[EntityEvaluationResult],
 ) -> EntityMetrics:
     """Computes entity evaluation metrics and returns the results.
 

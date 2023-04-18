@@ -22,16 +22,22 @@ logger = logging.getLogger(__name__)
     DefaultV1Recipe.ComponentType.MESSAGE_TOKENIZER, is_trainable=True
 )
 class JiebaTokenizer(Tokenizer):
-    """This tokenizer is a wrapper for Jieba (https://github.com/fxsjy/jieba)."""
+    """
+    This tokenizer is a wrapper for Jieba (https://github.com/fxsjy/jieba).
+    """
 
     @staticmethod
     def supported_languages() -> Optional[List[Text]]:
-        """Supported languages (see parent class for full docstring)."""
+        """
+        Supported languages (see parent class for full docstring).
+        """
         return ["zh"]
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """Returns default config (see parent class for full docstring)."""
+        """
+        Returns default config (see parent class for full docstring).
+        """
         return {
             # default don't load custom dictionary
             "dictionary_path": None,
@@ -44,20 +50,24 @@ class JiebaTokenizer(Tokenizer):
         }
 
     def __init__(
-        self, config: Dict[Text, Any], model_storage: ModelStorage, resource: Resource
+            self, config: Dict[Text, Any], model_storage: ModelStorage, resource: Resource
     ) -> None:
-        """Initialize the tokenizer."""
+        """
+        Initialize the tokenizer.
+        """
         super().__init__(config)
+
         self._model_storage = model_storage
+
         self._resource = resource
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> JiebaTokenizer:
         """Creates a new component (see parent class for full docstring)."""
         # Path to the dictionaries on the local filesystem.
@@ -69,12 +79,15 @@ class JiebaTokenizer(Tokenizer):
 
     @staticmethod
     def required_packages() -> List[Text]:
-        """Any extra python dependencies required for this component to run."""
+        """
+        Any extra python dependencies required for this component to run.
+        """
         return ["jieba"]
 
     @staticmethod
     def _load_custom_dictionary(path: Text) -> None:
-        """Load all the custom dictionaries stored in the path.
+        """
+        Load all the custom dictionaries stored in the path.
 
         More information about the dictionaries file format can
         be found in the documentation of jieba.
@@ -105,12 +118,12 @@ class JiebaTokenizer(Tokenizer):
 
     @classmethod
     def load(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
-        **kwargs: Any,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
+            **kwargs: Any,
     ) -> JiebaTokenizer:
         """Loads a custom dictionary from model storage."""
         dictionary_path = config["dictionary_path"]

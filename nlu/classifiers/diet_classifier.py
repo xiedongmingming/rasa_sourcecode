@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import copy
 import logging
+
 from collections import defaultdict
 from pathlib import Path
 
@@ -19,9 +21,11 @@ from rasa.engine.storage.resource import Resource
 from rasa.engine.storage.storage import ModelStorage
 from rasa.nlu.extractors.extractor import EntityExtractorMixin
 from rasa.nlu.classifiers.classifier import IntentClassifier
+
 import rasa.shared.utils.io
 import rasa.utils.io as io_utils
 import rasa.nlu.utils.bilou_utils as bilou_utils
+
 from rasa.shared.constants import DIAGNOSTIC_DATA
 from rasa.nlu.extractors.extractor import EntityTagSpec
 from rasa.nlu.classifiers import LABEL_RANKING_LENGTH
@@ -116,7 +120,6 @@ LABEL_SUB_KEY = IDS
 
 POSSIBLE_TAGS = [ENTITY_ATTRIBUTE_TYPE, ENTITY_ATTRIBUTE_ROLE, ENTITY_ATTRIBUTE_GROUP]
 
-
 DIETClassifierT = TypeVar("DIETClassifierT", bound="DIETClassifier")
 
 
@@ -128,7 +131,8 @@ DIETClassifierT = TypeVar("DIETClassifierT", bound="DIETClassifier")
     is_trainable=True,
 )
 class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
-    """A multi-task model for intent classification and entity extraction.
+    """
+    A multi-task model for intent classification and entity extraction.
 
     DIET is Dual Intent and Entity Transformer.
     The architecture is based on a transformer which is shared for both tasks.
@@ -285,17 +289,19 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         }
 
     def __init__(
-        self,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
-        index_label_id_mapping: Optional[Dict[int, Text]] = None,
-        entity_tag_specs: Optional[List[EntityTagSpec]] = None,
-        model: Optional[RasaModel] = None,
-        sparse_feature_sizes: Optional[Dict[Text, Dict[Text, List[int]]]] = None,
+            self,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
+            index_label_id_mapping: Optional[Dict[int, Text]] = None,
+            entity_tag_specs: Optional[List[EntityTagSpec]] = None,
+            model: Optional[RasaModel] = None,
+            sparse_feature_sizes: Optional[Dict[Text, Dict[Text, List[int]]]] = None,
     ) -> None:
-        """Declare instance variables with default values."""
+        """
+        Declare instance variables with default values.
+        """
         if EPOCHS not in config:
             rasa.shared.utils.io.raise_warning(
                 f"Please configure the number of '{EPOCHS}' in your configuration file."
@@ -317,6 +323,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         self.model = model
 
         self.tmp_checkpoint_dir = None
+        
         if self.component_config[CHECKPOINT_MODEL]:
             self.tmp_checkpoint_dir = Path(rasa.utils.io.create_temporary_directory())
 
@@ -334,8 +341,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     # init helpers
     def _check_masked_lm(self) -> None:
         if (
-            self.component_config[MASKED_LM]
-            and self.component_config[NUM_TRANSFORMER_LAYERS] == 0
+                self.component_config[MASKED_LM]
+                and self.component_config[NUM_TRANSFORMER_LAYERS] == 0
         ):
             raise ValueError(
                 f"If number of transformer layers is 0, "
@@ -383,11 +390,11 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> DIETClassifier:
         """Creates a new untrained component (see parent class for full docstring)."""
         return cls(config, model_storage, resource, execution_context)
@@ -409,13 +416,13 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     # training data helpers:
     @staticmethod
     def _label_id_index_mapping(
-        training_data: TrainingData, attribute: Text
+            training_data: TrainingData, attribute: Text
     ) -> Dict[Text, int]:
         """Create label_id dictionary."""
 
         distinct_label_ids = {
-            example.get(attribute) for example in training_data.intent_examples
-        } - {None}
+                                 example.get(attribute) for example in training_data.intent_examples
+                             } - {None}
         return {
             label_id: idx for idx, label_id in enumerate(sorted(distinct_label_ids))
         }
@@ -425,7 +432,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return {value: key for key, value in mapping.items()}
 
     def _create_entity_tag_specs(
-        self, training_data: TrainingData
+            self, training_data: TrainingData
     ) -> List[EntityTagSpec]:
         """Create entity tag specifications with their respective tag id mappings."""
 
@@ -455,7 +462,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @staticmethod
     def _tag_id_index_mapping_for(
-        tag_name: Text, training_data: TrainingData
+            tag_name: Text, training_data: TrainingData
     ) -> Optional[Dict[Text, int]]:
         """Create mapping from tag name to id."""
         if tag_name == ENTITY_ATTRIBUTE_ROLE:
@@ -481,7 +488,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @staticmethod
     def _find_example_for_label(
-        label: Text, examples: List[Message], attribute: Text
+            label: Text, examples: List[Message], attribute: Text
     ) -> Optional[Message]:
         for ex in examples:
             if ex.get(attribute) == label:
@@ -489,7 +496,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return None
 
     def _check_labels_features_exist(
-        self, labels_example: List[Message], attribute: Text
+            self, labels_example: List[Message], attribute: Text
     ) -> bool:
         """Checks if all labels have features set."""
 
@@ -501,7 +508,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         )
 
     def _extract_features(
-        self, message: Message, attribute: Text
+            self, message: Message, attribute: Text
     ) -> Dict[Text, Union[scipy.sparse.spmatrix, np.ndarray]]:
 
         (
@@ -514,8 +521,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
         if dense_sequence_features is not None and sparse_sequence_features is not None:
             if (
-                dense_sequence_features.features.shape[0]
-                != sparse_sequence_features.features.shape[0]
+                    dense_sequence_features.features.shape[0]
+                    != sparse_sequence_features.features.shape[0]
             ):
                 raise ValueError(
                     f"Sequence dimensions for sparse and dense sequence features "
@@ -524,8 +531,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
                 )
         if dense_sentence_features is not None and sparse_sentence_features is not None:
             if (
-                dense_sentence_features.features.shape[0]
-                != sparse_sentence_features.features.shape[0]
+                    dense_sentence_features.features.shape[0]
+                    != sparse_sentence_features.features.shape[0]
             ):
                 raise ValueError(
                     f"Sequence dimensions for sparse and dense sentence features "
@@ -538,9 +545,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         # We would not make use of the sequence anyway in this setup. Carrying over
         # those features to the actual training process takes quite some time.
         if (
-            self.component_config[NUM_TRANSFORMER_LAYERS] == 0
-            and not self.component_config[ENTITY_RECOGNITION]
-            and attribute not in [INTENT, INTENT_RESPONSE_KEY]
+                self.component_config[NUM_TRANSFORMER_LAYERS] == 0
+                and not self.component_config[ENTITY_RECOGNITION]
+                and attribute not in [INTENT, INTENT_RESPONSE_KEY]
         ):
             sparse_sequence_features = None
             dense_sequence_features = None
@@ -567,7 +574,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             num_label_sequence_features = model_data.number_of_units(LABEL, SEQUENCE)
 
             if (0 < num_text_sentence_features != num_label_sentence_features > 0) or (
-                0 < num_text_sequence_features != num_label_sequence_features > 0
+                    0 < num_text_sequence_features != num_label_sequence_features > 0
             ):
                 raise ValueError(
                     "If embeddings are shared text features and label features "
@@ -575,7 +582,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
                 )
 
     def _extract_labels_precomputed_features(
-        self, label_examples: List[Message], attribute: Text = INTENT
+            self, label_examples: List[Message], attribute: Text = INTENT
     ) -> Tuple[List[FeatureArray], List[FeatureArray]]:
         """Collects precomputed encodings."""
         features = defaultdict(list)
@@ -599,7 +606,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @staticmethod
     def _compute_default_label_features(
-        labels_example: List[Message],
+            labels_example: List[Message],
     ) -> List[FeatureArray]:
         """Computes one-hot representation for the labels."""
         logger.debug("No label features found. Computing default label features.")
@@ -614,10 +621,10 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         ]
 
     def _create_label_data(
-        self,
-        training_data: TrainingData,
-        label_id_dict: Dict[Text, int],
-        attribute: Text,
+            self,
+            training_data: TrainingData,
+            label_id_dict: Dict[Text, int],
+            attribute: Text,
     ) -> RasaModelData:
         """Create matrix with label_ids encoded in rows as bag of words.
 
@@ -651,7 +658,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         label_data.add_features(LABEL, SEQUENCE, sequence_features)
         label_data.add_features(LABEL, SENTENCE, sentence_features)
         if label_data.does_feature_not_exist(
-            LABEL, SENTENCE
+                LABEL, SENTENCE
         ) and label_data.does_feature_not_exist(LABEL, SEQUENCE):
             raise ValueError(
                 "No label features are present. Please check your configuration file."
@@ -689,11 +696,11 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         ]
 
     def _create_model_data(
-        self,
-        training_data: List[Message],
-        label_id_dict: Optional[Dict[Text, int]] = None,
-        label_attribute: Optional[Text] = None,
-        training: bool = True,
+            self,
+            training_data: List[Message],
+            label_id_dict: Optional[Dict[Text, int]] = None,
+            label_attribute: Optional[Text] = None,
+            training: bool = True,
     ) -> RasaModelData:
         """Prepare data for training and create a RasaModelData object."""
         from rasa.utils.tensorflow import model_data_utils
@@ -704,9 +711,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             # training
             attributes_to_consider.append(label_attribute)
         if (
-            training
-            and self.component_config[ENTITY_RECOGNITION]
-            and self._entity_tag_specs
+                training
+                and self.component_config[ENTITY_RECOGNITION]
+                and self._entity_tag_specs
         ):
             # Add entities as labels only during training and only if there was
             # training data added for entities with DIET configured to predict entities.
@@ -770,8 +777,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @staticmethod
     def _remove_label_sparse_feature_sizes(
-        sparse_feature_sizes: Dict[Text, Dict[Text, List[int]]],
-        label_attribute: Optional[Text] = None,
+            sparse_feature_sizes: Dict[Text, Dict[Text, List[int]]],
+            label_attribute: Optional[Text] = None,
     ) -> Dict[Text, Dict[Text, List[int]]]:
 
         if label_attribute in sparse_feature_sizes:
@@ -779,12 +786,12 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return sparse_feature_sizes
 
     def _add_label_features(
-        self,
-        model_data: RasaModelData,
-        training_data: List[Message],
-        label_attribute: Text,
-        label_id_dict: Dict[Text, int],
-        training: bool = True,
+            self,
+            model_data: RasaModelData,
+            training_data: List[Message],
+            label_attribute: Text,
+            label_id_dict: Dict[Text, int],
+            training: bool = True,
     ) -> None:
         label_ids = []
         if training and self.component_config[INTENT_CLASSIFICATION]:
@@ -805,9 +812,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             )
 
         if (
-            label_attribute
-            and model_data.does_feature_not_exist(label_attribute, SENTENCE)
-            and model_data.does_feature_not_exist(label_attribute, SEQUENCE)
+                label_attribute
+                and model_data.does_feature_not_exist(label_attribute, SENTENCE)
+                and model_data.does_feature_not_exist(label_attribute, SEQUENCE)
         ):
             # no label features are present, get default features from _label_data
             model_data.add_features(
@@ -946,7 +953,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     # process helpers
     def _predict(
-        self, message: Message
+            self, message: Message
     ) -> Optional[Dict[Text, Union[tf.Tensor, Dict[Text, tf.Tensor]]]]:
         if self.model is None:
             logger.debug(
@@ -963,7 +970,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return self.model.run_inference(model_data)
 
     def _predict_label(
-        self, predict_out: Optional[Dict[Text, tf.Tensor]]
+            self, predict_out: Optional[Dict[Text, tf.Tensor]]
     ) -> Tuple[Dict[Text, Any], List[Dict[Text, Any]]]:
         """Predicts the intent of the provided message."""
         label: Dict[Text, Any] = {"name": None, "confidence": 0.0}
@@ -982,8 +989,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         # rank the confidences
         ranking_length = self.component_config[RANKING_LENGTH]
         renormalize = (
-            self.component_config[RENORMALIZE_CONFIDENCES]
-            and self.component_config[MODEL_CONFIDENCE] == SOFTMAX
+                self.component_config[RENORMALIZE_CONFIDENCES]
+                and self.component_config[MODEL_CONFIDENCE] == SOFTMAX
         )
         ranked_label_indices, message_sim = train_utils.rank_and_mask(
             message_sim, ranking_length=ranking_length, renormalize=renormalize
@@ -1006,7 +1013,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return label, label_ranking
 
     def _predict_entities(
-        self, predict_out: Optional[Dict[Text, tf.Tensor]], message: Message
+            self, predict_out: Optional[Dict[Text, tf.Tensor]], message: Message
     ) -> List[Dict]:
         if predict_out is None:
             return []
@@ -1098,12 +1105,12 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def load(
-        cls: Type[DIETClassifierT],
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
-        **kwargs: Any,
+            cls: Type[DIETClassifierT],
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
+            **kwargs: Any,
     ) -> DIETClassifierT:
         """Loads a policy from the storage (see parent class for full docstring)."""
         try:
@@ -1120,12 +1127,12 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def _load(
-        cls: Type[DIETClassifierT],
-        model_path: Path,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls: Type[DIETClassifierT],
+            model_path: Path,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> DIETClassifierT:
         """Loads the trained model from the provided directory."""
         (
@@ -1161,7 +1168,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def _load_from_files(
-        cls, model_path: Path
+            cls, model_path: Path
     ) -> Tuple[
         Dict[int, Text],
         List[EntityTagSpec],
@@ -1214,13 +1221,13 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def _load_model(
-        cls,
-        entity_tag_specs: List[EntityTagSpec],
-        label_data: RasaModelData,
-        config: Dict[Text, Any],
-        data_example: Dict[Text, Dict[Text, List[FeatureArray]]],
-        model_path: Path,
-        finetune_mode: bool = False,
+            cls,
+            entity_tag_specs: List[EntityTagSpec],
+            label_data: RasaModelData,
+            config: Dict[Text, Any],
+            data_example: Dict[Text, Dict[Text, List[FeatureArray]]],
+            model_path: Path,
+            finetune_mode: bool = False,
     ) -> "RasaModel":
         file_name = cls.__name__
         tf_model_file = model_path / f"{file_name}.tf_model"
@@ -1245,13 +1252,13 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def _load_model_class(
-        cls,
-        tf_model_file: Text,
-        model_data_example: RasaModelData,
-        label_data: RasaModelData,
-        entity_tag_specs: List[EntityTagSpec],
-        config: Dict[Text, Any],
-        finetune_mode: bool,
+            cls,
+            tf_model_file: Text,
+            model_data_example: RasaModelData,
+            label_data: RasaModelData,
+            entity_tag_specs: List[EntityTagSpec],
+            config: Dict[Text, Any],
+            finetune_mode: bool,
     ) -> "RasaModel":
 
         predict_data_example = RasaModelData(
@@ -1285,11 +1292,11 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
 class DIET(TransformerRasaModel):
     def __init__(
-        self,
-        data_signature: Dict[Text, Dict[Text, List[FeatureSignature]]],
-        label_data: RasaModelData,
-        entity_tag_specs: Optional[List[EntityTagSpec]],
-        config: Dict[Text, Any],
+            self,
+            data_signature: Dict[Text, Dict[Text, List[FeatureSignature]]],
+            label_data: RasaModelData,
+            entity_tag_specs: Optional[List[EntityTagSpec]],
+            config: Dict[Text, Any],
     ) -> None:
         # create entity tag spec before calling super otherwise building the model
         # will fail
@@ -1313,7 +1320,7 @@ class DIET(TransformerRasaModel):
 
     @staticmethod
     def _ordered_tag_specs(
-        entity_tag_specs: Optional[List[EntityTagSpec]],
+            entity_tag_specs: Optional[List[EntityTagSpec]],
     ) -> List[EntityTagSpec]:
         """Ensure that order of entity tag specs matches CRF layer order."""
         if entity_tag_specs is None:
@@ -1351,20 +1358,20 @@ class DIET(TransformerRasaModel):
                 different_sentence_signatures = False
                 different_sequence_signatures = False
                 if (
-                    SENTENCE in self.data_signature[TEXT]
-                    and SENTENCE in self.data_signature[LABEL]
+                        SENTENCE in self.data_signature[TEXT]
+                        and SENTENCE in self.data_signature[LABEL]
                 ):
                     different_sentence_signatures = (
-                        self.data_signature[TEXT][SENTENCE]
-                        != self.data_signature[LABEL][SENTENCE]
+                            self.data_signature[TEXT][SENTENCE]
+                            != self.data_signature[LABEL][SENTENCE]
                     )
                 if (
-                    SEQUENCE in self.data_signature[TEXT]
-                    and SEQUENCE in self.data_signature[LABEL]
+                        SEQUENCE in self.data_signature[TEXT]
+                        and SEQUENCE in self.data_signature[LABEL]
                 ):
                     different_sequence_signatures = (
-                        self.data_signature[TEXT][SEQUENCE]
-                        != self.data_signature[LABEL][SEQUENCE]
+                            self.data_signature[TEXT][SEQUENCE]
+                            != self.data_signature[LABEL][SEQUENCE]
                     )
 
                 if different_sentence_signatures or different_sequence_signatures:
@@ -1374,8 +1381,8 @@ class DIET(TransformerRasaModel):
                     )
 
         if self.config[ENTITY_RECOGNITION] and (
-            ENTITIES not in self.data_signature
-            or ENTITY_ATTRIBUTE_TYPE not in self.data_signature[ENTITIES]
+                ENTITIES not in self.data_signature
+                or ENTITY_ATTRIBUTE_TYPE not in self.data_signature[ENTITIES]
         ):
             logger.debug(
                 f"You specified '{self.__class__.__name__}' to train entities, but "
@@ -1490,11 +1497,11 @@ class DIET(TransformerRasaModel):
         self._prepare_dot_product_loss(f"{name}_mask", scale_loss=False)
 
     def _create_bow(
-        self,
-        sequence_features: List[Union[tf.Tensor, tf.SparseTensor]],
-        sentence_features: List[Union[tf.Tensor, tf.SparseTensor]],
-        sequence_feature_lengths: tf.Tensor,
-        name: Text,
+            self,
+            sequence_features: List[Union[tf.Tensor, tf.SparseTensor]],
+            sentence_features: List[Union[tf.Tensor, tf.SparseTensor]],
+            sequence_feature_lengths: tf.Tensor,
+            name: Text,
     ) -> tf.Tensor:
 
         x, _ = self._tf_layers[f"feature_combining_layer.{name}"](
@@ -1525,12 +1532,12 @@ class DIET(TransformerRasaModel):
         return all_label_ids, all_labels_embed
 
     def _mask_loss(
-        self,
-        outputs: tf.Tensor,
-        inputs: tf.Tensor,
-        seq_ids: tf.Tensor,
-        mlm_mask_boolean: tf.Tensor,
-        name: Text,
+            self,
+            outputs: tf.Tensor,
+            inputs: tf.Tensor,
+            seq_ids: tf.Tensor,
+            mlm_mask_boolean: tf.Tensor,
+            name: Text,
     ) -> tf.Tensor:
         # make sure there is at least one element in the mask
         mlm_mask_boolean = tf.cond(
@@ -1567,7 +1574,7 @@ class DIET(TransformerRasaModel):
         )
 
     def _calculate_label_loss(
-        self, text_features: tf.Tensor, label_features: tf.Tensor, label_ids: tf.Tensor
+            self, text_features: tf.Tensor, label_features: tf.Tensor, label_ids: tf.Tensor
     ) -> tf.Tensor:
         all_label_ids, all_labels_embed = self._create_all_labels()
 
@@ -1579,7 +1586,7 @@ class DIET(TransformerRasaModel):
         )
 
     def batch_loss(
-        self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
+            self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
     ) -> tf.Tensor:
         """Calculates the loss for the given batch.
 
@@ -1620,7 +1627,7 @@ class DIET(TransformerRasaModel):
         )
 
         combined_sequence_sentence_feature_lengths = (
-            sequence_feature_lengths + sentence_feature_lengths
+                sequence_feature_lengths + sentence_feature_lengths
         )
 
         if self.config[MASKED_LM] and self._training:
@@ -1650,10 +1657,10 @@ class DIET(TransformerRasaModel):
         return tf.math.add_n(losses)
 
     def _batch_loss_intent(
-        self,
-        combined_sequence_sentence_feature_lengths_text: tf.Tensor,
-        text_transformed: tf.Tensor,
-        tf_batch_data: Dict[Text, Dict[Text, List[tf.Tensor]]],
+            self,
+            combined_sequence_sentence_feature_lengths_text: tf.Tensor,
+            text_transformed: tf.Tensor,
+            tf_batch_data: Dict[Text, Dict[Text, List[tf.Tensor]]],
     ) -> tf.Tensor:
         # get sentence features vector for intent classification
         sentence_vector = self._last_token(
@@ -1683,11 +1690,11 @@ class DIET(TransformerRasaModel):
         self.intent_acc.update_state(acc)
 
     def _batch_loss_entities(
-        self,
-        mask_combined_sequence_sentence: tf.Tensor,
-        sequence_feature_lengths: tf.Tensor,
-        text_transformed: tf.Tensor,
-        tf_batch_data: Dict[Text, Dict[Text, List[tf.Tensor]]],
+            self,
+            mask_combined_sequence_sentence: tf.Tensor,
+            sequence_feature_lengths: tf.Tensor,
+            text_transformed: tf.Tensor,
+            tf_batch_data: Dict[Text, Dict[Text, List[tf.Tensor]]],
     ) -> List[tf.Tensor]:
         losses = []
 
@@ -1725,7 +1732,7 @@ class DIET(TransformerRasaModel):
         return losses
 
     def _update_entity_metrics(
-        self, loss: tf.Tensor, f1: tf.Tensor, tag_name: Text
+            self, loss: tf.Tensor, f1: tf.Tensor, tag_name: Text
     ) -> None:
         if tag_name == ENTITY_ATTRIBUTE_TYPE:
             self.entity_loss.update_state(loss)
@@ -1743,7 +1750,7 @@ class DIET(TransformerRasaModel):
             _, self.all_labels_embed = self._create_all_labels()
 
     def batch_predict(
-        self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
+            self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
     ) -> Dict[Text, tf.Tensor]:
         """Predicts the output of the given batch.
 
@@ -1797,7 +1804,7 @@ class DIET(TransformerRasaModel):
         return predictions
 
     def _batch_predict_entities(
-        self, sequence_feature_lengths: tf.Tensor, text_transformed: tf.Tensor
+            self, sequence_feature_lengths: tf.Tensor, text_transformed: tf.Tensor
     ) -> Dict[Text, tf.Tensor]:
         predictions: Dict[Text, tf.Tensor] = {}
 
@@ -1833,9 +1840,9 @@ class DIET(TransformerRasaModel):
         return predictions
 
     def _batch_predict_intents(
-        self,
-        combined_sequence_sentence_feature_lengths: tf.Tensor,
-        text_transformed: tf.Tensor,
+            self,
+            combined_sequence_sentence_feature_lengths: tf.Tensor,
+            text_transformed: tf.Tensor,
     ) -> Dict[Text, tf.Tensor]:
 
         if self.all_labels_embed is None:

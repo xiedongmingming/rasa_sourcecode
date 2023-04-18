@@ -110,10 +110,10 @@ class AWSPersistor(Persistor):
     Fetches them when needed, instead of storing them on the local disk."""
 
     def __init__(
-        self,
-        bucket_name: Text,
-        endpoint_url: Optional[Text] = None,
-        region_name: Optional[Text] = None,
+            self,
+            bucket_name: Text,
+            endpoint_url: Optional[Text] = None,
+            region_name: Optional[Text] = None,
     ) -> None:
         import boto3
 
@@ -126,7 +126,7 @@ class AWSPersistor(Persistor):
         self.bucket = self.s3.Bucket(bucket_name)
 
     def _ensure_bucket_exists(
-        self, bucket_name: Text, region_name: Optional[Text] = None
+            self, bucket_name: Text, region_name: Optional[Text] = None
     ) -> None:
         import boto3
         import botocore
@@ -201,7 +201,7 @@ class AzurePersistor(Persistor):
     """Store models on Azure"""
 
     def __init__(
-        self, azure_container: Text, azure_account_name: Text, azure_account_key: Text
+            self, azure_container: Text, azure_account_name: Text, azure_account_key: Text
     ) -> None:
         from azure.storage.blob import BlobServiceClient
 

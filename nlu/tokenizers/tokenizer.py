@@ -25,12 +25,12 @@ class Token:
     """Used by `Tokenizers` which split a single message into multiple `Token`s."""
 
     def __init__(
-        self,
-        text: Text,
-        start: int,
-        end: Optional[int] = None,
-        data: Optional[Dict[Text, Any]] = None,
-        lemma: Optional[Text] = None,
+            self,
+            text: Text,
+            start: int,
+            end: Optional[int] = None,
+            data: Optional[Dict[Text, Any]] = None,
+            lemma: Optional[Text] = None,
     ) -> None:
         """Create a `Token`.
 
@@ -88,10 +88,14 @@ class Token:
 
 
 class Tokenizer(GraphComponent, abc.ABC):
-    """Base class for tokenizers."""
+    """
+    Base class for tokenizers.
+    """
 
     def __init__(self, config: Dict[Text, Any]) -> None:
-        """Construct a new tokenizer."""
+        """
+        Construct a new tokenizer.
+        """
         self._config = config
         # flag to check whether to split intents
         self.intent_tokenization_flag = config["intent_tokenization_flag"]
@@ -105,11 +109,11 @@ class Tokenizer(GraphComponent, abc.ABC):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> GraphComponent:
         """Creates a new component (see parent class for full docstring)."""
         return cls(config)
@@ -124,8 +128,8 @@ class Tokenizer(GraphComponent, abc.ABC):
         for example in training_data.training_examples:
             for attribute in MESSAGE_ATTRIBUTES:
                 if (
-                    example.get(attribute) is not None
-                    and not example.get(attribute) == ""
+                        example.get(attribute) is not None
+                        and not example.get(attribute) == ""
                 ):
                     if attribute in [INTENT, ACTION_NAME, INTENT_RESPONSE_KEY]:
                         tokens = self._split_name(example, attribute)
