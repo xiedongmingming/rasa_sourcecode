@@ -323,7 +323,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         self.model = model
 
         self.tmp_checkpoint_dir = None
-        
+
         if self.component_config[CHECKPOINT_MODEL]:
             self.tmp_checkpoint_dir = Path(rasa.utils.io.create_temporary_directory())
 
