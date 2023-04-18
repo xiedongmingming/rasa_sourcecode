@@ -71,7 +71,7 @@ def get_nlu_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
 
 
 def get_data_files(
-    paths: Optional[Union[Text, List[Text]]], filter_predicate: Callable[[Text], bool]
+        paths: Optional[Union[Text, List[Text]]], filter_predicate: Callable[[Text], bool]
 ) -> List[Text]:
     """Recursively collects all training files from a list of paths.
 
@@ -104,7 +104,7 @@ def get_data_files(
 
 
 def _find_data_files_in_directory(
-    directory: Text, filter_property: Callable[[Text], bool]
+        directory: Text, filter_property: Callable[[Text], bool]
 ) -> Set[Text]:
     filtered_files = set()
 
@@ -175,7 +175,9 @@ def _copy_files_to_new_dir(files: Iterable[Text]) -> Text:
 
 
 class TrainingType(Enum):
-    """Enum class for defining explicitly what training types exist."""
+    """
+    Enum class for defining explicitly what training types exist.
+    """
 
     NLU = 1
     CORE = 2
@@ -184,9 +186,12 @@ class TrainingType(Enum):
 
     @property
     def model_type(self) -> Text:
-        """Returns the type of model which this training yields."""
+        """
+        Returns the type of model which this training yields.
+        """
         if self == TrainingType.NLU:
             return "nlu"
         if self == TrainingType.CORE:
             return "core"
+
         return "rasa"

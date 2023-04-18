@@ -7,10 +7,10 @@ from rasa.engine.storage.storage import ModelMetadata, ModelStorage
 
 
 def load_predict_graph_runner(
-    storage_path: Path,
-    model_archive_path: Path,
-    model_storage_class: Type[ModelStorage],
-    graph_runner_class: Type[GraphRunner],
+        storage_path: Path,
+        model_archive_path: Path,
+        model_storage_class: Type[ModelStorage],
+        graph_runner_class: Type[GraphRunner],
 ) -> Tuple[ModelMetadata, GraphRunner]:
     """Loads a model from an archive and creates the prediction graph runner.
 

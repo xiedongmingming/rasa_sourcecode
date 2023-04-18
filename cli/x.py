@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_subparser(
-    subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     """Add all rasa x parsers.
 
@@ -51,10 +51,10 @@ def add_subparser(
 
 
 def _rasa_service(
-    args: argparse.Namespace,
-    endpoints: AvailableEndpoints,
-    rasa_x_url: Optional[Text] = None,
-    credentials_path: Optional[Text] = None,
+        args: argparse.Namespace,
+        endpoints: AvailableEndpoints,
+        rasa_x_url: Optional[Text] = None,
+        credentials_path: Optional[Text] = None,
 ) -> None:
     """Starts the Rasa application."""
     from rasa.core.run import serve_application
@@ -85,7 +85,7 @@ def _rasa_service(
 
 
 def _prepare_credentials_for_rasa_x(
-    credentials_path: Optional[Text], rasa_x_url: Optional[Text] = None
+        credentials_path: Optional[Text], rasa_x_url: Optional[Text] = None
 ) -> Text:
     if credentials_path:
         credentials_path = str(
@@ -126,10 +126,10 @@ def rasa_x(args: argparse.Namespace) -> None:
 
 
 async def _pull_runtime_config_from_server(
-    config_endpoint: Optional[Text],
-    attempts: int = 60,
-    wait_time_between_pulls: float = 5,
-    keys: Iterable[Text] = ("endpoints", "credentials"),
+        config_endpoint: Optional[Text],
+        attempts: int = 60,
+        wait_time_between_pulls: float = 5,
+        keys: Iterable[Text] = ("endpoints", "credentials"),
 ) -> List[Text]:
     """Pull runtime config from `config_endpoint`.
 
@@ -183,7 +183,7 @@ def run_in_enterprise_connection_mode(args: argparse.Namespace) -> None:
 
 
 def _get_credentials_and_endpoints_paths(
-    args: argparse.Namespace,
+        args: argparse.Namespace,
 ) -> Tuple[Optional[Text], Optional[Text]]:
     config_endpoint = args.config_endpoint
     endpoints_config_path: Optional[Union[Path, Text]]

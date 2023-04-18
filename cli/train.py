@@ -1,9 +1,11 @@
 import argparse
 import os
 import sys
+
 from typing import Dict, List, Optional, Text, TYPE_CHECKING, Union
 
 from rasa.cli import SubParsersAction
+
 import rasa.cli.arguments.train as train_arguments
 
 import rasa.cli.utils
@@ -74,8 +76,7 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
     Args:
         args: Namespace arguments.
-        can_exit: If `True`, the operation can send `sys.exit` in the case
-            training was not successful.
+        can_exit: If `True`, the operation can send `sys.exit` in the case training was not successful.
 
     Returns:
         Path to a trained model or `None` if training was not successful.
@@ -83,14 +84,20 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     from rasa import train as train_all
 
     domain = rasa.cli.utils.get_validated_path(
-        args.domain, "domain", DEFAULT_DOMAIN_PATH, none_is_valid=True
+        args.domain,
+        "domain",
+        DEFAULT_DOMAIN_PATH,
+        none_is_valid=True
     )
 
     config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS)
 
     training_files = [
         rasa.cli.utils.get_validated_path(
-            f, "data", DEFAULT_DATA_PATH, none_is_valid=True
+            f,
+            "data",
+            DEFAULT_DATA_PATH,
+            none_is_valid=True
         )
         for f in args.data
     ]
@@ -109,7 +116,9 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
         model_to_finetune=_model_for_finetuning(args),
         finetuning_epoch_fraction=args.epoch_fraction,
     )
+
     if training_result.code != 0 and can_exit:
+        #
         sys.exit(training_result.code)
 
     return training_result.model
@@ -234,7 +243,8 @@ def _get_valid_config(
         mandatory_keys: List[Text],
         default_config: Text = DEFAULT_CONFIG_PATH,
 ) -> Text:
-    """Get a config from a config file and check if it is valid.
+    """
+    Get a config from a config file and check if it is valid.
 
     Exit if the config isn't valid.
 
@@ -253,15 +263,18 @@ def _get_valid_config(
             "valid config file."
             "".format(config)
         )
+
         sys.exit(1)
 
     missing_keys = rasa.cli.utils.missing_config_keys(config, mandatory_keys)
+
     if missing_keys:
         print_error(
             "The config file '{}' is missing mandatory parameters: "
             "'{}'. Add missing parameters to config file and try again."
             "".format(config, "', '".join(missing_keys))
         )
+
         sys.exit(1)
 
     return str(config)

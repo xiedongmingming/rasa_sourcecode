@@ -135,7 +135,8 @@ def train(
         model_to_finetune: Optional[Text] = None,
         finetuning_epoch_fraction: float = 1.0,
 ) -> TrainingResult:
-    """Trains a Rasa model (Core and NLU).
+    """
+    Trains a Rasa model (Core and NLU).
 
     Args:
         domain: Path to the domain file.
@@ -169,41 +170,53 @@ def train(
     training_type = TrainingType.BOTH
 
     if nlu_data.has_e2e_examples():
+        #
         rasa.shared.utils.common.mark_as_experimental_feature("end-to-end training")
+
         training_type = TrainingType.END_TO_END
 
     if stories.is_empty() and nlu_data.contains_no_pure_nlu_data():
+        #
         rasa.shared.utils.cli.print_error(
             "No training data given. Please provide stories and NLU data in "
             "order to train a Rasa model using the '--data' argument."
         )
+
         return TrainingResult(code=1)
 
     domain_object = file_importer.get_domain()
+
     if domain_object.is_empty():
+
         rasa.shared.utils.cli.print_warning(
             "Core training was skipped because no valid domain file was found. "
             "Only an NLU-model was created. Please specify a valid domain using "
             "the '--domain' argument or check if the provided domain file exists."
         )
+
         training_type = TrainingType.NLU
 
     elif stories.is_empty():
+
         rasa.shared.utils.cli.print_warning(
             "No stories present. Just a Rasa NLU model will be trained."
         )
+
         training_type = TrainingType.NLU
 
     # We will train nlu if there are any nlu example, including from e2e stories.
     elif nlu_data.contains_no_pure_nlu_data() and not nlu_data.has_e2e_examples():
+
         rasa.shared.utils.cli.print_warning(
             "No NLU data present. Just a Rasa Core model will be trained."
         )
+
         training_type = TrainingType.CORE
 
     _check_unresolved_slots(domain_object, stories)
 
     with telemetry.track_model_training(file_importer, model_type="rasa"):
+
         return _train_graph(
             file_importer,
             training_type=training_type,
@@ -229,9 +242,13 @@ def _train_graph(
         dry_run: bool = False,
         **kwargs: Any,
 ) -> TrainingResult:
+    #
     if model_to_finetune:
+
         model_to_finetune = rasa.model.get_model_for_finetuning(model_to_finetune)
+
         if not model_to_finetune:
+            #
             rasa.shared.utils.cli.print_error_and_exit(
                 f"No model for finetuning found. Please make sure to either "
                 f"specify a path to a previous model or to have a finetunable "
@@ -245,18 +262,22 @@ def _train_graph(
     is_finetuning = model_to_finetune is not None
 
     config = file_importer.get_config()
+
     recipe = Recipe.recipe_for_name(config.get("recipe"))
+
     config, _missing_keys, _configured_keys = recipe.auto_configure(
         file_importer.get_config_file_for_auto_config(),
         config,
         training_type,
     )
+
     model_configuration = recipe.graph_config_for_recipe(
         config,
         kwargs,
         training_type=training_type,
         is_finetuning=is_finetuning,
     )
+
     rasa.engine.validation.validate(model_configuration)
 
     tempdir_name = rasa.utils.common.get_temp_dir_name()
@@ -265,24 +286,30 @@ def _train_graph(
     # leads to errors on Windows when the context manager tries to delete an
     # already deleted temporary directory (e.g. https://bugs.python.org/issue29982)
     with rasa.utils.common.TempDirectoryPath(tempdir_name) as temp_model_dir:
+
         model_storage = _create_model_storage(
             is_finetuning, model_to_finetune, Path(temp_model_dir)
         )
+
         cache = LocalTrainingCache()
+
         trainer = GraphTrainer(model_storage, cache, DaskGraphRunner)
 
         if dry_run:
             fingerprint_status = trainer.fingerprint(
                 model_configuration.train_schema, file_importer
             )
+
             return _dry_run_result(fingerprint_status, force_full_training)
 
         model_name = _determine_model_name(fixed_model_name, training_type)
+
         full_model_path = Path(output_path, model_name)
 
         with telemetry.track_model_training(
                 file_importer, model_type=training_type.model_type
         ):
+            #
             trainer.train(
                 model_configuration,
                 file_importer,
@@ -290,6 +317,7 @@ def _train_graph(
                 force_retraining=force_full_training,
                 is_finetuning=is_finetuning,
             )
+
             rasa.shared.utils.cli.print_success(
                 f"Your Rasa model is trained and saved at '{full_model_path}'."
             )

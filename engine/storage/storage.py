@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 class ModelStorage(abc.ABC):
-    """Serves as storage backend for `GraphComponents` which need persistence."""
+    """
+    Serves as storage backend for `GraphComponents` which need persistence.
+    """
 
     @classmethod
     @abc.abstractmethod
@@ -37,7 +39,7 @@ class ModelStorage(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def from_model_archive(
-        cls, storage_path: Path, model_archive_path: Union[Text, Path]
+            cls, storage_path: Path, model_archive_path: Union[Text, Path]
     ) -> Tuple[ModelStorage, ModelMetadata]:
         """Unpacks a model archive and initializes a `ModelStorage`.
 
@@ -56,7 +58,7 @@ class ModelStorage(abc.ABC):
 
     @classmethod
     def metadata_from_archive(
-        cls, model_archive_path: Union[Text, Path]
+            cls, model_archive_path: Union[Text, Path]
     ) -> ModelMetadata:
         """Retrieves metadata from archive.
 
@@ -105,10 +107,10 @@ class ModelStorage(abc.ABC):
         ...
 
     def create_model_package(
-        self,
-        model_archive_path: Union[Text, Path],
-        model_configuration: GraphModelConfiguration,
-        domain: Domain,
+            self,
+            model_archive_path: Union[Text, Path],
+            model_configuration: GraphModelConfiguration,
+            domain: Domain,
     ) -> ModelMetadata:
         """Creates a model archive containing all data to load and run the model.
 

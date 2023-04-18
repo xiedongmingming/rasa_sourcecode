@@ -22,9 +22,9 @@ class Fingerprintable(Protocol):
 
 
 def calculate_fingerprint_key(
-    graph_component_class: Type[GraphComponent],
-    config: Dict[Text, Any],
-    inputs: Dict[Text, Fingerprintable],
+        graph_component_class: Type[GraphComponent],
+        config: Dict[Text, Any],
+        inputs: Dict[Text, Fingerprintable],
 ) -> Text:
     """Calculates a fingerprint key that uniquely represents a single node's execution.
 

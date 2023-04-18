@@ -12,15 +12,18 @@ logger = logging.getLogger(__name__)
 
 
 class TrainingHook(GraphNodeHook):
-    """Caches fingerprints and outputs of nodes during model training."""
+    """
+    Caches fingerprints and outputs of nodes during model training.
+    """
 
     def __init__(
-        self,
-        cache: TrainingCache,
-        model_storage: ModelStorage,
-        pruned_schema: GraphSchema,
+            self,
+            cache: TrainingCache,
+            model_storage: ModelStorage,
+            pruned_schema: GraphSchema,
     ) -> None:
-        """Initializes a `TrainingHook`.
+        """
+        Initializes a `TrainingHook`.
 
         Args:
             cache: Cache used to store fingerprints and outputs.
@@ -32,13 +35,15 @@ class TrainingHook(GraphNodeHook):
         self._pruned_schema = pruned_schema
 
     def on_before_node(
-        self,
-        node_name: Text,
-        execution_context: ExecutionContext,
-        config: Dict[Text, Any],
-        received_inputs: Dict[Text, Any],
+            self,
+            node_name: Text,
+            execution_context: ExecutionContext,
+            config: Dict[Text, Any],
+            received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """Calculates the run fingerprint for use in `on_after_node`."""
+        """
+        Calculates the run fingerprint for use in `on_after_node`.
+        """
         graph_component_class = self._get_graph_component_class(
             execution_context, node_name
         )
@@ -52,14 +57,16 @@ class TrainingHook(GraphNodeHook):
         return {"fingerprint_key": fingerprint_key}
 
     def on_after_node(
-        self,
-        node_name: Text,
-        execution_context: ExecutionContext,
-        config: Dict[Text, Any],
-        output: Any,
-        input_hook_data: Dict,
+            self,
+            node_name: Text,
+            execution_context: ExecutionContext,
+            config: Dict[Text, Any],
+            output: Any,
+            input_hook_data: Dict,
     ) -> None:
-        """Stores the fingerprints and caches the output of the node."""
+        """
+        Stores the fingerprints and caches the output of the node.
+        """
         # We should not re-cache the output of a PrecomputedValueProvider.
         graph_component_class = self._pruned_schema.nodes[node_name].uses
 
@@ -83,17 +90,20 @@ class TrainingHook(GraphNodeHook):
 
     @staticmethod
     def _get_graph_component_class(
-        execution_context: ExecutionContext, node_name: Text
+            execution_context: ExecutionContext, node_name: Text
     ) -> Type:
         graph_component_class = execution_context.graph_schema.nodes[node_name].uses
         return graph_component_class
 
 
 class LoggingHook(GraphNodeHook):
-    """Logs the training of components."""
+    """
+    Logs the training of components.
+    """
 
     def __init__(self, pruned_schema: GraphSchema) -> None:
-        """Creates hook.
+        """
+        Creates hook.
 
         Args:
             pruned_schema: The pruned schema provides us with the information whether
@@ -102,13 +112,15 @@ class LoggingHook(GraphNodeHook):
         self._pruned_schema = pruned_schema
 
     def on_before_node(
-        self,
-        node_name: Text,
-        execution_context: ExecutionContext,
-        config: Dict[Text, Any],
-        received_inputs: Dict[Text, Any],
+            self,
+            node_name: Text,
+            execution_context: ExecutionContext,
+            config: Dict[Text, Any],
+            received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """Logs the training start of a graph node."""
+        """
+        Logs the training start of a graph node.
+        """
         node = self._pruned_schema.nodes[node_name]
 
         if not self._is_cached_node(node) and self._does_node_train(node):
@@ -128,12 +140,12 @@ class LoggingHook(GraphNodeHook):
         return node.uses == PrecomputedValueProvider
 
     def on_after_node(
-        self,
-        node_name: Text,
-        execution_context: ExecutionContext,
-        config: Dict[Text, Any],
-        output: Any,
-        input_hook_data: Dict,
+            self,
+            node_name: Text,
+            execution_context: ExecutionContext,
+            config: Dict[Text, Any],
+            output: Any,
+            input_hook_data: Dict,
     ) -> None:
         """Logs when a component finished its training."""
         node = self._pruned_schema.nodes[node_name]

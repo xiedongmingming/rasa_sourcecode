@@ -45,14 +45,14 @@ def get_validated_path(
         default: Optional[Union["Path", Text]] = None,
         none_is_valid: bool = False,
 ) -> Optional[Union["Path", Text]]:
-    """Checks whether a file path or its default value is valid and returns it.
+    """
+    Checks whether a file path or its default value is valid and returns it.
 
     Args:
         current: The parsed value.
         parameter: The name of the parameter.
         default: The default value of the parameter.
-        none_is_valid: `True` if `None` is valid value for the path,
-                        else `False``
+        none_is_valid: `True` if `None` is valid value for the path, else `False``
 
     Returns:
         The current value if it was valid, else the default value of the

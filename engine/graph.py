@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import dataclasses
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+
 import logging
+
 from typing import Any, Callable, Dict, List, Optional, Text, Type, Tuple
 
 from rasa.engine.exceptions import GraphComponentException, GraphSchemaException
+
 import rasa.shared.utils.common
 import rasa.utils.common
+
 from rasa.engine.storage.resource import Resource
 
 from rasa.engine.storage.storage import ModelStorage
@@ -20,7 +25,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SchemaNode:
-    """Represents one node in the schema.
+    """
+    Represents one node in the schema.
 
     Args:
         needs: describes which parameters in `fn` (or `constructor_name`
@@ -65,12 +71,15 @@ class SchemaNode:
 
 @dataclass
 class GraphSchema:
-    """Represents a graph for training a model or making predictions."""
+    """
+    Represents a graph for training a model or making predictions.
+    """
 
     nodes: Dict[Text, SchemaNode]
 
     def as_dict(self) -> Dict[Text, Any]:
-        """Returns graph schema in a serializable format.
+        """
+        Returns graph schema in a serializable format.
 
         Returns:
             The graph schema in a format which can be dumped as JSON or other formats.
@@ -88,7 +97,8 @@ class GraphSchema:
 
     @classmethod
     def from_dict(cls, serialized_graph_schema: Dict[Text, Any]) -> GraphSchema:
-        """Loads a graph schema which has been serialized using `schema.as_dict()`.
+        """
+        Loads a graph schema which has been serialized using `schema.as_dict()`.
 
         Args:
             serialized_graph_schema: A serialized graph schema.
@@ -126,11 +136,15 @@ class GraphSchema:
 
     @property
     def target_names(self) -> List[Text]:
-        """Returns the names of all target nodes."""
+        """
+        Returns the names of all target nodes.
+        """
         return [node_name for node_name, node in self.nodes.items() if node.is_target]
 
     def minimal_graph_schema(self, targets: Optional[List[Text]] = None) -> GraphSchema:
-        """Returns a new schema where all nodes are a descendant of a target."""
+        """
+        Returns a new schema where all nodes are a descendant of a target.
+        """
         dependencies = self._all_dependencies_schema(
             targets if targets else self.target_names
         )
@@ -144,14 +158,20 @@ class GraphSchema:
         )
 
     def _all_dependencies_schema(self, targets: List[Text]) -> List[Text]:
+
         required = []
+
         for target in targets:
+
             required.append(target)
+
             try:
                 target_dependencies = self.nodes[target].needs.values()
             except KeyError:  # This can happen if the target is an input placeholder.
                 continue
+
             for dependency in target_dependencies:
+                #
                 required += self._all_dependencies_schema([dependency])
 
         return required
@@ -261,7 +281,9 @@ class GraphComponent(ABC):
 
 
 class GraphNodeHook(ABC):
-    """Holds functionality to be run before and after a `GraphNode`."""
+    """
+    Holds functionality to be run before and after a `GraphNode`.
+    """
 
     @abstractmethod
     def on_before_node(
@@ -271,7 +293,8 @@ class GraphNodeHook(ABC):
             config: Dict[Text, Any],
             received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """Runs before the `GraphNode` executes.
+        """
+        Runs before the `GraphNode` executes.
 
         Args:
             node_name: The name of the node being run.
@@ -294,7 +317,8 @@ class GraphNodeHook(ABC):
             output: Any,
             input_hook_data: Dict,
     ) -> None:
-        """Runs after the `GraphNode` as executed.
+        """
+        Runs after the `GraphNode` as executed.
 
         Args:
             node_name: The name of the node that has run.
@@ -308,7 +332,9 @@ class GraphNodeHook(ABC):
 
 @dataclass
 class ExecutionContext:
-    """Holds information about a single graph run."""
+    """
+    Holds information about a single graph run.
+    """
 
     graph_schema: GraphSchema = field(repr=False)
     model_id: Optional[Text] = None
@@ -319,7 +345,8 @@ class ExecutionContext:
 
 
 class GraphNode:
-    """Instantiates and runs a `GraphComponent` within a graph.
+    """
+    Instantiates and runs a `GraphComponent` within a graph.
 
     A `GraphNode` is a wrapper for a `GraphComponent` that allows it to be executed
     in the context of a graph. It is responsible for instantiating the component at the

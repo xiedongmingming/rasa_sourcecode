@@ -51,10 +51,10 @@ def wrap_with_color(*args: Any, color: Text) -> Text:
 
 
 def raise_warning(
-    message: Text,
-    category: Optional[Type[Warning]] = None,
-    docs: Optional[Text] = None,
-    **kwargs: Any,
+        message: Text,
+        category: Optional[Type[Warning]] = None,
+        docs: Optional[Text] = None,
+        **kwargs: Any,
 ) -> None:
     """Emit a `warnings.warn` with sensible defaults and a colored warning msg."""
 
@@ -69,11 +69,11 @@ def raise_warning(
         return True
 
     def formatwarning(
-        message: Union[Warning, Text],
-        category: Type[Warning],
-        filename: Text,
-        lineno: int,
-        line: Optional[Text] = None,
+            message: Union[Warning, Text],
+            category: Type[Warning],
+            filename: Text,
+            lineno: int,
+            line: Optional[Text] = None,
     ) -> Text:
         """Function to format a warning the standard way."""
         if not should_show_source_line():
@@ -100,10 +100,10 @@ def raise_warning(
 
 
 def write_text_file(
-    content: Text,
-    file_path: Union[Text, Path],
-    encoding: Text = DEFAULT_ENCODING,
-    append: bool = False,
+        content: Text,
+        file_path: Union[Text, Path],
+        encoding: Text = DEFAULT_ENCODING,
+        append: bool = False,
 ) -> None:
     """Writes text to a file.
 
@@ -200,7 +200,7 @@ def list_subdirectories(path: Text) -> List[Text]:
 
 
 def deep_container_fingerprint(
-    obj: Union[List[Any], Dict[Any, Any], Any], encoding: Text = DEFAULT_ENCODING
+        obj: Union[List[Any], Dict[Any, Any], Any], encoding: Text = DEFAULT_ENCODING
 ) -> Text:
     """Calculate a hash which is stable.
 
@@ -227,7 +227,7 @@ def deep_container_fingerprint(
 
 
 def get_dictionary_fingerprint(
-    dictionary: Dict[Any, Any], encoding: Text = DEFAULT_ENCODING
+        dictionary: Dict[Any, Any], encoding: Text = DEFAULT_ENCODING
 ) -> Text:
     """Calculate the fingerprint for a dictionary.
 
@@ -254,7 +254,7 @@ def get_dictionary_fingerprint(
 
 
 def get_list_fingerprint(
-    elements: List[Any], encoding: Text = DEFAULT_ENCODING
+        elements: List[Any], encoding: Text = DEFAULT_ENCODING
 ) -> Text:
     """Calculate a fingerprint for an unordered list.
 
@@ -347,9 +347,9 @@ def read_yaml(content: Text, reader_type: Union[Text, List[Text]] = "safe") -> A
         # Required to make sure emojis are correctly parsed
         content = (
             content.encode("utf-8")
-            .decode("raw_unicode_escape")
-            .encode("utf-16", "surrogatepass")
-            .decode("utf-16")
+                .decode("raw_unicode_escape")
+                .encode("utf-16", "surrogatepass")
+                .decode("utf-16")
         )
 
     yaml_parser = yaml.YAML(typ=reader_type)
@@ -381,9 +381,9 @@ def read_yaml_file(filename: Union[Text, Path]) -> Union[List[Any], Dict[Text, A
 
 
 def write_yaml(
-    data: Any,
-    target: Union[Text, Path, StringIO],
-    should_preserve_key_order: bool = False,
+        data: Any,
+        target: Union[Text, Path, StringIO],
+        should_preserve_key_order: bool = False,
 ) -> None:
     """Writes a yaml to the file or to the stream
 
@@ -499,7 +499,7 @@ def dump_obj_as_json_to_file(filename: Union[Text, Path], obj: Any) -> None:
 
 
 def dump_obj_as_yaml_to_string(
-    obj: Any, should_preserve_key_order: bool = False
+        obj: Any, should_preserve_key_order: bool = False
 ) -> Text:
     """Writes data (python dict) to a yaml string.
 
@@ -531,10 +531,10 @@ def create_directory(directory_path: Text) -> None:
 
 
 def raise_deprecation_warning(
-    message: Text,
-    warn_until_version: Text = NEXT_MAJOR_VERSION_FOR_DEPRECATIONS,
-    docs: Optional[Text] = None,
-    **kwargs: Any,
+        message: Text,
+        warn_until_version: Text = NEXT_MAJOR_VERSION_FOR_DEPRECATIONS,
+        docs: Optional[Text] = None,
+        **kwargs: Any,
 ) -> None:
     """
     Thin wrapper around `raise_warning()` to raise a deprecation warning. It requires
@@ -553,7 +553,8 @@ def raise_deprecation_warning(
 
 
 def read_validated_yaml(filename: Union[Text, Path], schema: Text) -> Any:
-    """Validates YAML file content and returns parsed content.
+    """
+    Validates YAML file content and returns parsed content.
 
     Args:
         filename: The path to the file which should be read.
@@ -570,11 +571,13 @@ def read_validated_yaml(filename: Union[Text, Path], schema: Text) -> Any:
     content = read_file(filename)
 
     rasa.shared.utils.validation.validate_yaml_schema(content, schema)
+    
     return read_yaml(content)
 
 
 def read_config_file(filename: Union[Path, Text]) -> Dict[Text, Any]:
-    """Parses a yaml configuration file. Content needs to be a dictionary.
+    """
+    Parses a yaml configuration file. Content needs to be a dictionary.
 
     Args:
         filename: The path to the file which should be read.

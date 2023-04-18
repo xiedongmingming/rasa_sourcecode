@@ -17,7 +17,7 @@ from rasa.shared.constants import (
 
 
 def add_subparser(
-    subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     """Add all init parsers.
 
@@ -29,7 +29,7 @@ def add_subparser(
         "init",
         parents=parents,
         help="Creates a new project, with example training data, "
-        "actions, and config files.",
+             "actions, and config files.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     scaffold_parser.add_argument(
@@ -55,8 +55,8 @@ def print_train_or_instructions(args: argparse.Namespace) -> None:
 
     should_train = (
         questionary.confirm("Do you want to train an initial model? 💪🏽")
-        .skip_if(args.no_prompt, default=True)
-        .ask()
+            .skip_if(args.no_prompt, default=True)
+            .ask()
     )
 
     if should_train:
@@ -86,8 +86,8 @@ def print_run_or_instructions(args: argparse.Namespace) -> None:
         questionary.confirm(
             "Do you want to speak to the trained assistant on the command line? 🤖"
         )
-        .skip_if(args.no_prompt, default=False)
-        .ask()
+            .skip_if(args.no_prompt, default=False)
+            .ask()
     )
 
     if should_run:
@@ -210,8 +210,8 @@ def run(args: argparse.Namespace) -> None:
                 "Please enter a path where the project will be "
                 "created [default: current directory]"
             )
-            .skip_if(args.no_prompt, default="")
-            .ask()
+                .skip_if(args.no_prompt, default="")
+                .ask()
         )
         # set the default directory. we can't use the `default` property
         # in questionary as we want to avoid showing the "." in the prompt as the

@@ -11,7 +11,8 @@ from rasa.engine.training import fingerprinting
 
 
 class PrecomputedValueProvider(GraphComponent):
-    """Holds the precomputed values of a `GraphNode` from a previous training.
+    """
+    Holds the precomputed values of a `GraphNode` from a previous training.
 
     Pre-computed values can either be
     - values loaded from cache
@@ -19,7 +20,8 @@ class PrecomputedValueProvider(GraphComponent):
     """
 
     def __init__(self, output: Cacheable):
-        """Initializes a `PrecomputedValueProvider`.
+        """
+        Initializes a `PrecomputedValueProvider`.
 
         Args:
             output: The precomputed output to return.
@@ -28,11 +30,11 @@ class PrecomputedValueProvider(GraphComponent):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> PrecomputedValueProvider:
         """Creates instance (see parent class for full docstring)."""
         return cls(output=config["output"])
@@ -85,10 +87,10 @@ class FingerprintComponent(GraphComponent):
     """Replaces non-input nodes during a fingerprint run."""
 
     def __init__(
-        self,
-        cache: TrainingCache,
-        config_of_replaced_component: Dict[Text, Any],
-        class_of_replaced_component: Type,
+            self,
+            cache: TrainingCache,
+            config_of_replaced_component: Dict[Text, Any],
+            class_of_replaced_component: Type,
     ) -> None:
         """Initializes a `FingerprintComponent`.
 
@@ -103,11 +105,11 @@ class FingerprintComponent(GraphComponent):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> FingerprintComponent:
         """Creates a `FingerprintComponent` (see parent class for full docstring)."""
         return cls(

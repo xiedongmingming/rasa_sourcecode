@@ -1,16 +1,23 @@
 import argparse
 import logging
+
 from typing import List, TYPE_CHECKING
 
 import rasa.shared.core.domain
+
 from rasa import telemetry
 from rasa.cli import SubParsersAction
 from rasa.cli.arguments import data as arguments
 from rasa.cli.arguments import default_arguments
+
 import rasa.cli.utils
+
 from rasa.shared.constants import DEFAULT_DATA_PATH, DEFAULT_CONFIG_PATH
+
 import rasa.shared.data
+
 from rasa.shared.importers.importer import TrainingDataImporter
+
 import rasa.shared.nlu.training_data.loading
 import rasa.shared.nlu.training_data.util
 import rasa.shared.utils.cli
@@ -24,9 +31,10 @@ logger = logging.getLogger(__name__)
 
 
 def add_subparser(
-    subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all data parsers.
+    """
+    Add all data parsers.
 
     Args:
         subparsers: subparser we are going to attach to
@@ -50,8 +58,9 @@ def add_subparser(
 
 
 def _add_data_convert_parsers(
-    data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
+    
     convert_parser = data_subparsers.add_parser(
         "convert",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -72,7 +81,7 @@ def _add_data_convert_parsers(
 
 
 def _add_data_split_parsers(
-    data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     split_parser = data_subparsers.add_parser(
         "split",
@@ -88,7 +97,7 @@ def _add_data_split_parsers(
         parents=parents,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         help="Performs a split of your NLU data into training and test data "
-        "according to the specified percentages.",
+             "according to the specified percentages.",
     )
     nlu_split_parser.set_defaults(func=split_nlu_data)
 
@@ -96,7 +105,7 @@ def _add_data_split_parsers(
 
 
 def _add_data_validate_parsers(
-    data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     validate_parser = data_subparsers.add_parser(
         "validate",
@@ -173,9 +182,9 @@ def validate_files(args: argparse.Namespace, stories_only: bool = False) -> None
         all_good = _validate_story_structure(validator, args)
     else:
         all_good = (
-            _validate_domain(validator)
-            and _validate_nlu(validator, args)
-            and _validate_story_structure(validator, args)
+                _validate_domain(validator)
+                and _validate_nlu(validator, args)
+                and _validate_story_structure(validator, args)
         )
 
     telemetry.track_validate_files(all_good)
@@ -196,11 +205,11 @@ def validate_stories(args: argparse.Namespace) -> None:
 
 def _validate_domain(validator: "Validator") -> bool:
     return (
-        validator.verify_domain_validity()
-        and validator.verify_actions_in_stories_rules()
-        and validator.verify_forms_in_stories_rules()
-        and validator.verify_form_slots()
-        and validator.verify_slot_mappings()
+            validator.verify_domain_validity()
+            and validator.verify_actions_in_stories_rules()
+            and validator.verify_forms_in_stories_rules()
+            and validator.verify_form_slots()
+            and validator.verify_slot_mappings()
     )
 
 
@@ -237,7 +246,7 @@ def _convert_nlu_data(args: argparse.Namespace) -> None:
 
 
 def _add_data_migrate_parsers(
-    data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        data_subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     migrate_parser = data_subparsers.add_parser(
         "migrate",
