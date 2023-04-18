@@ -36,7 +36,6 @@ from rasa.shared.core.events import (
 from rasa.shared.core.trackers import DialogueStateTracker
 from rasa.shared.exceptions import RasaCoreException
 
-
 if typing.TYPE_CHECKING:
     import networkx as nx
 
@@ -76,7 +75,7 @@ class Checkpoint:
     """
 
     def __init__(
-        self, name: Text, conditions: Optional[Dict[Text, Any]] = None
+            self, name: Text, conditions: Optional[Dict[Text, Any]] = None
     ) -> None:
         """Creates `Checkpoint`.
 
@@ -92,7 +91,7 @@ class Checkpoint:
         return f"{self.name}{dumped_conds}"
 
     def filter_trackers(
-        self, trackers: List[DialogueStateTracker]
+            self, trackers: List[DialogueStateTracker]
     ) -> List[DialogueStateTracker]:
         """Filters out all trackers that do not satisfy the conditions."""
 
@@ -118,12 +117,12 @@ class StoryStep:
     """
 
     def __init__(
-        self,
-        block_name: Text,
-        start_checkpoints: Optional[List[Checkpoint]] = None,
-        end_checkpoints: Optional[List[Checkpoint]] = None,
-        events: Optional[List[Union[Event, List[Event]]]] = None,
-        source_name: Optional[Text] = None,
+            self,
+            block_name: Text,
+            start_checkpoints: Optional[List[Checkpoint]] = None,
+            end_checkpoints: Optional[List[Checkpoint]] = None,
+            events: Optional[List[Union[Event, List[Event]]]] = None,
+            source_name: Optional[Text] = None,
     ) -> None:
         """Initialise `StoryStep` default attributes."""
         self.end_checkpoints = end_checkpoints if end_checkpoints else []
@@ -208,10 +207,10 @@ class StoryStep:
 
         for event in self.events:
             if (
-                self.is_action_listen(event)
-                or self.is_action_session_start(event)
-                or self.is_action_unlikely_intent(event)
-                or isinstance(event, SessionStarted)
+                    self.is_action_listen(event)
+                    or self.is_action_session_start(event)
+                    or self.is_action_unlikely_intent(event)
+                    or isinstance(event, SessionStarted)
             ):
                 continue
 
@@ -246,8 +245,8 @@ class StoryStep:
     def is_action_unlikely_intent(event: Event) -> bool:
         """Checks if the executed action is a `action_unlikely_intent`."""
         return (
-            type(event) == ActionExecuted
-            and event.action_name == ACTION_UNLIKELY_INTENT_NAME
+                type(event) == ActionExecuted
+                and event.action_name == ACTION_UNLIKELY_INTENT_NAME
         )
 
     @staticmethod
@@ -256,8 +255,8 @@ class StoryStep:
         # this is not an `isinstance` because
         # we don't want to allow subclasses here
         return (
-            type(event) == ActionExecuted
-            and event.action_name == ACTION_SESSION_START_NAME
+                type(event) == ActionExecuted
+                and event.action_name == ACTION_SESSION_START_NAME
         )
 
     def _add_action_listen(self, events: List[Event]) -> None:
@@ -266,7 +265,7 @@ class StoryStep:
             events.append(ActionExecuted(ACTION_LISTEN_NAME))
 
     def explicit_events(
-        self, domain: Domain, should_append_final_listen: bool = True
+            self, domain: Domain, should_append_final_listen: bool = True
     ) -> List[Event]:
         """Returns events contained in the story step including implicit events.
 
@@ -309,13 +308,13 @@ class RuleStep(StoryStep):
     """A Special type of StoryStep representing a Rule."""
 
     def __init__(  # noqa: D107
-        self,
-        block_name: Optional[Text] = None,
-        start_checkpoints: Optional[List[Checkpoint]] = None,
-        end_checkpoints: Optional[List[Checkpoint]] = None,
-        events: Optional[List[Union[Event, List[Event]]]] = None,
-        source_name: Optional[Text] = None,
-        condition_events_indices: Optional[Set[int]] = None,
+            self,
+            block_name: Optional[Text] = None,
+            start_checkpoints: Optional[List[Checkpoint]] = None,
+            end_checkpoints: Optional[List[Checkpoint]] = None,
+            events: Optional[List[Union[Event, List[Event]]]] = None,
+            source_name: Optional[Text] = None,
+            condition_events_indices: Optional[Set[int]] = None,
     ) -> None:
         super().__init__(
             block_name, start_checkpoints, end_checkpoints, events, source_name
@@ -379,7 +378,7 @@ class RuleStep(StoryStep):
 
 class Story:
     def __init__(
-        self, story_steps: List[StoryStep] = None, story_name: Optional[Text] = None
+            self, story_steps: List[StoryStep] = None, story_name: Optional[Text] = None
     ) -> None:
         self.story_steps = story_steps if story_steps else []
         self.story_name = story_name
@@ -419,25 +418,34 @@ class Story:
 
 
 class StoryGraph:
-    """Graph of the story-steps pooled from all stories in the training data."""
+    """
+    Graph of the story-steps pooled from all stories in the training data.
+    """
 
     def __init__(
-        self,
-        story_steps: List[StoryStep],
-        story_end_checkpoints: Optional[Dict[Text, Text]] = None,
+            self,
+            story_steps: List[StoryStep],
+            story_end_checkpoints: Optional[Dict[Text, Text]] = None,
     ) -> None:
+
         self.story_steps = story_steps
+
         self.step_lookup = {s.id: s for s in self.story_steps}
+
         ordered_ids, cyclic_edges = StoryGraph.order_steps(story_steps)
+
         self.ordered_ids = ordered_ids
+
         self.cyclic_edge_ids = cyclic_edges
+
         if story_end_checkpoints:
             self.story_end_checkpoints = story_end_checkpoints
         else:
             self.story_end_checkpoints = {}
 
     def __hash__(self) -> int:
-        """Return hash for the story step.
+        """
+        Return hash for the story step.
 
         Returns:
             Hash of the story step.
@@ -445,7 +453,8 @@ class StoryGraph:
         return int(self.fingerprint(), 16)
 
     def fingerprint(self) -> Text:
-        """Returns a unique hash for the stories which is stable across python runs.
+        """
+        Returns a unique hash for the stories which is stable across python runs.
 
         Returns:
             fingerprint of the stories
@@ -455,21 +464,28 @@ class StoryGraph:
         )
 
         stories_as_yaml = YAMLStoryWriter().stories_to_yaml(self.story_steps)
+
         return rasa.shared.utils.io.deep_container_fingerprint(stories_as_yaml)
 
     def ordered_steps(self) -> List[StoryStep]:
-        """Returns the story steps ordered by topological order of the DAG."""
+        """
+        Returns the story steps ordered by topological order of the DAG.
+        """
         return [self._get_step(step_id) for step_id in self.ordered_ids]
 
     def cyclic_edges(self) -> List[Tuple[Optional[StoryStep], Optional[StoryStep]]]:
-        """Returns the story steps ordered by topological order of the DAG."""
+        """
+        Returns the story steps ordered by topological order of the DAG.
+        """
         return [
             (self._get_step(source), self._get_step(target))
             for source, target in self.cyclic_edge_ids
         ]
 
     def merge(self, other: Optional["StoryGraph"]) -> "StoryGraph":
-        """Merge two StoryGraph together."""
+        """
+        Merge two StoryGraph together.
+        """
         if not other:
             return self
 
@@ -481,13 +497,17 @@ class StoryGraph:
 
     @staticmethod
     def overlapping_checkpoint_names(
-        cps: List[Checkpoint], other_cps: List[Checkpoint]
+            cps: List[Checkpoint], other_cps: List[Checkpoint]
     ) -> Set[Text]:
-        """Find overlapping checkpoints names."""
+        """
+        Find overlapping checkpoints names.
+        """
         return {cp.name for cp in cps} & {cp.name for cp in other_cps}
 
     def with_cycles_removed(self) -> "StoryGraph":
-        """Create a graph with the cyclic edges removed from this graph."""
+        """
+        Create a graph with the cyclic edges removed from this graph.
+        """
         story_end_checkpoints = self.story_end_checkpoints.copy()
         cyclic_edge_ids = self.cyclic_edge_ids
         # we need to remove the start steps and replace them with steps ending
@@ -549,7 +569,7 @@ class StoryGraph:
                                     needs_connector = True
 
                                 if not self._is_checkpoint_in_list(
-                                    cp_name, cp.conditions, step.start_checkpoints
+                                        cp_name, cp.conditions, step.start_checkpoints
                                 ):
                                     # add checkpoint only if it was not added
                                     additional_ends.append(
@@ -574,7 +594,7 @@ class StoryGraph:
 
     @staticmethod
     def _checkpoint_difference(
-        cps: List[Checkpoint], cp_name_to_ignore: Set[Text]
+            cps: List[Checkpoint], cp_name_to_ignore: Set[Text]
     ) -> List[Checkpoint]:
         """Finds checkpoints which names are
         different form names of checkpoints to ignore"""
@@ -582,10 +602,10 @@ class StoryGraph:
         return [cp for cp in cps if cp.name not in cp_name_to_ignore]
 
     def _remove_unused_generated_cps(
-        self,
-        story_steps: Dict[Text, StoryStep],
-        overlapping_cps: Set[Text],
-        story_end_checkpoints: Dict[Text, Text],
+            self,
+            story_steps: Dict[Text, StoryStep],
+            overlapping_cps: Set[Text],
+            story_end_checkpoints: Dict[Text, Text],
     ) -> None:
         """Finds unused generated checkpoints
         and remove them from story steps."""
@@ -616,10 +636,10 @@ class StoryGraph:
             )
 
             if (
-                step.start_checkpoints
-                and not updated.start_checkpoints
-                or step.end_checkpoints
-                and not updated.end_checkpoints
+                    step.start_checkpoints
+                    and not updated.start_checkpoints
+                    or step.end_checkpoints
+                    and not updated.end_checkpoints
             ):
                 # remove story step if the generated checkpoints
                 # were the only ones
@@ -633,7 +653,7 @@ class StoryGraph:
 
     @staticmethod
     def _is_checkpoint_in_list(
-        checkpoint_name: Text, conditions: Dict[Text, Any], cps: List[Checkpoint]
+            checkpoint_name: Text, conditions: Dict[Text, Any], cps: List[Checkpoint]
     ) -> bool:
         """Checks if checkpoint with name and conditions is
         already in the list of checkpoints."""
@@ -645,7 +665,7 @@ class StoryGraph:
 
     @staticmethod
     def _find_unused_checkpoints(
-        story_steps: ValuesView[StoryStep], story_end_checkpoints: Dict[Text, Text]
+            story_steps: ValuesView[StoryStep], story_end_checkpoints: Dict[Text, Text]
     ) -> Set[Optional[Text]]:
         """Finds all unused checkpoints."""
         collected_start = {STORY_END, STORY_START}
@@ -666,7 +686,7 @@ class StoryGraph:
 
     @staticmethod
     def order_steps(
-        story_steps: List[StoryStep],
+            story_steps: List[StoryStep],
     ) -> Tuple[deque, List[Tuple[Text, Text]]]:
         """Topological sort of the steps returning the ids of the steps."""
 
@@ -681,7 +701,7 @@ class StoryGraph:
 
     @staticmethod
     def _group_by_start_checkpoint(
-        story_steps: List[StoryStep],
+            story_steps: List[StoryStep],
     ) -> Dict[Text, List[StoryStep]]:
         """Returns all the start checkpoint of the steps"""
 
@@ -693,7 +713,7 @@ class StoryGraph:
 
     @staticmethod
     def topological_sort(
-        graph: Dict[Text, Set[Text]]
+            graph: Dict[Text, Set[Text]]
     ) -> Tuple[deque, List[Tuple[Text, Text]]]:
         """Creates a top sort of a directed graph. This is an unstable sorting!
 

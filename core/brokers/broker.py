@@ -1,30 +1,37 @@
 from __future__ import annotations
+
 import logging
+
 from asyncio import AbstractEventLoop
+
 from typing import Any, Dict, Text, Optional, Union, TypeVar, Type
 
 import aiormq
 
 import rasa.shared.utils.common
 import rasa.shared.utils.io
+
 from rasa.shared.exceptions import ConnectionException
 from rasa.utils.endpoints import EndpointConfig
 
 logger = logging.getLogger(__name__)
 
-
 EB = TypeVar("EB", bound="EventBroker")
 
 
 class EventBroker:
-    """Base class for any event broker implementation."""
+    """
+    Base class for any event broker implementation.
+    """
 
     @staticmethod
     async def create(
-        obj: Union[EventBroker, EndpointConfig, None],
-        loop: Optional[AbstractEventLoop] = None,
+            obj: Union[EventBroker, EndpointConfig, None],
+            loop: Optional[AbstractEventLoop] = None,
     ) -> Optional[EventBroker]:
-        """Factory to create an event broker."""
+        """
+        Factory to create an event broker.
+        """
         if isinstance(obj, EventBroker):
             return obj
 
@@ -34,18 +41,18 @@ class EventBroker:
         try:
             return await _create_from_endpoint_config(obj, loop)
         except (
-            sqlalchemy.exc.OperationalError,
-            aio_pika.exceptions.AMQPConnectionError,
-            aiormq.exceptions.ChannelNotFoundEntity,
-            *aio_pika.exceptions.CONNECTION_EXCEPTIONS,
+                sqlalchemy.exc.OperationalError,
+                aio_pika.exceptions.AMQPConnectionError,
+                aiormq.exceptions.ChannelNotFoundEntity,
+                *aio_pika.exceptions.CONNECTION_EXCEPTIONS,
         ) as error:
             raise ConnectionException("Cannot connect to event broker.") from error
 
     @classmethod
     async def from_endpoint_config(
-        cls: Type[EB],
-        broker_config: EndpointConfig,
-        event_loop: Optional[AbstractEventLoop] = None,
+            cls: Type[EB],
+            broker_config: EndpointConfig,
+            event_loop: Optional[AbstractEventLoop] = None,
     ) -> Optional[EB]:
         """Creates an `EventBroker` from the endpoint configuration.
 
@@ -79,7 +86,7 @@ class EventBroker:
 
 
 async def _create_from_endpoint_config(
-    endpoint_config: Optional[EndpointConfig], event_loop: Optional[AbstractEventLoop]
+        endpoint_config: Optional[EndpointConfig], event_loop: Optional[AbstractEventLoop]
 ) -> Optional[EventBroker]:
     """Instantiate an event broker based on its configuration."""
     if endpoint_config is None:
@@ -110,7 +117,7 @@ async def _create_from_endpoint_config(
 
 
 async def _load_from_module_name_in_endpoint_config(
-    broker_config: EndpointConfig,
+        broker_config: EndpointConfig,
 ) -> Optional[EventBroker]:
     """Instantiate an event broker based on its class name."""
     try:

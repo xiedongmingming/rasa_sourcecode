@@ -1,9 +1,12 @@
 import logging
+
 from collections import defaultdict
+
 from typing import Set, Text, Optional, Dict, Any, List
 
 import rasa.core.training.story_conflict
 import rasa.shared.nlu.constants
+
 from rasa.shared.constants import (
     DOCS_URL_DOMAINS,
     DOCS_URL_FORMS,
@@ -27,7 +30,9 @@ logger = logging.getLogger(__name__)
 
 
 class Validator:
-    """A class used to verify usage of intents and utterances."""
+    """
+    A class used to verify usage of intents and utterances.
+    """
 
     def __init__(
             self,
@@ -36,7 +41,8 @@ class Validator:
             story_graph: StoryGraph,
             config: Optional[Dict[Text, Any]],
     ) -> None:
-        """Initializes the Validator object.
+        """
+        Initializes the Validator object.
 
         Args:
             domain: The domain.
@@ -50,15 +56,21 @@ class Validator:
 
     @classmethod
     def from_importer(cls, importer: TrainingDataImporter) -> "Validator":
-        """Create an instance from the domain, nlu and story files."""
+        """
+        Create an instance from the domain, nlu and story files.
+        """
         domain = importer.get_domain()
+
         story_graph = importer.get_stories()
+
         intents = importer.get_nlu_data()
+
         config = importer.get_config()
 
         return cls(domain, intents, story_graph, config)
 
     def _non_default_intents(self) -> List[Text]:
+
         return [
             item
             for item in self.domain.intents
@@ -66,20 +78,25 @@ class Validator:
         ]
 
     def verify_intents(self, ignore_warnings: bool = True) -> bool:
-        """Compares list of intents in domain with intents in NLU training data."""
+        """
+        Compares list of intents in domain with intents in NLU training data.
+        """
         everything_is_alright = True
 
         nlu_data_intents = {e.data["intent"] for e in self.intents.intent_examples}
 
         for intent in self._non_default_intents():
+
             if intent not in nlu_data_intents:
                 rasa.shared.utils.io.raise_warning(
                     f"The intent '{intent}' is listed in the domain file, but "
                     f"is not found in the NLU training data."
                 )
+
                 everything_is_alright = ignore_warnings and everything_is_alright
 
         for intent in nlu_data_intents:
+
             if intent not in self.domain.intents:
                 rasa.shared.utils.io.raise_warning(
                     f"There is a message in the training data labeled with intent "
@@ -87,6 +104,7 @@ class Validator:
                     f"should need to add that intent to your domain file!",
                     docs=DOCS_URL_DOMAINS,
                 )
+
                 everything_is_alright = False
 
         return everything_is_alright
@@ -94,33 +112,43 @@ class Validator:
     def verify_example_repetition_in_intents(
             self, ignore_warnings: bool = True
     ) -> bool:
-        """Checks if there is no duplicated example in different intents."""
+        """
+        Checks if there is no duplicated example in different intents.
+        """
 
         everything_is_alright = True
 
         duplication_hash = defaultdict(set)
+
         for example in self.intents.intent_examples:
+            #
             text = example.get(rasa.shared.nlu.constants.TEXT)
+
             duplication_hash[text].add(example.get("intent"))
 
         for text, intents in duplication_hash.items():
 
             if len(duplication_hash[text]) > 1:
+                #
                 everything_is_alright = ignore_warnings and everything_is_alright
+
                 intents_string = ", ".join(sorted(intents))
+
                 rasa.shared.utils.io.raise_warning(
                     f"The example '{text}' was found labeled with multiple "
                     f"different intents in the training data. Each annotated message "
                     f"should only appear with one intent. You should fix that "
                     f"conflict The example is labeled with: {intents_string}."
                 )
+
         return everything_is_alright
 
     def verify_intents_in_stories(self, ignore_warnings: bool = True) -> bool:
-        """Checks intents used in stories.
+        """
+        Checks intents used in stories.
 
-        Verifies if the intents used in the stories are valid, and whether
-        all valid intents are used in the stories."""
+        Verifies if the intents used in the stories are valid, and whether all valid intents are used in the stories.
+        """
 
         everything_is_alright = self.verify_intents(ignore_warnings)
 
@@ -132,6 +160,7 @@ class Validator:
         }
 
         for story_intent in stories_intents:
+
             if story_intent not in self.domain.intents:
                 rasa.shared.utils.io.raise_warning(
                     f"The intent '{story_intent}' is used in your stories, but it "
@@ -139,19 +168,24 @@ class Validator:
                     f"domain file!",
                     docs=DOCS_URL_DOMAINS,
                 )
+
                 everything_is_alright = False
 
         for intent in self._non_default_intents():
+
             if intent not in stories_intents:
+                #
                 rasa.shared.utils.io.raise_warning(
                     f"The intent '{intent}' is not used in any story or rule."
                 )
+
                 everything_is_alright = ignore_warnings and everything_is_alright
 
         return everything_is_alright
 
     def _gather_utterance_actions(self) -> Set[Text]:
-        """Return all utterances which are actions.
+        """
+        Return all utterances which are actions.
 
         Returns:
             A set of response names found in the domain and data files, with the
@@ -162,14 +196,17 @@ class Validator:
             for response in self.domain.responses.keys()
             if response in self.domain.action_names_or_texts
         }
+
         data_responses = {
             response.split(rasa.shared.nlu.constants.RESPONSE_IDENTIFIER_DELIMITER)[0]
             for response in self.intents.responses.keys()
         }
+
         return domain_responses.union(data_responses)
 
     def verify_utterances_in_stories(self, ignore_warnings: bool = True) -> bool:
-        """Verifies usage of utterances in stories.
+        """
+        Verifies usage of utterances in stories.
 
         Checks whether utterances used in the stories are valid,
         and whether all valid utterances are used in stories.
@@ -216,13 +253,19 @@ class Validator:
         return everything_is_alright
 
     def verify_forms_in_stories_rules(self) -> bool:
-        """Verifies that forms referenced in active_loop directives are present."""
+        """
+        Verifies that forms referenced in active_loop directives are present.
+        """
         all_forms_exist = True
+
         visited_loops = set()
 
         for story in self.story_graph.story_steps:
+
             for event in story.events:
+
                 if not isinstance(event, ActiveLoop):
+                    #
                     continue
 
                 if event.name in visited_loops:
@@ -392,21 +435,26 @@ class Validator:
         return everything_is_alright
 
     def verify_domain_validity(self) -> bool:
-        """Checks whether the domain returned by the importer is empty.
+        """
+        Checks whether the domain returned by the importer is empty.
 
         An empty domain or one that uses deprecated Mapping Policy is invalid.
         """
         if self.domain.is_empty():
+            #
             return False
 
         for intent_key, intent_dict in self.domain.intent_properties.items():
+
             if "triggers" in intent_dict:
+                #
                 rasa.shared.utils.io.raise_warning(
                     f"The intent {intent_key} in the domain file "
                     f"is using the MappingPolicy format "
                     f"which has now been deprecated. "
                     f"Please migrate to RulePolicy."
                 )
+
                 return False
 
         return True

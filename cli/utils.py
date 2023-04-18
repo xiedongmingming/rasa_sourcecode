@@ -137,14 +137,16 @@ def parse_last_positional_argument_as_model_path() -> None:
             and not sys.argv[-2].startswith("-")
             and os.path.exists(sys.argv[-1])
     ):
-        #
+        # 将最后一个参数作为MODEL路径文件
         sys.argv.append(sys.argv[-1])
 
         sys.argv[-2] = "--model"
 
 
 def button_to_string(button: Dict[Text, Any], idx: int = 0) -> Text:
-    """Create a string representation of a button."""
+    """
+    Create a string representation of a button.
+    """
     title = button.pop("title", "")
 
     if "payload" in button:

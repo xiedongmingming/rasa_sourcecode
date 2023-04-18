@@ -77,7 +77,8 @@ def _dry_run_result(
 
 
 def get_unresolved_slots(domain: Domain, stories: StoryGraph) -> List[Text]:
-    """Returns a list of unresolved slots.
+    """
+    Returns a list of unresolved slots.
 
     Args:
         domain: The domain.
@@ -98,7 +99,8 @@ def get_unresolved_slots(domain: Domain, stories: StoryGraph) -> List[Text]:
 
 
 def _check_unresolved_slots(domain: Domain, stories: StoryGraph) -> None:
-    """Checks if there are any unresolved slots.
+    """
+    Checks if there are any unresolved slots.
 
     Args:
         domain: The domain.
@@ -110,30 +112,33 @@ def _check_unresolved_slots(domain: Domain, stories: StoryGraph) -> None:
     Returns:
         `None` if there are no unresolved slots.
     """
-    unresolved_slots = get_unresolved_slots(domain, stories)
+    unresolved_slots = get_unresolved_slots(domain, stories)  # []
+
     if unresolved_slots:
+        #
         rasa.shared.utils.cli.print_error_and_exit(
             f"Unresolved slots found in stories/rules🚨 \n"
             f'Tried to set slots "{unresolved_slots}" that are not present in'
             f"your domain.\n Check whether they need to be added to the domain or "
             f"whether there is a spelling error."
         )
+
     return None
 
 
 def train(
-        domain: Text,
-        config: Text,
-        training_files: Optional[Union[Text, List[Text]]],
-        output: Text = rasa.shared.constants.DEFAULT_MODELS_PATH,
-        dry_run: bool = False,
-        force_training: bool = False,
-        fixed_model_name: Optional[Text] = None,
-        persist_nlu_training_data: bool = False,
-        core_additional_arguments: Optional[Dict] = None,
-        nlu_additional_arguments: Optional[Dict] = None,
-        model_to_finetune: Optional[Text] = None,
-        finetuning_epoch_fraction: float = 1.0,
+        domain: Text,  # 'domain.yml'
+        config: Text,  # 'config.yml'
+        training_files: Optional[Union[Text, List[Text]]],  # ['data']
+        output: Text = rasa.shared.constants.DEFAULT_MODELS_PATH,  # 'models'
+        dry_run: bool = False,  # False
+        force_training: bool = False,  # False
+        fixed_model_name: Optional[Text] = None,  # None
+        persist_nlu_training_data: bool = False,  # False
+        core_additional_arguments: Optional[Dict] = None,  # {'augmentation_factor': 50, 'debug_plots': False}
+        nlu_additional_arguments: Optional[Dict] = None,  # {'num_threads': None}
+        model_to_finetune: Optional[Text] = None,  # None
+        finetuning_epoch_fraction: float = 1.0,  # None
 ) -> TrainingResult:
     """
     Trains a Rasa model (Core and NLU).
@@ -160,12 +165,12 @@ def train(
     Returns:
         An instance of `TrainingResult`.
     """
-    file_importer = TrainingDataImporter.load_from_config(
+    file_importer = TrainingDataImporter.load_from_config(  # E2EImporter
         config, domain, training_files
     )
 
-    stories = file_importer.get_stories()
-    nlu_data = file_importer.get_nlu_data()
+    stories = file_importer.get_stories()  # StoryGraph
+    nlu_data = file_importer.get_nlu_data()  # TrainingData
 
     training_type = TrainingType.BOTH
 
@@ -184,7 +189,7 @@ def train(
 
         return TrainingResult(code=1)
 
-    domain_object = file_importer.get_domain()
+    domain_object = file_importer.get_domain()  # Domain
 
     if domain_object.is_empty():
 
@@ -233,14 +238,15 @@ def train(
 
 
 def _train_graph(
-        file_importer: TrainingDataImporter,
-        training_type: TrainingType,
-        output_path: Text,
-        fixed_model_name: Text,
-        model_to_finetune: Optional[Union[Text, Path]] = None,
-        force_full_training: bool = False,
-        dry_run: bool = False,
+        file_importer: TrainingDataImporter,  # E2EImporter
+        training_type: TrainingType,  # TrainingType.BOTH
+        output_path: Text,  # 'models'
+        fixed_model_name: Text,  # None
+        model_to_finetune: Optional[Union[Text, Path]] = None,  # None
+        force_full_training: bool = False,  # False
+        dry_run: bool = False,  # False
         **kwargs: Any,
+        # {'persist_nlu_training_data': False, 'finetuning_epoch_fraction': None, 'augmentation_factor': 50, 'debug_plots': False, 'num_threads': None}
 ) -> TrainingResult:
     #
     if model_to_finetune:
@@ -259,12 +265,16 @@ def _train_graph(
             "Incremental Training feature"
         )
 
-    is_finetuning = model_to_finetune is not None
+    is_finetuning = model_to_finetune is not None  # False
 
-    config = file_importer.get_config()
+    config = file_importer.get_config()  # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
 
+    # <rasa.engine.recipes.default_recipe.DefaultV1Recipe object at 0x0000019065173B08>
     recipe = Recipe.recipe_for_name(config.get("recipe"))
 
+    # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
+    # set()
+    # set()
     config, _missing_keys, _configured_keys = recipe.auto_configure(
         file_importer.get_config_file_for_auto_config(),
         config,
@@ -296,6 +306,7 @@ def _train_graph(
         trainer = GraphTrainer(model_storage, cache, DaskGraphRunner)
 
         if dry_run:
+            #
             fingerprint_status = trainer.fingerprint(
                 model_configuration.train_schema, file_importer
             )

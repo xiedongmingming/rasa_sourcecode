@@ -36,14 +36,16 @@ logger = logging.getLogger(__name__)
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
-    """Parse all the command line arguments for the training script."""
+    """
+    Parse all the command line arguments for the training script.
+    """
     parser = argparse.ArgumentParser(
-        prog="rasa",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        prog="rasa",  # 应用程序名称
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # 用于打印帮助信息
         description="Rasa command line interface. Rasa allows you to build "
-        "your own conversational assistants 🤖. The 'rasa' command "
-        "allows you to easily run most common commands like "
-        "creating a new bot, training or evaluating models.",
+                    "your own conversational assistants 🤖. The 'rasa' command "
+                    "allows you to easily run most common commands like "
+                    "creating a new bot, training or evaluating models.",
     )
 
     parser.add_argument(
@@ -53,8 +55,10 @@ def create_argument_parser() -> argparse.ArgumentParser:
         help="Print installed Rasa version",
     )
 
-    parent_parser = argparse.ArgumentParser(add_help=False)
-    add_logging_options(parent_parser)
+    parent_parser = argparse.ArgumentParser(add_help=False)  # 表示不添加-H/--HELP参数
+
+    add_logging_options(parent_parser)  # 配置日志相关参数
+
     parent_parsers = [parent_parser]
 
     subparsers = parser.add_subparsers(help="Rasa commands")
@@ -71,6 +75,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
     export.add_subparser(subparsers, parents=parent_parsers)
     x.add_subparser(subparsers, parents=parent_parsers)
     evaluate.add_subparser(subparsers, parents=parent_parsers)
+
     plugin_manager().hook.refine_cli(
         subparsers=subparsers, parent_parsers=parent_parsers
     )
@@ -93,15 +98,24 @@ def print_version() -> None:
 
 
 def main() -> None:
-    """Run as standalone python application."""
+    """
+    Run as standalone python application.
+    """
     parse_last_positional_argument_as_model_path()
+
     arg_parser = create_argument_parser()
+
     cmdline_arguments = arg_parser.parse_args()
 
     log_level = getattr(cmdline_arguments, "loglevel", None)
+
     logging_config_file = getattr(cmdline_arguments, "logging_config_file", None)
+
     configure_logging_and_warnings(
-        log_level, logging_config_file, warn_only_once=True, filter_repeated_logs=True
+        log_level,
+        logging_config_file,
+        warn_only_once=True,
+        filter_repeated_logs=True
     )
 
     tf_env.setup_tf_environment()
@@ -141,4 +155,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    #
+    # RASA命令入口函数
+    #
     main()

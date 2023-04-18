@@ -70,6 +70,7 @@ def add_subparser(
     train_arguments.set_train_nlu_arguments(train_nlu_parser)
 
 
+# 1. 训练入口--命令行对应的执行函数
 def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[Text]:
     """
     Trains a model.
@@ -83,16 +84,16 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     """
     from rasa import train as train_all
 
-    domain = rasa.cli.utils.get_validated_path(
+    domain = rasa.cli.utils.get_validated_path(  # 'domain.yml'
         args.domain,
         "domain",
         DEFAULT_DOMAIN_PATH,
         none_is_valid=True
     )
 
-    config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS)
+    config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS)  # 'config.yml'
 
-    training_files = [
+    training_files = [  # ['data']
         rasa.cli.utils.get_validated_path(
             f,
             "data",
@@ -125,6 +126,7 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
 
 
 def _model_for_finetuning(args: argparse.Namespace) -> Optional[Text]:
+    #
     if args.finetune == train_arguments.USE_LATEST_MODEL_FOR_FINE_TUNING:
         # We use this constant to signal that the user specified `--finetune` but
         # didn't provide a path to a model. In this case we try to load the latest
@@ -219,6 +221,7 @@ def run_nlu_training(args: argparse.Namespace) -> Optional[Text]:
 
 
 def extract_core_additional_arguments(args: argparse.Namespace) -> Dict:
+    #
     arguments = {}
 
     if "augmentation" in args:
@@ -226,21 +229,22 @@ def extract_core_additional_arguments(args: argparse.Namespace) -> Dict:
     if "debug_plots" in args:
         arguments["debug_plots"] = args.debug_plots
 
-    return arguments
+    return arguments  # {'augmentation_factor': 50, 'debug_plots': False}
 
 
 def extract_nlu_additional_arguments(args: argparse.Namespace) -> Dict:
+    #
     arguments = {}
 
     if "num_threads" in args:
         arguments["num_threads"] = args.num_threads
 
-    return arguments
+    return arguments  # {'num_threads': None}
 
 
 def _get_valid_config(
         config: Optional[Union[Text, "Path"]],
-        mandatory_keys: List[Text],
+        mandatory_keys: List[Text],  # ['language']
         default_config: Text = DEFAULT_CONFIG_PATH,
 ) -> Text:
     """
@@ -255,7 +259,7 @@ def _get_valid_config(
 
     Returns: The path to the config file if the config is valid.
     """
-    config = rasa.cli.utils.get_validated_path(config, "config", default_config)
+    config = rasa.cli.utils.get_validated_path(config, "config", default_config)  # 'config.yml'
 
     if not config or not os.path.exists(config):
         print_error(

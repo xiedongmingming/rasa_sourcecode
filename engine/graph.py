@@ -584,7 +584,9 @@ class GraphNode:
 
 @dataclass()
 class GraphModelConfiguration:
-    """The model configuration to run as a graph during training and prediction."""
+    """
+    The model configuration to run as a graph during training and prediction.
+    """
 
     train_schema: GraphSchema
     predict_schema: GraphSchema

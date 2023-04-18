@@ -118,7 +118,7 @@ class TrainingDataImporter(ABC):
         Loads a `TrainingDataImporter` instance from a configuration file.
         """
         config = rasa.shared.utils.io.read_config_file(config_path)
-
+        # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
         return TrainingDataImporter.load_from_dict(
             config, config_path, domain_path, training_data_paths
         )
@@ -176,16 +176,20 @@ class TrainingDataImporter(ABC):
 
         config = config or {}
 
-        importers = config.get("importers", [])
-        importers = [
+        importers = config.get("importers", [])  # []
+        
+        importers = [  # []
             TrainingDataImporter._importer_from_dict(
                 importer, config_path, domain_path, training_data_paths
             )
             for importer in importers
         ]
-        importers = [importer for importer in importers if importer]
+        
+        importers = [importer for importer in importers if importer]  # []
+        
         if not importers:
-            importers = [
+            
+            importers = [  # [RasaFileImporter]
                 RasaFileImporter(config_path, domain_path, training_data_paths)
             ]
 
@@ -287,10 +291,10 @@ class NluDataImporter(TrainingDataImporter):
 
 
 class CombinedDataImporter(TrainingDataImporter):
-    """A `TrainingDataImporter` that combines multiple importers.
+    """
+    A `TrainingDataImporter` that combines multiple importers.
 
-    Uses multiple `TrainingDataImporter` instances
-    to load the data as if they were a single instance.
+    Uses multiple `TrainingDataImporter` instances to load the data as if they were a single instance.
     """
 
     def __init__(self, importers: List[TrainingDataImporter]):
@@ -364,16 +368,22 @@ class ResponsesSyncImporter(TrainingDataImporter):
     """
 
     def __init__(self, importer: TrainingDataImporter):
-        """Initializes the ResponsesSyncImporter."""
+        """
+        Initializes the ResponsesSyncImporter.
+        """
         self._importer = importer
 
     def get_config(self) -> Dict:
-        """Retrieves model config (see parent class for full docstring)."""
+        """
+        Retrieves model config (see parent class for full docstring).
+        """
         return self._importer.get_config()
 
     @rasa.shared.utils.common.cached_method
     def get_config_file_for_auto_config(self) -> Optional[Text]:
-        """Returns config file path for auto-config only if there is a single one."""
+        """
+        Returns config file path for auto-config only if there is a single one.
+        """
         return self._importer.get_config_file_for_auto_config()
 
     @rasa.shared.utils.common.cached_method
@@ -495,14 +505,17 @@ class ResponsesSyncImporter(TrainingDataImporter):
 
 
 class E2EImporter(TrainingDataImporter):
-    """Importer with the following functionality.
+    """
+    Importer with the following functionality.
 
     - enhances the NLU training data with actions / user messages from the stories.
     - adds potential end-to-end bot messages from stories as actions to the domain
     """
 
     def __init__(self, importer: TrainingDataImporter) -> None:
-        """Initializes the E2EImporter."""
+        """
+        Initializes the E2EImporter.
+        """
         self.importer = importer
 
     @rasa.shared.utils.common.cached_method

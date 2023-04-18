@@ -42,14 +42,12 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
-
 EXPECTED_PILLOW_DEPRECATION_WARNINGS: List[Tuple[Type[Warning], str]] = [
     # Keras uses deprecated Pillow features
     # cf. https://github.com/keras-team/keras/issues/16639
     (DeprecationWarning, f"{method} is deprecated and will be removed in Pillow 10 .*")
     for method in ["BICUBIC", "NEAREST", "BILINEAR", "HAMMING", "BOX", "LANCZOS"]
 ]
-
 
 EXPECTED_WARNINGS: List[Tuple[Type[Warning], str]] = [
     # TODO (issue #9932)
@@ -96,10 +94,10 @@ class TempDirectoryPath(str, ContextManager):
         return self
 
     def __exit__(
-        self,
-        _exc: Optional[Type[BaseException]],
-        _value: Optional[BaseException],
-        _tb: Optional[TracebackType],
+            self,
+            _exc: Optional[Type[BaseException]],
+            _value: Optional[BaseException],
+            _tb: Optional[TracebackType],
     ) -> None:
         if os.path.exists(self):
             shutil.rmtree(self)
@@ -158,12 +156,13 @@ def configure_logging_from_file(logging_config_file: Text) -> None:
 
 
 def configure_logging_and_warnings(
-    log_level: Optional[int] = None,
-    logging_config_file: Optional[Text] = None,
-    warn_only_once: bool = True,
-    filter_repeated_logs: bool = True,
+        log_level: Optional[int] = None,
+        logging_config_file: Optional[Text] = None,
+        warn_only_once: bool = True,
+        filter_repeated_logs: bool = True,
 ) -> None:
-    """Sets log levels of various loggers and sets up filters for warnings and logs.
+    """
+    Sets log levels of various loggers and sets up filters for warnings and logs.
 
     Args:
         log_level: The log level to be used for the 'Rasa' logger. Pass `None` to use
@@ -199,7 +198,8 @@ def configure_logging_and_warnings(
 
 
 def _filter_warnings(log_level: Optional[int], warn_only_once: bool = True) -> None:
-    """Sets up filters for warnings.
+    """
+    Sets up filters for warnings.
 
     Args:
         log_level: the current log level. Certain warnings will only be filtered out
@@ -274,11 +274,11 @@ def update_tensorflow_log_level() -> None:
 
 
 def update_sanic_log_level(
-    log_file: Optional[Text] = None,
-    use_syslog: Optional[bool] = False,
-    syslog_address: Optional[Text] = None,
-    syslog_port: Optional[int] = None,
-    syslog_protocol: Optional[Text] = None,
+        log_file: Optional[Text] = None,
+        use_syslog: Optional[bool] = False,
+        syslog_address: Optional[Text] = None,
+        syslog_port: Optional[int] = None,
+        syslog_protocol: Optional[Text] = None,
 ) -> None:
     """Set the log level to 'LOG_LEVEL_LIBRARIES' environment variable ."""
     from sanic.log import logger, error_logger, access_logger
@@ -407,7 +407,7 @@ def read_global_config_value(name: Text, unavailable_ok: bool = True) -> Any:
 
 
 def update_existing_keys(
-    original: Dict[Any, Any], updates: Dict[Any, Any]
+        original: Dict[Any, Any], updates: Dict[Any, Any]
 ) -> Dict[Any, Any]:
     """Iterate through all the updates and update a value in the original dictionary.
 
@@ -422,7 +422,7 @@ def update_existing_keys(
 
 
 def override_defaults(
-    defaults: Optional[Dict[Text, Any]], custom: Optional[Dict[Text, Any]]
+        defaults: Optional[Dict[Text, Any]], custom: Optional[Dict[Text, Any]]
 ) -> Dict[Text, Any]:
     """Override default config with the given config.
 
@@ -470,7 +470,7 @@ class RepeatedLogFilter(logging.Filter):
 
 
 async def call_potential_coroutine(
-    coroutine_or_return_value: Union[Any, Coroutine]
+        coroutine_or_return_value: Union[Any, Coroutine]
 ) -> Any:
     """Awaits coroutine or returns value directly if it's not a coroutine.
 
@@ -488,7 +488,7 @@ async def call_potential_coroutine(
 
 
 def directory_size_in_mb(
-    path: Path, filenames_to_exclude: Optional[List[Text]] = None
+        path: Path, filenames_to_exclude: Optional[List[Text]] = None
 ) -> float:
     """Calculates the size of a directory.
 

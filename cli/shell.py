@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 def add_subparser(
         subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all shell parsers.
+    """
+    Add all shell parsers.
 
     Args:
         subparsers: subparser we are going to attach to
@@ -92,7 +93,9 @@ def shell_nlu(args: argparse.Namespace) -> None:
 
 
 def shell(args: argparse.Namespace) -> None:
-    """Talk with a bot though the command line."""
+    """
+    Talk with a bot though the command line.
+    """
     from rasa.cli.utils import get_validated_path
     from rasa.shared.constants import DEFAULT_MODELS_PATH
 
@@ -101,23 +104,30 @@ def shell(args: argparse.Namespace) -> None:
     model = get_validated_path(args.model, "model", DEFAULT_MODELS_PATH)
 
     try:
+
         model = get_local_model(model)
+
     except ModelNotFound:
+
         print_error(
             "No model found. Train a model before running the "
             "server using `rasa train`."
         )
+
         return
 
     metadata = LocalModelStorage.metadata_from_archive(model)
 
     if metadata.training_type == TrainingType.NLU:
+        #
         import rasa.nlu.run
 
         telemetry.track_shell_started("nlu")
 
         rasa.nlu.run.run_cmdline(model)
+
     else:
+        
         import rasa.cli.run
 
         telemetry.track_shell_started("rasa")

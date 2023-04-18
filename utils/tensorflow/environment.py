@@ -44,7 +44,7 @@ def _setup_gpu_environment() -> None:
 
 
 def _allocate_gpu_memory(
-    gpu_instance: "tf_config.PhysicalDevice", logical_memory: int
+        gpu_instance: "tf_config.PhysicalDevice", logical_memory: int
 ) -> None:
     """Create a new logical device for the requested amount of memory.
 
@@ -145,13 +145,17 @@ def _setup_cpu_environment() -> None:
 
 
 def setup_tf_environment() -> None:
-    """Setup CPU and GPU related environment settings for TensorFlow."""
+    """
+    Setup CPU and GPU related environment settings for TensorFlow.
+    """
     _setup_cpu_environment()
     _setup_gpu_environment()
 
 
 def check_deterministic_ops() -> None:
-    """Warn user if they have set TF_DETERMINISTIC_OPS."""
+    """
+    Warn user if they have set TF_DETERMINISTIC_OPS.
+    """
     if os.getenv(TF_DETERMINISTIC_OPS, False):
         shared_io_utils.raise_warning(
             f"You have set '{TF_DETERMINISTIC_OPS}' to 1. If you are "

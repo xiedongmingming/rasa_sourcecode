@@ -134,8 +134,7 @@ def add_logging_options(parser: argparse.ArgumentParser) -> None:
         "achieved with environment variables. See online documentation for more info.",
     )
 
-    # arguments for logging configuration
-    logging_arguments.add_argument(
+    logging_arguments.add_argument(  # arguments for logging configuration
         "-v",
         "--verbose",
         help="Be verbose. Sets logging level to INFO.",
