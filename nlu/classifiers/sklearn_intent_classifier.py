@@ -60,12 +60,12 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
         }
 
     def __init__(
-        self,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        clf: Optional["sklearn.model_selection.GridSearchCV"] = None,
-        le: Optional["sklearn.preprocessing.LabelEncoder"] = None,
+            self,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            clf: Optional["sklearn.model_selection.GridSearchCV"] = None,
+            le: Optional["sklearn.preprocessing.LabelEncoder"] = None,
     ) -> None:
         """Construct a new intent classifier using the sklearn framework."""
         from sklearn.preprocessing import LabelEncoder
@@ -82,11 +82,11 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> SklearnIntentClassifier:
         """Creates a new untrained component (see parent class for full docstring)."""
         return cls(config, model_storage, resource)
@@ -166,7 +166,7 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
         return max(2, min(folds, np.min(np.bincount(y)) // 5))
 
     def _create_classifier(
-        self, num_threads: int, y: np.ndarray
+            self, num_threads: int, y: np.ndarray
     ) -> "sklearn.model_selection.GridSearchCV":
         from sklearn.model_selection import GridSearchCV
         from sklearn.svm import SVC
@@ -197,7 +197,7 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
         """Return the most likely intent and its probability for a message."""
         for message in messages:
             if self.clf is None or not message.features_present(
-                attribute=TEXT, featurizers=self.component_config.get(FEATURIZERS)
+                    attribute=TEXT, featurizers=self.component_config.get(FEATURIZERS)
             ):
                 # component is either not trained or didn't
                 # receive enough training data or the input doesn't
@@ -215,8 +215,8 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
 
                 if intents.size > 0 and probabilities.size > 0:
                     ranking = list(zip(list(intents), list(probabilities)))[
-                        :LABEL_RANKING_LENGTH
-                    ]
+                              :LABEL_RANKING_LENGTH
+                              ]
 
                     intent = {"name": intents[0], "confidence": probabilities[0]}
 
@@ -277,12 +277,12 @@ class SklearnIntentClassifier(GraphComponent, IntentClassifier):
 
     @classmethod
     def load(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
-        **kwargs: Any,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
+            **kwargs: Any,
     ) -> SklearnIntentClassifier:
         """Loads trained component (see parent class for full docstring)."""
         from sklearn.preprocessing import LabelEncoder

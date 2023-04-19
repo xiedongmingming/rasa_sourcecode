@@ -114,7 +114,7 @@ class GraphTrainer:
 
         logger.debug("Running the pruned train graph with real node execution.")
 
-        graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})
+        graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})  # 执行训练
 
         return self._model_storage.create_model_package(
             output_filename, model_configuration, domain
@@ -124,9 +124,8 @@ class GraphTrainer:
             self,
             train_schema: GraphSchema,
             importer: TrainingDataImporter,
-            is_finetuning: bool = False,
+            is_finetuning: bool = False, # False
     ) -> Dict[Text, Union[FingerprintStatus, Any]]:
-
         """
         Runs the graph using fingerprints to determine which nodes need to re-run.
 
@@ -161,6 +160,7 @@ class GraphTrainer:
         fingerprint_schema = copy.deepcopy(train_schema)
 
         for node_name, schema_node in fingerprint_schema.nodes.items():
+            #
             # We make every node a target so that `graph_runner.run(...)` returns
             # the output for each node. We need the output of each node
             # to decide which nodes we can prune.
@@ -170,6 +170,7 @@ class GraphTrainer:
             # any input data to the graph. This means we can prune according to what
             # has actually changed.
             if not schema_node.is_input:
+                #
                 FingerprintComponent.replace_schema_node(schema_node, self._cache)
 
         return fingerprint_schema

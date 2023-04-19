@@ -1,10 +1,13 @@
 import time
+
 from pathlib import Path
+
 from typing import Text, NamedTuple, Optional, List, Union, Dict, Any
 
 import randomname
 
 import rasa.engine.validation
+
 from rasa.engine.caching import LocalTrainingCache
 from rasa.engine.recipes.recipe import Recipe
 from rasa.engine.runner.dask import DaskGraphRunner
@@ -18,6 +21,7 @@ from rasa.shared.data import TrainingType
 from rasa.shared.importers.importer import TrainingDataImporter
 from rasa import telemetry
 from rasa.shared.core.domain import Domain
+
 import rasa.utils.common
 import rasa.shared.utils.common
 import rasa.shared.utils.cli
@@ -31,10 +35,14 @@ CODE_FORCED_TRAINING = 0b1000
 
 
 class TrainingResult(NamedTuple):
-    """Holds information about the results of training."""
+    """
+    Holds information about the results of training.
+    """
 
     model: Optional[Text] = None
+
     code: int = 0
+
     dry_run_results: Optional[Dict[Text, Union[FingerprintStatus, Any]]] = None
 
 
@@ -42,7 +50,8 @@ def _dry_run_result(
         fingerprint_results: Dict[Text, Union[FingerprintStatus, Any]],
         force_full_training: bool,
 ) -> TrainingResult:
-    """Returns a dry run result.
+    """
+    Returns a dry run result.
 
     Args:
         fingerprint_results: A result of fingerprint run..
@@ -54,6 +63,7 @@ def _dry_run_result(
     """
     if force_full_training:
         rasa.shared.utils.cli.print_warning("The training was forced.")
+
         return TrainingResult(
             code=CODE_FORCED_TRAINING, dry_run_results=fingerprint_results
         )
@@ -64,7 +74,9 @@ def _dry_run_result(
     )
 
     if training_required:
+        #
         rasa.shared.utils.cli.print_warning("The model needs to be retrained.")
+
         return TrainingResult(
             code=CODE_NEEDS_TO_BE_RETRAINED, dry_run_results=fingerprint_results
         )
@@ -73,6 +85,7 @@ def _dry_run_result(
         "No training of components required "
         "(the responses might still need updating!)."
     )
+
     return TrainingResult(dry_run_results=fingerprint_results)
 
 
@@ -170,6 +183,7 @@ def train(
     )
 
     stories = file_importer.get_stories()  # StoryGraph
+
     nlu_data = file_importer.get_nlu_data()  # TrainingData
 
     training_type = TrainingType.BOTH
@@ -281,7 +295,8 @@ def _train_graph(
         training_type,
     )
 
-    model_configuration = recipe.graph_config_for_recipe(
+    # 从配置文件和参数中构造有向无环图--将配置转换为与图形兼容的模型配置
+    model_configuration = recipe.graph_config_for_recipe(  # 构造有向无环图--DefaultV1Recipe
         config,
         kwargs,
         training_type=training_type,
@@ -290,7 +305,7 @@ def _train_graph(
 
     rasa.engine.validation.validate(model_configuration)
 
-    tempdir_name = rasa.utils.common.get_temp_dir_name()
+    tempdir_name = rasa.utils.common.get_temp_dir_name()  # 'C:\\Users\\98661\\AppData\\Local\\Temp\\tmpreuwua4c'
 
     # Use `TempDirectoryPath` instead of `tempfile.TemporaryDirectory` as this
     # leads to errors on Windows when the context manager tries to delete an
@@ -339,11 +354,15 @@ def _train_graph(
 def _create_model_storage(
         is_finetuning: bool, model_to_finetune: Optional[Path], temp_model_dir: Path
 ) -> ModelStorage:
+    #
     if is_finetuning:
+
         model_storage, _ = LocalModelStorage.from_model_archive(
             temp_model_dir, model_to_finetune
         )
+
     else:
+
         model_storage = LocalModelStorage(temp_model_dir)
 
     return model_storage
@@ -352,18 +371,25 @@ def _create_model_storage(
 def _determine_model_name(
         fixed_model_name: Optional[Text], training_type: TrainingType
 ) -> Text:
+    #
     if fixed_model_name:
+
         model_file = Path(fixed_model_name)
+
         if not model_file.name.endswith(".tar.gz"):
+            #
             return model_file.with_suffix(".tar.gz").name
 
         return fixed_model_name
 
     prefix = ""
+
     if training_type in [TrainingType.CORE, TrainingType.NLU]:
+        #
         prefix = f"{training_type.model_type}-"
 
     time_format = "%Y%m%d-%H%M%S"
+
     return f"{prefix}{time.strftime(time_format)}-{randomname.get_name()}.tar.gz"
 
 
@@ -377,7 +403,8 @@ def train_core(
         model_to_finetune: Optional[Text] = None,
         finetuning_epoch_fraction: float = 1.0,
 ) -> Optional[Text]:
-    """Trains a Core model.
+    """
+    Trains a Core model.
 
     Args:
         domain: Path to the domain file.
@@ -398,8 +425,11 @@ def train_core(
     file_importer = TrainingDataImporter.load_core_importer_from_config(
         config, domain, [stories]
     )
+
     stories_data = file_importer.get_stories()
+
     nlu_data = file_importer.get_nlu_data()
+
     domain = file_importer.get_domain()
 
     if nlu_data.has_e2e_examples():
@@ -407,6 +437,7 @@ def train_core(
             "Stories file contains e2e stories. Please train using `rasa train` so that"
             " the NLU model is also trained."
         )
+
         return None
 
     if domain.is_empty():
@@ -415,6 +446,7 @@ def train_core(
             "Please specify a valid domain using '--domain' argument or check "
             "if the provided domain file exists."
         )
+
         return None
 
     if not stories_data:
@@ -422,6 +454,7 @@ def train_core(
             "No stories given. Please provide stories in order to "
             "train a Rasa Core model using the '--stories' argument."
         )
+
         return None
 
     _check_unresolved_slots(domain, stories_data)

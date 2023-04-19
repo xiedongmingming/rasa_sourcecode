@@ -16,6 +16,7 @@ from rasa.shared.core.domain import Domain
 from rasa.shared.data import TrainingType
 
 if typing.TYPE_CHECKING:
+    #
     from rasa.engine.graph import GraphSchema, GraphModelConfiguration
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,8 @@ class ModelStorage(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def create(cls, storage_path: Path) -> ModelStorage:
-        """Creates the storage.
+        """
+        Creates the storage.
 
         Args:
             storage_path: Directory which will contain the persisted graph components.
@@ -41,7 +43,8 @@ class ModelStorage(abc.ABC):
     def from_model_archive(
             cls, storage_path: Path, model_archive_path: Union[Text, Path]
     ) -> Tuple[ModelStorage, ModelMetadata]:
-        """Unpacks a model archive and initializes a `ModelStorage`.
+        """
+        Unpacks a model archive and initializes a `ModelStorage`.
 
         Args:
             storage_path: Directory which will contain the persisted graph components.
@@ -60,7 +63,8 @@ class ModelStorage(abc.ABC):
     def metadata_from_archive(
             cls, model_archive_path: Union[Text, Path]
     ) -> ModelMetadata:
-        """Retrieves metadata from archive.
+        """
+        Retrieves metadata from archive.
 
         Args:
             model_archive_path: The path to the model archive.
@@ -77,7 +81,8 @@ class ModelStorage(abc.ABC):
     @contextmanager
     @abc.abstractmethod
     def write_to(self, resource: Resource) -> Generator[Path, None, None]:
-        """Persists data for a given resource.
+        """
+        Persists data for a given resource.
 
         This `Resource` can then be accessed in dependent graph nodes via
         `model_storage.read_from`.
@@ -93,7 +98,8 @@ class ModelStorage(abc.ABC):
     @contextmanager
     @abc.abstractmethod
     def read_from(self, resource: Resource) -> Generator[Path, None, None]:
-        """Provides the data of a persisted `Resource`.
+        """
+        Provides the data of a persisted `Resource`.
 
         Args:
             resource: The `Resource` whose persisted should be accessed.
@@ -112,7 +118,8 @@ class ModelStorage(abc.ABC):
             model_configuration: GraphModelConfiguration,
             domain: Domain,
     ) -> ModelMetadata:
-        """Creates a model archive containing all data to load and run the model.
+        """
+        Creates a model archive containing all data to load and run the model.
 
         Args:
             model_archive_path: The path to the archive which should be created.
@@ -127,7 +134,9 @@ class ModelStorage(abc.ABC):
 
 @dataclass()
 class ModelMetadata:
-    """Describes a trained model."""
+    """
+    Describes a trained model.
+    """
 
     trained_at: datetime
     rasa_open_source_version: Text
@@ -142,19 +151,25 @@ class ModelMetadata:
     training_type: TrainingType = TrainingType.BOTH
 
     def __post_init__(self) -> None:
-        """Raises an exception when the meta data indicates an unsupported version.
+        """
+        Raises an exception when the meta data indicates an unsupported version.
 
         Raises:
             `UnsupportedModelException` if the `rasa_open_source_version` is lower
             than the minimum compatible version
         """
         minimum_version = version.parse(MINIMUM_COMPATIBLE_VERSION)
+
         model_version = version.parse(self.rasa_open_source_version)
+
         if model_version < minimum_version:
+            #
             raise UnsupportedModelVersionError(model_version=model_version)
 
     def as_dict(self) -> Dict[Text, Any]:
-        """Returns serializable version of the `ModelMetadata`."""
+        """
+        Returns serializable version of the `ModelMetadata`.
+        """
         return {
             "domain": self.domain.as_dict(),
             "trained_at": self.trained_at.isoformat(),
@@ -171,7 +186,8 @@ class ModelMetadata:
 
     @classmethod
     def from_dict(cls, serialized: Dict[Text, Any]) -> ModelMetadata:
-        """Loads `ModelMetadata` which has been serialized using `metadata.as_dict()`.
+        """
+        Loads `ModelMetadata` which has been serialized using `metadata.as_dict()`.
 
         Args:
             serialized: Serialized `ModelMetadata` (e.g. read from disk).

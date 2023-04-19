@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 class Token:
-    """Used by `Tokenizers` which split a single message into multiple `Token`s."""
+    """
+    Used by `Tokenizers` which split a single message into multiple `Token`s.
+    """
 
     def __init__(
             self,
@@ -32,7 +34,8 @@ class Token:
             data: Optional[Dict[Text, Any]] = None,
             lemma: Optional[Text] = None,
     ) -> None:
-        """Create a `Token`.
+        """
+        Create a `Token`.
 
         Args:
             text: The token text.
@@ -49,16 +52,23 @@ class Token:
         self.lemma = lemma or text
 
     def set(self, prop: Text, info: Any) -> None:
-        """Set property value."""
+        """
+        Set property value.
+        """
         self.data[prop] = info
 
     def get(self, prop: Text, default: Optional[Any] = None) -> Any:
-        """Returns token value."""
+        """
+        Returns token value.
+        """
         return self.data.get(prop, default)
 
     def __eq__(self, other: Any) -> bool:
+
         if not isinstance(other, Token):
+            #
             return NotImplemented
+
         return (self.start, self.end, self.text, self.lemma) == (
             other.start,
             other.end,
@@ -67,8 +77,11 @@ class Token:
         )
 
     def __lt__(self, other: Any) -> bool:
+
         if not isinstance(other, Token):
+            #
             return NotImplemented
+
         return (self.start, self.end, self.text, self.lemma) < (
             other.start,
             other.end,
@@ -77,11 +90,14 @@ class Token:
         )
 
     def __repr__(self) -> Text:
+
         return f"<Token object value='{self.text}' start={self.start} end={self.end} \
         at {hex(id(self))}>"
 
     def fingerprint(self) -> Text:
-        """Returns a stable hash for this Token."""
+        """
+        Returns a stable hash for this Token.
+        """
         return rasa.shared.utils.io.deep_container_fingerprint(
             [self.text, self.start, self.end, self.lemma, self.data]
         )
@@ -115,7 +131,9 @@ class Tokenizer(GraphComponent, abc.ABC):
             resource: Resource,
             execution_context: ExecutionContext,
     ) -> GraphComponent:
-        """Creates a new component (see parent class for full docstring)."""
+        """
+        Creates a new component (see parent class for full docstring).
+        """
         return cls(config)
 
     @abc.abstractmethod

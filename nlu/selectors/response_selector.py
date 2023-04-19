@@ -113,7 +113,8 @@ logger = logging.getLogger(__name__)
     DefaultV1Recipe.ComponentType.INTENT_CLASSIFIER, is_trainable=True
 )
 class ResponseSelector(DIETClassifier):
-    """Response selector using supervised embeddings.
+    """
+    Response selector using supervised embeddings.
 
     The response selector embeds user inputs
     and candidate response into the same space.

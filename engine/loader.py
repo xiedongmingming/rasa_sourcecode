@@ -12,7 +12,8 @@ def load_predict_graph_runner(
         model_storage_class: Type[ModelStorage],
         graph_runner_class: Type[GraphRunner],
 ) -> Tuple[ModelMetadata, GraphRunner]:
-    """Loads a model from an archive and creates the prediction graph runner.
+    """
+    Loads a model from an archive and creates the prediction graph runner.
 
     Args:
         storage_path: Directory which contains the persisted graph components.
@@ -26,6 +27,7 @@ def load_predict_graph_runner(
     model_storage, model_metadata = model_storage_class.from_model_archive(
         storage_path=storage_path, model_archive_path=model_archive_path
     )
+
     runner = graph_runner_class.create(
         graph_schema=model_metadata.predict_schema,
         model_storage=model_storage,
@@ -33,4 +35,5 @@ def load_predict_graph_runner(
             graph_schema=model_metadata.predict_schema, model_id=model_metadata.model_id
         ),
     )
+
     return model_metadata, runner

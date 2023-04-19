@@ -43,14 +43,14 @@ if typing.TYPE_CHECKING:
 
 class CRFToken:
     def __init__(
-        self,
-        text: Text,
-        pos_tag: Text,
-        pattern: Dict[Text, Any],
-        dense_features: np.ndarray,
-        entity_tag: Text,
-        entity_role_tag: Text,
-        entity_group_tag: Text,
+            self,
+            text: Text,
+            pos_tag: Text,
+            pattern: Dict[Text, Any],
+            dense_features: np.ndarray,
+            entity_tag: Text,
+            entity_role_tag: Text,
+            entity_group_tag: Text,
     ):
         self.text = text
         self.pos_tag = pos_tag
@@ -174,11 +174,11 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
         }
 
     def __init__(
-        self,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        entity_taggers: Optional[Dict[Text, "CRF"]] = None,
+            self,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            entity_taggers: Optional[Dict[Text, "CRF"]] = None,
     ) -> None:
         """Creates an instance of entity extractor."""
         self.component_config = config
@@ -207,11 +207,11 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> CRFEntityExtractor:
         """Creates a new untrained component (see parent class for full docstring)."""
         return cls(config, model_storage, resource)
@@ -285,7 +285,7 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
     def extract_entities(self, message: Message) -> List[Dict[Text, Any]]:
         """Extract entities from the given message using the trained model(s)."""
         if self.entity_taggers is None or not message.features_present(
-            attribute=TEXT, featurizers=self.component_config.get(FEATURIZERS)
+                attribute=TEXT, featurizers=self.component_config.get(FEATURIZERS)
         ):
             return []
 
@@ -310,9 +310,9 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
         )
 
     def _add_tag_to_crf_token(
-        self,
-        crf_tokens: List[CRFToken],
-        predictions: Dict[Text, List[Dict[Text, float]]],
+            self,
+            crf_tokens: List[CRFToken],
+            predictions: Dict[Text, List[Dict[Text, float]]],
     ) -> None:
         """Add predicted entity tags to CRF tokens."""
         if ENTITY_ATTRIBUTE_TYPE in predictions:
@@ -321,7 +321,7 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
                 token.entity_tag = tag
 
     def _most_likely_tag(
-        self, predictions: List[Dict[Text, float]]
+            self, predictions: List[Dict[Text, float]]
     ) -> Tuple[List[Text], List[float]]:
         """Get the entity tags with the highest confidence.
 
@@ -355,7 +355,7 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
         return _tags, _confidences
 
     def _tag_confidences(
-        self, tokens: List[Token], predictions: Dict[Text, List[Dict[Text, float]]]
+            self, tokens: List[Token], predictions: Dict[Text, List[Dict[Text, float]]]
     ) -> Tuple[Dict[Text, List[Text]], Dict[Text, List[float]]]:
         """Get most likely tag predictions with confidence values for tokens."""
         tags = {}
@@ -381,12 +381,12 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
 
     @classmethod
     def load(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
-        **kwargs: Any,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
+            **kwargs: Any,
     ) -> CRFEntityExtractor:
         """Loads trained component (see parent class for full docstring)."""
         import joblib
@@ -424,13 +424,13 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
         with self._model_storage.write_to(self._resource) as model_dir:
             if self.entity_taggers:
                 for idx, (name, entity_tagger) in enumerate(
-                    self.entity_taggers.items()
+                        self.entity_taggers.items()
                 ):
                     model_file_name = model_dir / f"{idx}{name}.pkl"
                     joblib.dump(entity_tagger, model_file_name)
 
     def _crf_tokens_to_features(
-        self, crf_tokens: List[CRFToken], include_tag_features: bool = False
+            self, crf_tokens: List[CRFToken], include_tag_features: bool = False
     ) -> List[Dict[Text, Any]]:
         """Convert the list of tokens into discrete features."""
         configured_features = self.component_config[self.CONFIG_FEATURES]
@@ -457,12 +457,12 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
         return sentence_features
 
     def _create_features_for_token(
-        self,
-        crf_tokens: List[CRFToken],
-        token_idx: int,
-        half_window_size: int,
-        window_range: range,
-        include_tag_features: bool,
+            self,
+            crf_tokens: List[CRFToken],
+            token_idx: int,
+            half_window_size: int,
+            window_range: range,
+            include_tag_features: bool,
     ) -> Dict[Text, Any]:
         """Convert a token into discrete features including words before and after."""
         configured_features = self.component_config[self.CONFIG_FEATURES]
@@ -570,7 +570,7 @@ class CRFEntityExtractor(GraphComponent, EntityExtractorMixin):
 
     @staticmethod
     def _convert_dense_features_for_crfsuite(
-        crf_token: CRFToken,
+            crf_token: CRFToken,
     ) -> Dict[Text, Dict[Text, float]]:
         """Converts dense features of CRFTokens to dicts for the crfsuite."""
         feature_dict = {

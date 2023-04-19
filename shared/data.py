@@ -2,12 +2,15 @@ import os
 import shutil
 import tempfile
 import uuid
+
 from enum import Enum
 from pathlib import Path
+
 from typing import Text, Optional, Union, List, Callable, Set, Iterable
 
 YAML_FILE_EXTENSIONS = [".yml", ".yaml"]
 JSON_FILE_EXTENSIONS = [".json"]
+
 TRAINING_DATA_EXTENSIONS = set(JSON_FILE_EXTENSIONS + YAML_FILE_EXTENSIONS)
 
 
@@ -74,6 +77,7 @@ def get_nlu_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
         Path to temporary directory containing all found NLU training files.
     """
     nlu_files = get_data_files(paths, is_nlu_file)
+
     return _copy_files_to_new_dir(nlu_files)
 
 

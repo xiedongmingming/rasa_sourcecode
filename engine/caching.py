@@ -190,24 +190,27 @@ class LocalTrainingCache(TrainingCache):
         )
 
         if not self._cache_location.exists() and not self._is_disabled():
+            #
             logger.debug(
                 f"Creating caching directory '{self._cache_location}' because "
                 f"it doesn't exist yet."
             )
+
             self._cache_location.mkdir(parents=True)
 
-        self._sessionmaker = self._create_database()
+        self._sessionmaker = self._create_database()  # 数据库访问--cache.db
 
         self._drop_cache_entries_from_incompatible_versions()
 
     @staticmethod
     def _get_cache_location() -> Path:
+        #
         return Path(os.environ.get(CACHE_LOCATION_ENV, DEFAULT_CACHE_LOCATION))
 
     def _create_database(self) -> sqlalchemy.orm.sessionmaker:
+        #
         if self._is_disabled():
-            # Use in-memory database as mock to avoid having to check `_is_disabled`
-            # everywhere
+            # Use in-memory database as mock to avoid having to check `_is_disabled` everywhere
             database = ""
         else:
             database = str(self._cache_location / self._cache_database_name)
@@ -216,11 +219,13 @@ class LocalTrainingCache(TrainingCache):
         engine = sa.create_engine(
             URL.create(drivername="sqlite", database=database), future=True
         )
+
         self.Base.metadata.create_all(engine)
 
         return sa.orm.sessionmaker(engine)
 
     def _drop_cache_entries_from_incompatible_versions(self) -> None:
+
         incompatible_entries = self._find_incompatible_cache_entries()
 
         for entry in incompatible_entries:
@@ -235,8 +240,11 @@ class LocalTrainingCache(TrainingCache):
         )
 
     def _find_incompatible_cache_entries(self) -> List[LocalTrainingCache.CacheEntry]:
+
         with self._sessionmaker() as session:
+            #
             query_for_cache_entries = sa.select(self.CacheEntry)
+
             all_entries: List[LocalTrainingCache.CacheEntry] = (
                 session.execute(query_for_cache_entries).scalars().all()
             )
@@ -244,24 +252,27 @@ class LocalTrainingCache(TrainingCache):
         return [
             entry
             for entry in all_entries
-            if version.parse(MINIMUM_COMPATIBLE_VERSION)
-               > version.parse(entry.rasa_version)
+            if version.parse(MINIMUM_COMPATIBLE_VERSION) > version.parse(entry.rasa_version)
         ]
 
     def _delete_incompatible_entries_from_cache(
             self, incompatible_entries: List[LocalTrainingCache.CacheEntry]
     ) -> None:
+
         incompatible_fingerprints = [
             entry.fingerprint_key for entry in incompatible_entries
         ]
+
         with self._sessionmaker.begin() as session:
             delete_query = sa.delete(self.CacheEntry).where(
                 self.CacheEntry.fingerprint_key.in_(incompatible_fingerprints)
             )
+
             session.execute(delete_query)
 
     @staticmethod
     def _delete_cached_result(entry: LocalTrainingCache.CacheEntry) -> None:
+
         if entry.result_location and Path(entry.result_location).is_dir():
             shutil.rmtree(entry.result_location)
 
@@ -272,19 +283,25 @@ class LocalTrainingCache(TrainingCache):
             output_fingerprint: Text,
             model_storage: ModelStorage,
     ) -> None:
-        """Adds the output to the cache (see parent class for full docstring)."""
+        """
+        Adds the output to the cache (see parent class for full docstring).
+        """
         if self._is_disabled():
             return
 
         cache_dir, output_type = None, None
+
         if isinstance(output, Cacheable):
             cache_dir, output_type = self._cache_output_to_disk(output, model_storage)
 
         try:
+
             self._add_cache_entry(
                 cache_dir, fingerprint_key, output_fingerprint, output_type
             )
+
         except OperationalError:
+
             if cache_dir:
                 shutil.rmtree(cache_dir)
 
@@ -297,7 +314,7 @@ class LocalTrainingCache(TrainingCache):
             output_fingerprint: Text,
             output_type: Text,
     ) -> None:
-        
+
         with self._sessionmaker.begin() as session:
             cache_entry = self.CacheEntry(
                 fingerprint_key=fingerprint_key,

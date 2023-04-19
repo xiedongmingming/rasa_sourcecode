@@ -10,7 +10,9 @@ from rasa.shared.importers.importer import TrainingDataImporter
 
 
 class DomainProvider(GraphComponent):
-    """Provides domain during training and inference time."""
+    """
+    Provides domain during training and inference time.
+    """
 
     def __init__(
         self,
@@ -18,7 +20,9 @@ class DomainProvider(GraphComponent):
         resource: Resource,
         domain: Optional[Domain] = None,
     ) -> None:
-        """Creates domain provider."""
+        """
+        Creates domain provider.
+        """
         self._model_storage = model_storage
         self._resource = resource
         self._domain = domain
@@ -31,7 +35,9 @@ class DomainProvider(GraphComponent):
         resource: Resource,
         execution_context: ExecutionContext,
     ) -> DomainProvider:
-        """Creates component (see parent class for full docstring)."""
+        """
+        Creates component (see parent class for full docstring).
+        """
         return cls(model_storage, resource)
 
     @classmethod
@@ -43,24 +49,32 @@ class DomainProvider(GraphComponent):
         execution_context: ExecutionContext,
         **kwargs: Any,
     ) -> DomainProvider:
-        """Creates provider using a persisted version of itself."""
+        """
+        Creates provider using a persisted version of itself.
+        """
         with model_storage.read_from(resource) as resource_directory:
             domain = Domain.from_path(resource_directory)
         return cls(model_storage, resource, domain)
 
     def _persist(self, domain: Domain) -> None:
-        """Persists domain to model storage."""
+        """
+        Persists domain to model storage.
+        """
         with self._model_storage.write_to(self._resource) as resource_directory:
             domain.persist(resource_directory / "domain.yml")
 
     def provide_train(self, importer: TrainingDataImporter) -> Domain:
-        """Provides domain from training data during training."""
+        """
+        Provides domain from training data during training.
+        """
         domain = importer.get_domain()
         self._persist(domain)
         return domain
 
     def provide_inference(self) -> Domain:
-        """Provides the domain during inference."""
+        """
+        Provides the domain during inference.
+        """
         if self._domain is None:
             # This can't really happen but if it happens then we fail early
             raise InvalidConfigException(

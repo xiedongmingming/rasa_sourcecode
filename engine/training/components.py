@@ -36,16 +36,21 @@ class PrecomputedValueProvider(GraphComponent):
             resource: Resource,
             execution_context: ExecutionContext,
     ) -> PrecomputedValueProvider:
-        """Creates instance (see parent class for full docstring)."""
+        """
+        Creates instance (see parent class for full docstring).
+        """
         return cls(output=config["output"])
 
     def get_value(self) -> Cacheable:
-        """Returns the precomputed output."""
+        """
+        Returns the precomputed output.
+        """
         return self._output
 
     @classmethod
     def replace_schema_node(cls, node: SchemaNode, output: Any) -> None:
-        """Updates a `SchemaNode` to use a `PrecomputedValueProvider`.
+        """
+        Updates a `SchemaNode` to use a `PrecomputedValueProvider`.
 
         This is for when we want to use the precomputed output value of a node from a
         previous training in a subsequent training. We replace the class in the `uses`
@@ -65,7 +70,8 @@ class PrecomputedValueProvider(GraphComponent):
 
 @dataclasses.dataclass
 class FingerprintStatus:
-    """Holds the output of a `FingerprintComponent` and is used to prune the graph.
+    """
+    Holds the output of a `FingerprintComponent` and is used to prune the graph.
 
     Attributes:
         output_fingerprint: A fingerprint of the node's output value.
@@ -76,7 +82,8 @@ class FingerprintStatus:
     is_hit: bool
 
     def fingerprint(self) -> Text:
-        """Returns the internal fingerprint.
+        """
+        Returns the internal fingerprint.
 
         If there is no fingerprint returns a random string that will never match.
         """
@@ -84,7 +91,9 @@ class FingerprintStatus:
 
 
 class FingerprintComponent(GraphComponent):
-    """Replaces non-input nodes during a fingerprint run."""
+    """
+    Replaces non-input nodes during a fingerprint run.
+    """
 
     def __init__(
             self,
@@ -92,7 +101,8 @@ class FingerprintComponent(GraphComponent):
             config_of_replaced_component: Dict[Text, Any],
             class_of_replaced_component: Type,
     ) -> None:
-        """Initializes a `FingerprintComponent`.
+        """
+        Initializes a `FingerprintComponent`.
 
         Args:
             cache: Training cache used to determine if the run is a hit or not.
@@ -111,7 +121,8 @@ class FingerprintComponent(GraphComponent):
             resource: Resource,
             execution_context: ExecutionContext,
     ) -> FingerprintComponent:
-        """Creates a `FingerprintComponent` (see parent class for full docstring)."""
+        """
+        Creates a `FingerprintComponent` (see parent class for full docstring)."""
         return cls(
             cache=config["cache"],
             config_of_replaced_component=config["config_of_replaced_component"],
@@ -119,7 +130,8 @@ class FingerprintComponent(GraphComponent):
         )
 
     def run(self, **kwargs: Any) -> FingerprintStatus:
-        """Calculates the fingerprint key to determine if cached output can be used.
+        """
+        Calculates the fingerprint key to determine if cached output can be used.
 
         If the fingerprint key matches an entry in the cache it means that there has
         been a previous node execution which matches the same component class, component
@@ -150,7 +162,8 @@ class FingerprintComponent(GraphComponent):
 
     @classmethod
     def replace_schema_node(cls, node: SchemaNode, cache: TrainingCache) -> None:
-        """Updates a `SchemaNode` to use a `FingerprintComponent`.
+        """
+        Updates a `SchemaNode` to use a `FingerprintComponent`.
 
         This is for when we want to do a fingerprint run. During the fingerprint run we
         replace all non-input nodes with `FingerprintComponent`s so we can determine

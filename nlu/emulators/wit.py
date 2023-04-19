@@ -41,10 +41,10 @@ class WitEmulator(Emulator):
                 "value": entity[ENTITY_ATTRIBUTE_VALUE],
                 # Entity value before value was transformed (e.g. by synonym mapper)
                 "body": data["text"][
-                    entity.get(ENTITY_ATTRIBUTE_START, 0) : entity.get(
-                        ENTITY_ATTRIBUTE_END, 0
-                    )
-                ],
+                        entity.get(ENTITY_ATTRIBUTE_START, 0): entity.get(
+                            ENTITY_ATTRIBUTE_END, 0
+                        )
+                        ],
                 "start": entity[ENTITY_ATTRIBUTE_START],
                 "end": entity[ENTITY_ATTRIBUTE_END],
                 "role": role,

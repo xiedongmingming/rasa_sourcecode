@@ -42,7 +42,8 @@ class GraphRunner(ABC):
             inputs: Optional[Dict[Text, Any]] = None,
             targets: Optional[List[Text]] = None,
     ) -> Dict[Text, Any]:
-        """Runs the instantiated graph with the given inputs and targets.
+        """
+        Runs the instantiated graph with the given inputs and targets.
 
         Args:
             inputs: Input nodes to be added to the graph. These can be referenced by

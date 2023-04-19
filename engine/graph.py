@@ -29,8 +29,7 @@ class SchemaNode:
     Represents one node in the schema.
 
     Args:
-        needs: describes which parameters in `fn` (or `constructor_name`
-            if `eager==False`) are filled by which parent nodes.
+        needs: describes which parameters in `fn` (or `constructor_name` if `eager==False`) are filled by which parent nodes.
         uses: The class which models the behavior of this specific graph node.
         constructor_name: The name of the constructor which should be used to
             instantiate the component. If `eager==False` then the `constructor` can
@@ -85,7 +84,9 @@ class GraphSchema:
             The graph schema in a format which can be dumped as JSON or other formats.
         """
         serializable_graph_schema: Dict[Text, Dict[Text, Any]] = {"nodes": {}}
+
         for node_name, node in self.nodes.items():
+            #
             serializable = dataclasses.asdict(node)
 
             # Classes are not JSON serializable (surprise)
@@ -107,12 +108,14 @@ class GraphSchema:
             A properly loaded schema.
 
         Raises:
-            GraphSchemaException: In case the component class for a node couldn't be
-                found.
+            GraphSchemaException: In case the component class for a node couldn't be found.
         """
         nodes = {}
+
         for node_name, serialized_node in serialized_graph_schema["nodes"].items():
+
             try:
+
                 serialized_node[
                     "uses"
                 ] = rasa.shared.utils.common.class_from_module_path(
@@ -120,10 +123,13 @@ class GraphSchema:
                 )
 
                 resource = serialized_node["resource"]
+
                 if resource:
+                    #
                     serialized_node["resource"] = Resource(**resource)
 
             except ImportError as e:
+
                 raise GraphSchemaException(
                     "Error deserializing graph schema. Can't "
                     "find class for graph component type "
@@ -143,7 +149,7 @@ class GraphSchema:
 
     def minimal_graph_schema(self, targets: Optional[List[Text]] = None) -> GraphSchema:
         """
-        Returns a new schema where all nodes are a descendant of a target.
+        Returns a new schema where all nodes are a descendant of a target. 返回一个新架构，其中所有节点都是目标的后代。
         """
         dependencies = self._all_dependencies_schema(
             targets if targets else self.target_names
@@ -151,9 +157,7 @@ class GraphSchema:
 
         return GraphSchema(
             {
-                node_name: node
-                for node_name, node in self.nodes.items()
-                if node_name in dependencies
+                node_name: node for node_name, node in self.nodes.items() if node_name in dependencies
             }
         )
 
@@ -304,7 +308,6 @@ class GraphNodeHook(ABC):
 
         Returns:
             Data that is then passed to `on_after_node`
-
         """
         ...
 
@@ -368,7 +371,8 @@ class GraphNode:
             execution_context: ExecutionContext,
             hooks: Optional[List[GraphNodeHook]] = None,
     ) -> None:
-        """Initializes `GraphNode`.
+        """
+        Initializes `GraphNode`.
 
         Args:
             node_name: The name of the node in the schema.
@@ -588,9 +592,9 @@ class GraphModelConfiguration:
     The model configuration to run as a graph during training and prediction.
     """
 
-    train_schema: GraphSchema
-    predict_schema: GraphSchema
-    training_type: TrainingType
+    train_schema: GraphSchema  # 用于训练的
+    predict_schema: GraphSchema  # 用于预测的
+    training_type: TrainingType  #
     language: Optional[Text]
     core_target: Optional[Text]
     nlu_target: Optional[Text]

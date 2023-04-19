@@ -130,9 +130,11 @@ class LoggingHook(GraphNodeHook):
 
     @staticmethod
     def _does_node_train(node: SchemaNode) -> bool:
+        #
         # Nodes which train are always targets so that they store their output in the
         # model storage. `is_input` filters out nodes which don't really train but e.g.
         # persist some training data.
+        #
         return node.is_target and not node.is_input
 
     @staticmethod
@@ -147,7 +149,9 @@ class LoggingHook(GraphNodeHook):
             output: Any,
             input_hook_data: Dict,
     ) -> None:
-        """Logs when a component finished its training."""
+        """
+        Logs when a component finished its training.
+        """
         node = self._pruned_schema.nodes[node_name]
 
         if not self._does_node_train(node):

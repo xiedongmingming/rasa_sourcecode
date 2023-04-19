@@ -24,18 +24,18 @@ class RegexMessageHandler(GraphComponent, EntityExtractorMixin):
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> RegexMessageHandler:
         """Creates a new untrained component (see parent class for full docstring)."""
         return cls()
 
     # TODO: Handle empty domain (NLU only training)
     def process(
-        self, messages: List[Message], domain: Optional[Domain] = None
+            self, messages: List[Message], domain: Optional[Domain] = None
     ) -> List[Message]:
         """Adds hardcoded intents and entities for messages starting with '/'.
 

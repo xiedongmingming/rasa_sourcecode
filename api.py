@@ -11,6 +11,7 @@ import rasa.shared.constants
 #   are getting imported.
 
 if TYPE_CHECKING:
+    #
     from rasa.model_training import TrainingResult
 
 
@@ -21,7 +22,8 @@ def run(
         credentials: "Text" = None,
         **kwargs: "Dict[Text, Any]",
 ) -> None:
-    """Runs a Rasa model.
+    """
+    Runs a Rasa model.
 
     Args:
         model: Path to model archive.
@@ -42,6 +44,7 @@ def run(
     _endpoints = AvailableEndpoints.read_endpoints(endpoints)
 
     if not connector and not credentials:
+        #
         connector = "rest"
 
         print_warning(
@@ -53,6 +56,7 @@ def run(
     kwargs = rasa.shared.utils.common.minimal_kwargs(
         kwargs, rasa.core.run.serve_application
     )
+
     rasa.core.run.serve_application(
         model,
         channel=connector,
@@ -126,7 +130,8 @@ def test(
         output: "Text" = rasa.shared.constants.DEFAULT_RESULTS_PATH,
         additional_arguments: "Optional[Dict]" = None,
 ) -> None:
-    """Test a Rasa model against a set of test data.
+    """
+    Test a Rasa model against a set of test data.
 
     Args:
         model: model to test

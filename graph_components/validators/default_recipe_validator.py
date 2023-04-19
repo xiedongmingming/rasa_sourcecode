@@ -43,7 +43,6 @@ from rasa.shared.importers.importer import TrainingDataImporter
 from rasa.shared.nlu.training_data.training_data import TrainingData
 import rasa.shared.utils.io
 
-
 # TODO: Can we replace this with the registered types from the regitry?
 TRAINABLE_EXTRACTORS = [MitieEntityExtractor, CRFEntityExtractor, DIETClassifier]
 # TODO: replace these once the Recipe is merged (used in tests)
@@ -51,7 +50,8 @@ POLICY_CLASSSES = {TEDPolicy, MemoizationPolicy, RulePolicy}
 
 
 def _types_to_str(types: Iterable[Type]) -> Text:
-    """Returns a text containing the names of all given types.
+    """
+    Returns a text containing the names of all given types.
 
     Args:
         types: some types
@@ -62,21 +62,26 @@ def _types_to_str(types: Iterable[Type]) -> Text:
 
 
 class DefaultV1RecipeValidator(GraphComponent):
-    """Validates a "DefaultV1" configuration against the training data and domain."""
+    """
+    Validates a "DefaultV1" configuration against the training data and domain.
+    """
 
     @classmethod
     def create(
-        cls,
-        config: Dict[Text, Any],
-        model_storage: ModelStorage,
-        resource: Resource,
-        execution_context: ExecutionContext,
+            cls,
+            config: Dict[Text, Any],
+            model_storage: ModelStorage,
+            resource: Resource,
+            execution_context: ExecutionContext,
     ) -> DefaultV1RecipeValidator:
-        """Creates a new `ConfigValidator` (see parent class for full docstring)."""
+        """
+        Creates a new `ConfigValidator` (see parent class for full docstring).
+        """
         return cls(execution_context.graph_schema)
 
     def __init__(self, graph_schema: GraphSchema) -> None:
-        """Instantiates a new `ConfigValidator`.
+        """
+        Instantiates a new `ConfigValidator`.
 
         Args:
            graph_schema: a graph schema
@@ -90,7 +95,8 @@ class DefaultV1RecipeValidator(GraphComponent):
         ]
 
     def validate(self, importer: TrainingDataImporter) -> TrainingDataImporter:
-        """Validates the current graph schema against the training data and domain.
+        """
+        Validates the current graph schema against the training data and domain.
 
         Args:
             importer: the training data importer which can also load the domain
@@ -98,15 +104,20 @@ class DefaultV1RecipeValidator(GraphComponent):
             `InvalidConfigException` or `InvalidDomain` in case there is some mismatch
         """
         nlu_data = importer.get_nlu_data()
+
         self._validate_nlu(nlu_data)
 
         story_graph = importer.get_stories()
+
         domain = importer.get_domain()
+
         self._validate_core(story_graph, domain)
+
         return importer
 
     def _validate_nlu(self, training_data: TrainingData) -> None:
-        """Validates whether the configuration matches the training data.
+        """
+        Validates whether the configuration matches the training data.
 
         Args:
            training_data: The training data for the NLU components.
@@ -120,9 +131,10 @@ class DefaultV1RecipeValidator(GraphComponent):
         self._warn_if_some_training_data_is_unused(training_data=training_data)
 
     def _warn_if_some_training_data_is_unused(
-        self, training_data: TrainingData
+            self, training_data: TrainingData
     ) -> None:
-        """Validates that all training data will be consumed by some component.
+        """
+        Validates that all training data will be consumed by some component.
 
         For example, if you specify response examples in your training data, but there
         is no `ResponseSelector` component in your configuration, then this method
@@ -132,8 +144,8 @@ class DefaultV1RecipeValidator(GraphComponent):
             training_data: The training data for the NLU components.
         """
         if (
-            training_data.response_examples
-            and ResponseSelector not in self._component_types
+                training_data.response_examples
+                and ResponseSelector not in self._component_types
         ):
             rasa.shared.utils.io.raise_warning(
                 f"You have defined training data with examples for training a response "
@@ -145,7 +157,7 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
         if training_data.entity_examples and self._component_types.isdisjoint(
-            TRAINABLE_EXTRACTORS
+                TRAINABLE_EXTRACTORS
         ):
             rasa.shared.utils.io.raise_warning(
                 f"You have defined training data consisting of entity examples, but "
@@ -157,7 +169,7 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
         if training_data.entity_examples and self._component_types.isdisjoint(
-            {DIETClassifier, CRFEntityExtractor}
+                {DIETClassifier, CRFEntityExtractor}
         ):
             if training_data.entity_roles_groups_used():
                 rasa.shared.utils.io.raise_warning(
@@ -173,7 +185,7 @@ class DefaultV1RecipeValidator(GraphComponent):
                 )
 
         if training_data.regex_features and self._component_types.isdisjoint(
-            [RegexFeaturizer, RegexEntityExtractor]
+                [RegexFeaturizer, RegexEntityExtractor]
         ):
             rasa.shared.utils.io.raise_warning(
                 f"You have defined training data with regexes, but "
@@ -187,7 +199,7 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
         if training_data.lookup_tables and self._component_types.isdisjoint(
-            [RegexFeaturizer, RegexEntityExtractor]
+                [RegexFeaturizer, RegexEntityExtractor]
         ):
             rasa.shared.utils.io.raise_warning(
                 f"You have defined training data consisting of lookup tables, but "
@@ -243,8 +255,8 @@ class DefaultV1RecipeValidator(GraphComponent):
                     )
 
         if (
-            training_data.entity_synonyms
-            and EntitySynonymMapper not in self._component_types
+                training_data.entity_synonyms
+                and EntitySynonymMapper not in self._component_types
         ):
             rasa.shared.utils.io.raise_warning(
                 f"You have defined synonyms in your training data, but "
@@ -257,7 +269,8 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
     def _raise_if_more_than_one_tokenizer(self) -> None:
-        """Validates that only one tokenizer is present in the configuration.
+        """
+        Validates that only one tokenizer is present in the configuration.
 
         Note that the existence of a tokenizer and its position in the graph schema
         will be validated via the validation of required components during
@@ -308,9 +321,10 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
     def _warn_of_competition_with_regex_extractor(
-        self, training_data: TrainingData
+            self, training_data: TrainingData
     ) -> None:
-        """Warns when regex entity extractor is competing with a general one.
+        """
+        Warns when regex entity extractor is competing with a general one.
 
         This might be the case when the following conditions are all met:
         * You are using a general entity extractor and the `RegexEntityExtractor`
@@ -357,11 +371,11 @@ class DefaultV1RecipeValidator(GraphComponent):
             node
             for node_name, node in self._graph_schema.nodes.items()
             if issubclass(node.uses, Featurizer)
-            # Featurizers are split in `train` and `process_training_data` -
-            # we only need to look at the nodes which _add_ features.
-            and node.fn == "process_training_data"
-            # Tokenizers are re-used in the Core part of the graph when using End-to-End
-            and not node_name.startswith("e2e")
+               # Featurizers are split in `train` and `process_training_data` -
+               # we only need to look at the nodes which _add_ features.
+               and node.fn == "process_training_data"
+               # Tokenizers are re-used in the Core part of the graph when using End-to-End
+               and not node_name.startswith("e2e")
         ]
 
         Featurizer.raise_if_featurizer_configs_are_not_compatible(
@@ -401,7 +415,7 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
     def _raise_if_domain_contains_form_names_but_no_rule_policy_given(
-        self, domain: Domain
+            self, domain: Domain
     ) -> None:
         """Validates that there exists a rule policy if forms are defined.
 
@@ -423,7 +437,7 @@ class DefaultV1RecipeValidator(GraphComponent):
             )
 
     def _raise_if_a_rule_policy_is_incompatible_with_domain(
-        self, domain: Domain
+            self, domain: Domain
     ) -> None:
         """Validates the rule policies against the domain.
 
@@ -469,7 +483,7 @@ class DefaultV1RecipeValidator(GraphComponent):
                 )
 
     def _warn_if_rule_based_data_is_unused_or_missing(
-        self, story_graph: StoryGraph
+            self, story_graph: StoryGraph
     ) -> None:
         """Warns if rule-data is unused or missing.
 

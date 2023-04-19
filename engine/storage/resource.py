@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Resource:
-    """Represents a persisted graph component in the graph.
+    """
+    Represents a persisted graph component in the graph.
 
     Attributes:
         name: The unique identifier for the `Resource`. Used to locate the associated
@@ -38,13 +39,14 @@ class Resource:
 
     @classmethod
     def from_cache(
-        cls,
-        node_name: Text,
-        directory: Path,
-        model_storage: ModelStorage,
-        output_fingerprint: Text,
+            cls,
+            node_name: Text,
+            directory: Path,
+            model_storage: ModelStorage,
+            output_fingerprint: Text,
     ) -> Resource:
-        """Loads a `Resource` from the cache.
+        """
+        Loads a `Resource` from the cache.
 
         This automatically loads the persisted resource into the given `ModelStorage`.
 
@@ -81,7 +83,8 @@ class Resource:
         return resource
 
     def to_cache(self, directory: Path, model_storage: ModelStorage) -> None:
-        """Persists the `Resource` to the cache.
+        """
+        Persists the `Resource` to the cache.
 
         Args:
             directory: The directory which receives the persisted `Resource`.
@@ -98,7 +101,8 @@ class Resource:
             )
 
     def fingerprint(self) -> Text:
-        """Provides fingerprint for `Resource`.
+        """
+        Provides fingerprint for `Resource`.
 
         A unique fingerprint is created on initialization of a `Resource` however we
         also allow a value to be provided for when we retrieve a `Resource` from the
