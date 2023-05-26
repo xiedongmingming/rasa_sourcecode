@@ -10,6 +10,7 @@ from rasa.constants import MINIMUM_COMPATIBLE_VERSION
 import rasa.telemetry
 import rasa.utils.io
 import rasa.utils.tensorflow.environment as tf_env
+
 from rasa import version
 from rasa.cli import (
     data,
@@ -40,17 +41,19 @@ def create_argument_parser() -> argparse.ArgumentParser:
     Parse all the command line arguments for the training script.
     """
     parser = argparse.ArgumentParser(
-        prog="rasa",  # 应用程序名称
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # 用于打印帮助信息
+        prog="rasa",  # 此脚本程序名称(默认:SYS.ARGV[0])
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # 输出帮助信息的定制类
         description="Rasa command line interface. Rasa allows you to build "
                     "your own conversational assistants 🤖. The 'rasa' command "
                     "allows you to easily run most common commands like "
-                    "creating a new bot, training or evaluating models.",
+                    "creating a new bot, training or evaluating models.",  # 脚本说明
     )
+
+    # 命令行参数解析：https://blog.csdn.net/weixin_39975810/article/details/110961418
 
     parser.add_argument(
         "--version",
-        action="store_true",
+        action="store_true",  # ？？？
         default=argparse.SUPPRESS,
         help="Print installed Rasa version",
     )
@@ -76,6 +79,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
     x.add_subparser(subparsers, parents=parent_parsers)
     evaluate.add_subparser(subparsers, parents=parent_parsers)
 
+    # 插件相关命令行参数
     plugin_manager().hook.refine_cli(
         subparsers=subparsers, parent_parsers=parent_parsers
     )
@@ -84,7 +88,9 @@ def create_argument_parser() -> argparse.ArgumentParser:
 
 
 def print_version() -> None:
-    """Prints version information of rasa tooling and python."""
+    """
+    Prints version information of rasa tooling and python.
+    """
     print(f"Rasa Version      :         {version.__version__}")
     print(f"Minimum Compatible Version: {MINIMUM_COMPATIBLE_VERSION}")
     print(f"Rasa SDK Version  :         {rasa_sdk_version}")
@@ -93,7 +99,9 @@ def print_version() -> None:
     print(f"Python Path       :         {sys.executable}")
 
     result = plugin_manager().hook.get_version_info()
+
     if result:
+        #
         print(f"\t{result[0][0]}  :         {result[0][1]}")
 
 
@@ -121,36 +129,51 @@ def main() -> None:
     tf_env.setup_tf_environment()
     tf_env.check_deterministic_ops()
 
-    # insert current path in syspath so custom modules are found
-    sys.path.insert(1, os.getcwd())
+    sys.path.insert(1, os.getcwd())  # insert current path in syspath so custom modules are found
 
     try:
+
         if hasattr(cmdline_arguments, "func"):
+
             rasa.utils.io.configure_colored_logging(log_level)
 
-            result = plugin_manager().hook.configure_commandline(
+            result = plugin_manager().hook.configure_commandline(  # []
                 cmdline_arguments=cmdline_arguments
             )
+
             endpoints_file = result[0] if result else None
 
             rasa.telemetry.initialize_telemetry()
             rasa.telemetry.initialize_error_reporting()
+
             plugin_manager().hook.init_telemetry(endpoints_file=endpoints_file)
 
             cmdline_arguments.func(cmdline_arguments)
+
         elif hasattr(cmdline_arguments, "version"):
+
             print_version()
+
         else:
+            #
             # user has not provided a subcommand, let's print the help
+            #
             logger.error("No command specified.")
+
             arg_parser.print_help()
+
             sys.exit(1)
+
     except RasaException as e:
+        #
         # these are exceptions we expect to happen (e.g. invalid training data format)
         # it doesn't make sense to print a stacktrace for these if we are not in
         # debug mode
+
         logger.debug("Failed to run CLI command due to an exception.", exc_info=e)
+
         print_error(f"{e.__class__.__name__}: {e}")
+
         sys.exit(1)
 
 

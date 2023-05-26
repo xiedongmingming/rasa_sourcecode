@@ -19,7 +19,8 @@ def plugin_manager() -> pluggy.PluginManager:
     """
     _plugin_manager = pluggy.PluginManager("rasa")
 
-    _plugin_manager.add_hookspecs(sys.modules["rasa.plugin"])
+    _plugin_manager.add_hookspecs(
+        sys.modules["rasa.plugin"])  # ['configure_commandline', 'get_version_info', 'init_telemetry', 'refine_cli']
 
     _discover_plugins(_plugin_manager)
 
@@ -28,12 +29,15 @@ def plugin_manager() -> pluggy.PluginManager:
 
 def _discover_plugins(manager: pluggy.PluginManager) -> None:
     try:
-        # rasa_plus is an enterprise-ready version of rasa open source
-        # which extends existing functionality via plugins
+        #
+        # rasa_plus is an enterprise-ready version of rasa open source which extends existing functionality via plugins
+        #
         import rasa_plus
 
         rasa_plus.init_hooks(manager)
+
     except ModuleNotFoundError:
+        #
         pass
 
 
@@ -42,19 +46,27 @@ def refine_cli(
         subparsers: SubParsersAction,
         parent_parsers: List[argparse.ArgumentParser],
 ) -> None:
-    """Customizable hook for adding CLI commands."""
+    """
+    Customizable hook for adding CLI commands.
+    """
 
 
 @hookspec  # type: ignore[misc]
 def get_version_info() -> Tuple[Text, Text]:
-    """Hook specification for getting plugin version info."""
+    """
+    Hook specification for getting plugin version info.
+    """
 
 
 @hookspec  # type: ignore[misc]
 def configure_commandline(cmdline_arguments: argparse.Namespace) -> Optional[Text]:
-    """Hook specification for configuring plugin CLI."""
+    """
+    Hook specification for configuring plugin CLI.
+    """
 
 
 @hookspec  # type: ignore[misc]
 def init_telemetry(endpoints_file: Optional[Text]) -> None:
-    """Hook specification for initialising plugin telemetry."""
+    """
+    Hook specification for initialising plugin telemetry.
+    """

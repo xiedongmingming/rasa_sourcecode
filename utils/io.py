@@ -40,7 +40,8 @@ def configure_colored_logging(loglevel: Text) -> None:
     import coloredlogs
 
     loglevel = loglevel or os.environ.get(
-        rasa.shared.constants.ENV_LOG_LEVEL, rasa.shared.constants.DEFAULT_LOG_LEVEL
+        rasa.shared.constants.ENV_LOG_LEVEL, 
+        rasa.shared.constants.DEFAULT_LOG_LEVEL
     )
 
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES.copy()

@@ -2,6 +2,7 @@ import itertools
 import os
 import logging
 import tempfile
+
 from pathlib import Path
 
 import numpy as np
@@ -23,17 +24,23 @@ from typing import (
 )
 
 from rasa import telemetry
+
 from rasa.core.agent import Agent
 from rasa.core.channels import UserMessage
 from rasa.core.processor import MessageProcessor
+
 from rasa.shared.nlu.training_data.training_data import TrainingData
+
 import rasa.shared.utils.io
+
 import rasa.utils.plotting as plot_utils
 import rasa.utils.io as io_utils
 import rasa.utils.common
 
 from rasa.constants import TEST_DATA_FILE, TRAIN_DATA_FILE, NLG_DATA_FILE
+
 import rasa.nlu.classifiers.fallback_classifier
+
 from rasa.nlu.constants import (
     RESPONSE_SELECTOR_DEFAULT_INTENT,
     RESPONSE_SELECTOR_PROPERTY_NAME,
@@ -74,6 +81,7 @@ if TYPE_CHECKING:
             "predicted_entities": List[Dict[Text, Any]],
         },
     )
+
 logger = logging.getLogger(__name__)
 
 # Exclude 'EntitySynonymMapper' and 'ResponseSelector' as their super class
@@ -84,7 +92,9 @@ EXTRACTORS_WITH_CONFIDENCES = {"CRFEntityExtractor", "DIETClassifier"}
 
 
 class CVEvaluationResult(NamedTuple):
-    """Stores NLU cross-validation results."""
+    """
+    Stores NLU cross-validation results.
+    """
 
     train: Dict
     test: Dict
@@ -114,7 +124,9 @@ ResponseSelectionMetrics = Dict[Text, List[float]]
 def log_evaluation_table(
         report: Text, precision: float, f1: float, accuracy: float
 ) -> None:  # pragma: no cover
-    """Log the sklearn evaluation metrics."""
+    """
+    Log the sklearn evaluation metrics.
+    """
     logger.info(f"F1-Score:  {f1}")
     logger.info(f"Precision: {precision}")
     logger.info(f"Accuracy:  {accuracy}")
@@ -124,7 +136,8 @@ def log_evaluation_table(
 def remove_empty_intent_examples(
         intent_results: List[IntentEvaluationResult],
 ) -> List[IntentEvaluationResult]:
-    """Remove those examples without an intent.
+    """
+    Remove those examples without an intent.
 
     Args:
         intent_results: intent evaluation results
@@ -132,13 +145,17 @@ def remove_empty_intent_examples(
     Returns: intent evaluation results
     """
     filtered = []
+
     for r in intent_results:
-        # substitute None values with empty string
-        # to enable sklearn evaluation
+        #
+        # substitute None values with empty string to enable sklearn evaluation
+        #
         if r.intent_prediction is None:
+            #
             r = r._replace(intent_prediction="")
 
         if r.intent_target != "" and r.intent_target is not None:
+            #
             filtered.append(r)
 
     return filtered
@@ -147,7 +164,8 @@ def remove_empty_intent_examples(
 def remove_empty_response_examples(
         response_results: List[ResponseSelectionEvaluationResult],
 ) -> List[ResponseSelectionEvaluationResult]:
-    """Remove those examples without a response.
+    """
+    Remove those examples without a response.
 
     Args:
         response_results: response selection evaluation results
@@ -156,9 +174,11 @@ def remove_empty_response_examples(
     """
 
     filtered = []
+
     for r in response_results:
-        # substitute None values with empty string
-        # to enable sklearn evaluation
+        #
+        # substitute None values with empty string to enable sklearn evaluation
+        #
         if r.intent_response_key_prediction is None:
             r = r._replace(intent_response_key_prediction="")
 
@@ -176,7 +196,8 @@ def remove_empty_response_examples(
 def drop_intents_below_freq(
         training_data: TrainingData, cutoff: int = 5
 ) -> TrainingData:
-    """Remove intent groups with less than cutoff instances.
+    """
+    Remove intent groups with less than cutoff instances.
 
     Args:
         training_data: training data
@@ -189,6 +210,7 @@ def drop_intents_below_freq(
     )
 
     examples_per_intent = training_data.number_of_examples_per_intent
+
     return training_data.filter_training_examples(
         lambda ex: examples_per_intent.get(ex.get(INTENT), 0) >= cutoff
     )
@@ -197,7 +219,8 @@ def drop_intents_below_freq(
 def write_intent_successes(
         intent_results: List[IntentEvaluationResult], successes_filename: Text
 ) -> None:
-    """Write successful intent predictions to a file.
+    """
+    Write successful intent predictions to a file.
 
     Args:
         intent_results: intent evaluation result
@@ -225,7 +248,8 @@ def write_intent_successes(
 
 
 def _write_errors(errors: List[Dict], errors_filename: Text, error_type: Text) -> None:
-    """Write incorrect intent predictions to a file.
+    """
+    Write incorrect intent predictions to a file.
 
     Args:
         errors: Serializable prediction errors.
@@ -261,7 +285,8 @@ def _get_intent_errors(intent_results: List[IntentEvaluationResult]) -> List[Dic
 def write_response_successes(
         response_results: List[ResponseSelectionEvaluationResult], successes_filename: Text
 ) -> None:
-    """Write successful response selection predictions to a file.
+    """
+    Write successful response selection predictions to a file.
 
     Args:
         response_results: response selection evaluation result
@@ -294,7 +319,8 @@ def write_response_successes(
 def _response_errors(
         response_results: List[ResponseSelectionEvaluationResult],
 ) -> List[Dict]:
-    """Write incorrect response selection predictions to a file.
+    """
+    Write incorrect response selection predictions to a file.
 
     Args:
         response_results: response selection evaluation result
@@ -325,7 +351,8 @@ def plot_attribute_confidences(
         prediction_key: Text,
         title: Text,
 ) -> None:
-    """Create histogram of confidence distribution.
+    """
+    Create histogram of confidence distribution.
 
     Args:
         results: evaluation results
@@ -356,7 +383,8 @@ def plot_entity_confidences(
         hist_filename: Text,
         title: Text,
 ) -> None:
-    """Creates histogram of confidence distribution.
+    """
+    Creates histogram of confidence distribution.
 
     Args:
         merged_targets: Entity labels.
@@ -392,7 +420,8 @@ def evaluate_response_selections(
         disable_plotting: bool,
         report_as_dict: Optional[bool] = None,
 ) -> Dict:  # pragma: no cover
-    """Creates summary statistics for response selection.
+    """
+    Creates summary statistics for response selection.
 
     Only considers those examples with a set response.
     Others are filtered out. Returns a dictionary of containing the
@@ -412,7 +441,9 @@ def evaluate_response_selections(
     Returns: dictionary with evaluation results
     """
     # remove empty response targets
+
     num_examples = len(response_selection_results)
+
     response_selection_results = remove_empty_response_examples(
         response_selection_results
     )
@@ -438,12 +469,17 @@ def evaluate_response_selections(
         predicted_intent_response_keys,
         report_as_dict,
     )
+
     if output_directory:
+        #
         _dump_report(output_directory, "response_selection_report.json", report)
 
     if successes:
+
         successes_filename = "response_selection_successes.json"
+
         if output_directory:
+            #
             successes_filename = os.path.join(output_directory, successes_filename)
         # save classified samples to file for debugging
         write_response_successes(response_selection_results, successes_filename)

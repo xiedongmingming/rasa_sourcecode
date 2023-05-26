@@ -107,6 +107,7 @@ class WhitespaceTokenizer(Tokenizer):
 
         # if we removed everything like smiles `:)`, use the whole text as 1 token
         if not words:
+            #
             words = [text]
 
         tokens = self._convert_words_to_tokens(words, text)

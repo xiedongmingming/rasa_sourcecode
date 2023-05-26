@@ -19,24 +19,30 @@ logger = logging.getLogger(__name__)
 
 
 def _setup_gpu_environment() -> None:
-    """Sets configuration for TensorFlow GPU environment based on env variable."""
+    """
+    Sets configuration for TensorFlow GPU environment based on env variable.
+    """
     gpu_memory_config = os.getenv(ENV_GPU_CONFIG)
 
     if not gpu_memory_config:
+        #
         return
 
     # Import from tensorflow only if necessary (environment variable was set)
     from tensorflow import config as tf_config
 
     parsed_gpu_config = _parse_gpu_config(gpu_memory_config)
+
     physical_gpus = tf_config.list_physical_devices("GPU")
 
     # Logic taken from https://www.tensorflow.org/guide/gpu
     if physical_gpus:
+
         for gpu_id, gpu_id_memory in parsed_gpu_config.items():
             _allocate_gpu_memory(physical_gpus[gpu_id], gpu_id_memory)
 
     else:
+
         rasa.shared.utils.io.raise_warning(
             f"You have an environment variable '{ENV_GPU_CONFIG}' set but no GPUs were "
             f"detected to configure."
@@ -75,7 +81,8 @@ def _allocate_gpu_memory(
 
 
 def _parse_gpu_config(gpu_memory_config: Text) -> Dict[int, int]:
-    """Parse GPU configuration variable from a string to a dict.
+    """
+    Parse GPU configuration variable from a string to a dict.
 
     Args:
         gpu_memory_config: String containing the configuration for GPU usage.
@@ -90,14 +97,19 @@ def _parse_gpu_config(gpu_memory_config: Text) -> Dict[int, int]:
     parsed_gpu_config: Dict[int, int] = {}
 
     try:
+
         for instance in gpu_memory_config.split(","):
             instance_gpu_id, instance_gpu_mem = instance.split(":")
+
             parsed_instance_gpu_id = int(instance_gpu_id)
             parsed_instance_gpu_mem = int(instance_gpu_mem)
 
             parsed_gpu_config[parsed_instance_gpu_id] = parsed_instance_gpu_mem
+
     except ValueError:
+        #
         # Helper explanation of where the error comes from
+        #
         raise ValueError(
             f"Error parsing GPU configuration. Please cross-check the format of "
             f"'{ENV_GPU_CONFIG}' at https://rasa.com/docs/rasa/tuning-your-model"
@@ -108,19 +120,26 @@ def _parse_gpu_config(gpu_memory_config: Text) -> Dict[int, int]:
 
 
 def _setup_cpu_environment() -> None:
-    """Set configuration for the CPU environment based on environment variable."""
+    """
+    Set configuration for the CPU environment based on environment variable.
+    """
     inter_op_parallel_threads = os.getenv(ENV_CPU_INTER_OP_CONFIG)
     intra_op_parallel_threads = os.getenv(ENV_CPU_INTRA_OP_CONFIG)
 
     if not inter_op_parallel_threads and not intra_op_parallel_threads:
+        #
         return
 
     from tensorflow import config as tf_config
 
     if inter_op_parallel_threads:
+
         try:
+
             inter_op_parallel_threads_number = int(inter_op_parallel_threads.strip())
+
         except ValueError:
+
             raise ValueError(
                 f"Error parsing the environment variable '{ENV_CPU_INTER_OP_CONFIG}'. "
                 f"Please cross-check the value."
@@ -131,9 +150,13 @@ def _setup_cpu_environment() -> None:
         )
 
     if intra_op_parallel_threads:
+
         try:
+
             intra_op_parallel_threads_number = int(intra_op_parallel_threads.strip())
+
         except ValueError:
+
             raise ValueError(
                 f"Error parsing the environment variable '{ENV_CPU_INTRA_OP_CONFIG}'. "
                 f"Please cross-check the value."
@@ -157,6 +180,7 @@ def check_deterministic_ops() -> None:
     Warn user if they have set TF_DETERMINISTIC_OPS.
     """
     if os.getenv(TF_DETERMINISTIC_OPS, False):
+        #
         shared_io_utils.raise_warning(
             f"You have set '{TF_DETERMINISTIC_OPS}' to 1. If you are "
             f"using one or more GPU(s) and use any of 'SparseFeaturizer', "

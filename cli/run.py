@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 def add_subparser(
-        subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+        subparsers: SubParsersAction,
+        parents: List[argparse.ArgumentParser]
 ) -> None:
     """
     Add all run parsers.

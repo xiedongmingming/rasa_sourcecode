@@ -10,16 +10,25 @@ logger = logging.getLogger(__name__)
 
 
 def run_cmdline(model_path: Text) -> None:
-    """Loops over CLI input, passing each message to a loaded NLU model."""
+    """
+    Loops over CLI input, passing each message to a loaded NLU model.
+    """
     agent = Agent.load(model_path)
 
     print_success("NLU model loaded. Type a message and press enter to parse it.")
+
     while True:
+
         print_success("Next message:")
+
         try:
+
             message = input().strip()
+
         except (EOFError, KeyboardInterrupt):
+
             print_info("Wrapping up command line chat...")
+
             break
 
         result = asyncio.run(agent.parse_message(message))
