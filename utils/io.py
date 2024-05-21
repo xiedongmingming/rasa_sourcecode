@@ -31,8 +31,7 @@ class WriteRow(Protocol):
 
 
 def configure_colored_logging(loglevel: Text) -> None:
-    """
-    Configures coloredlogs library for specified loglevel.
+    """Configures coloredlogs library for specified loglevel.
 
     Args:
         loglevel: The loglevel to configure the library for
@@ -40,15 +39,13 @@ def configure_colored_logging(loglevel: Text) -> None:
     import coloredlogs
 
     loglevel = loglevel or os.environ.get(
-        rasa.shared.constants.ENV_LOG_LEVEL, 
-        rasa.shared.constants.DEFAULT_LOG_LEVEL
+        rasa.shared.constants.ENV_LOG_LEVEL, rasa.shared.constants.DEFAULT_LOG_LEVEL
     )
 
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES.copy()
     field_styles["asctime"] = {}
     level_styles = coloredlogs.DEFAULT_LEVEL_STYLES.copy()
     level_styles["debug"] = {}
-    
     coloredlogs.install(
         level=loglevel,
         use_chroot=False,
@@ -59,7 +56,7 @@ def configure_colored_logging(loglevel: Text) -> None:
 
 
 def enable_async_loop_debugging(
-        event_loop: AbstractEventLoop, slow_callback_duration: float = 0.1
+    event_loop: AbstractEventLoop, slow_callback_duration: float = 0.1
 ) -> AbstractEventLoop:
     """Enables debugging on an event loop.
 
@@ -134,7 +131,7 @@ def create_path(file_path: Text) -> None:
 
 
 def file_type_validator(
-        valid_file_types: List[Text], error_message: Text
+    valid_file_types: List[Text], error_message: Text
 ) -> Type["Validator"]:
     """Creates a `Validator` class which can be used with `questionary` to validate
     file paths.
@@ -160,7 +157,7 @@ def not_empty_validator(error_message: Text) -> Type["Validator"]:
 
 
 def create_validator(
-        function: Callable[[Text], bool], error_message: Text
+    function: Callable[[Text], bool], error_message: Text
 ) -> Type["Validator"]:
     """Helper method to create `Validator` classes from callable functions. Should be
     removed when questionary supports `Validator` objects."""
@@ -179,7 +176,7 @@ def create_validator(
 
 
 def json_unpickle(
-        file_name: Union[Text, Path], encode_non_string_keys: bool = False
+    file_name: Union[Text, Path], encode_non_string_keys: bool = False
 ) -> Any:
     """Unpickle an object from file using json.
 
@@ -200,7 +197,7 @@ def json_unpickle(
 
 
 def json_pickle(
-        file_name: Union[Text, Path], obj: Any, encode_non_string_keys: bool = False
+    file_name: Union[Text, Path], obj: Any, encode_non_string_keys: bool = False
 ) -> None:
     """Pickle an object to a file using json.
 

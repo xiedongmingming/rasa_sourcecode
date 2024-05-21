@@ -1,8 +1,6 @@
 from __future__ import annotations
-
 import copy
 import logging
-
 from rasa.nlu.featurizers.featurizer import Featurizer
 
 import numpy as np
@@ -113,8 +111,7 @@ logger = logging.getLogger(__name__)
     DefaultV1Recipe.ComponentType.INTENT_CLASSIFIER, is_trainable=True
 )
 class ResponseSelector(DIETClassifier):
-    """
-    Response selector using supervised embeddings.
+    """Response selector using supervised embeddings.
 
     The response selector embeds user inputs
     and candidate response into the same space.
@@ -269,17 +266,17 @@ class ResponseSelector(DIETClassifier):
         }
 
     def __init__(
-            self,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
-            index_label_id_mapping: Optional[Dict[int, Text]] = None,
-            entity_tag_specs: Optional[List[EntityTagSpec]] = None,
-            model: Optional[RasaModel] = None,
-            all_retrieval_intents: Optional[List[Text]] = None,
-            responses: Optional[Dict[Text, List[Dict[Text, Any]]]] = None,
-            sparse_feature_sizes: Optional[Dict[Text, Dict[Text, List[int]]]] = None,
+        self,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
+        index_label_id_mapping: Optional[Dict[int, Text]] = None,
+        entity_tag_specs: Optional[List[EntityTagSpec]] = None,
+        model: Optional[RasaModel] = None,
+        all_retrieval_intents: Optional[List[Text]] = None,
+        responses: Optional[Dict[Text, List[Dict[Text, Any]]]] = None,
+        sparse_feature_sizes: Optional[Dict[Text, Dict[Text, List[int]]]] = None,
     ) -> None:
         """Declare instance variables with default values.
 
@@ -335,7 +332,7 @@ class ResponseSelector(DIETClassifier):
 
     @staticmethod
     def model_class(  # type: ignore[override]
-            use_text_as_label: bool,
+        use_text_as_label: bool,
     ) -> Type[RasaModel]:
         """Returns model class."""
         if use_text_as_label:
@@ -348,7 +345,7 @@ class ResponseSelector(DIETClassifier):
         self.use_text_as_label = self.component_config[USE_TEXT_AS_LABEL]
 
     def _warn_about_transformer_and_hidden_layers_enabled(
-            self, selector_name: Text
+        self, selector_name: Text
     ) -> None:
         """Warns user if they enabled the transformer but didn't disable hidden layers.
 
@@ -359,16 +356,16 @@ class ResponseSelector(DIETClassifier):
         """
         default_config = self.get_default_config()
         hidden_layers_is_at_default_value = (
-                self.component_config[HIDDEN_LAYERS_SIZES]
-                == default_config[HIDDEN_LAYERS_SIZES]
+            self.component_config[HIDDEN_LAYERS_SIZES]
+            == default_config[HIDDEN_LAYERS_SIZES]
         )
         config_for_disabling_hidden_layers: Dict[Text, List[Any]] = {
             k: [] for k, _ in default_config[HIDDEN_LAYERS_SIZES].items()
         }
         # warn if the hidden layers aren't disabled
         if (
-                self.component_config[HIDDEN_LAYERS_SIZES]
-                != config_for_disabling_hidden_layers
+            self.component_config[HIDDEN_LAYERS_SIZES]
+            != config_for_disabling_hidden_layers
         ):
             # make the warning text more contextual by explaining what the user did
             # to the hidden layers' config (i.e. what it is they should change)
@@ -394,8 +391,8 @@ class ResponseSelector(DIETClassifier):
         We need to set a reasonable default value so that the model works fine.
         """
         if (
-                self.component_config[TRANSFORMER_SIZE] is None
-                or self.component_config[TRANSFORMER_SIZE] < 1
+            self.component_config[TRANSFORMER_SIZE] is None
+            or self.component_config[TRANSFORMER_SIZE] < 1
         ):
             rasa.shared.utils.io.raise_warning(
                 f"`{TRANSFORMER_SIZE}` is set to "
@@ -430,7 +427,7 @@ class ResponseSelector(DIETClassifier):
         self._check_config_params_when_transformer_enabled()
 
     def _set_message_property(
-            self, message: Message, prediction_dict: Dict[Text, Any], selector_key: Text
+        self, message: Message, prediction_dict: Dict[Text, Any], selector_key: Text
     ) -> None:
         message_selector_properties = message.get(RESPONSE_SELECTOR_PROPERTY_NAME, {})
         message_selector_properties[
@@ -495,7 +492,7 @@ class ResponseSelector(DIETClassifier):
         return model_data
 
     def _resolve_intent_response_key(
-            self, label: Dict[Text, Optional[Text]]
+        self, label: Dict[Text, Optional[Text]]
     ) -> Optional[Text]:
         """Given a label, return the response key based on the label id.
 
@@ -537,8 +534,8 @@ class ResponseSelector(DIETClassifier):
             # Get the exact intent_response_key and the associated
             # responses for the top predicted label
             label_intent_response_key = (
-                    self._resolve_intent_response_key(top_label)
-                    or top_label[INTENT_NAME_KEY]
+                self._resolve_intent_response_key(top_label)
+                or top_label[INTENT_NAME_KEY]
             )
             label_responses = self.responses.get(
                 util.intent_response_key_to_template_key(label_intent_response_key)
@@ -557,7 +554,7 @@ class ResponseSelector(DIETClassifier):
 
             for label in label_ranking:
                 label[INTENT_RESPONSE_KEY] = (
-                        self._resolve_intent_response_key(label) or label[INTENT_NAME_KEY]
+                    self._resolve_intent_response_key(label) or label[INTENT_NAME_KEY]
                 )
                 # Remove the "name" key since it is either the same as
                 # "intent_response_key" or it is the response text which
@@ -590,9 +587,9 @@ class ResponseSelector(DIETClassifier):
             self._set_message_property(message, prediction_dict, selector_key)
 
             if (
-                    self._execution_context.should_add_diagnostic_data
-                    and out
-                    and DIAGNOSTIC_DATA in out
+                self._execution_context.should_add_diagnostic_data
+                and out
+                and DIAGNOSTIC_DATA in out
             ):
                 message.add_diagnostic_data(
                     self._execution_context.node_name, out.get(DIAGNOSTIC_DATA)
@@ -621,13 +618,13 @@ class ResponseSelector(DIETClassifier):
 
     @classmethod
     def _load_model_class(
-            cls,
-            tf_model_file: Text,
-            model_data_example: RasaModelData,
-            label_data: RasaModelData,
-            entity_tag_specs: List[EntityTagSpec],
-            config: Dict[Text, Any],
-            finetune_mode: bool = False,
+        cls,
+        tf_model_file: Text,
+        model_data_example: RasaModelData,
+        label_data: RasaModelData,
+        entity_tag_specs: List[EntityTagSpec],
+        config: Dict[Text, Any],
+        finetune_mode: bool = False,
     ) -> "RasaModel":
 
         predict_data_example = RasaModelData(
@@ -659,12 +656,12 @@ class ResponseSelector(DIETClassifier):
 
     @classmethod
     def load(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
-            **kwargs: Any,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
+        **kwargs: Any,
     ) -> ResponseSelector:
         """Loads the trained model from the provided directory."""
         model = super().load(
@@ -746,9 +743,9 @@ class DIET2DIET(DIET):
                 f"Cannot train '{self.__class__.__name__}' model."
             )
         if (
-                self.config[SHARE_HIDDEN_LAYERS]
-                and self.data_signature[TEXT][SENTENCE]
-                != self.data_signature[LABEL][SENTENCE]
+            self.config[SHARE_HIDDEN_LAYERS]
+            and self.data_signature[TEXT][SENTENCE]
+            != self.data_signature[LABEL][SENTENCE]
         ):
             raise ValueError(
                 "If hidden layer weights are shared, data signatures "
@@ -847,7 +844,7 @@ class DIET2DIET(DIET):
         return all_label_ids, all_labels_embed
 
     def batch_loss(
-            self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
+        self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
     ) -> tf.Tensor:
         """Calculates the loss for the given batch.
 
@@ -940,7 +937,7 @@ class DIET2DIET(DIET):
         return tf.math.add_n(losses)
 
     def batch_predict(
-            self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
+        self, batch_in: Union[Tuple[tf.Tensor, ...], Tuple[np.ndarray, ...]]
     ) -> Dict[Text, Union[tf.Tensor, Dict[Text, tf.Tensor]]]:
         """Predicts the output of the given batch.
 

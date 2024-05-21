@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List, Optional, Text
 
 import regex
@@ -20,22 +19,16 @@ from rasa.shared.nlu.training_data.message import Message
     DefaultV1Recipe.ComponentType.MESSAGE_TOKENIZER, is_trainable=False
 )
 class WhitespaceTokenizer(Tokenizer):
-    """
-    Creates features for entity extraction.
-    """
+    """Creates features for entity extraction."""
 
     @staticmethod
     def not_supported_languages() -> Optional[List[Text]]:
-        """
-        The languages that are not supported.
-        """
+        """The languages that are not supported."""
         return ["zh", "ja", "th"]
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """
-        Returns the component's default config.
-        """
+        """Returns the component's default config."""
         return {
             # Flag to check whether to split intents
             "intent_tokenization_flag": False,
@@ -46,11 +39,8 @@ class WhitespaceTokenizer(Tokenizer):
         }
 
     def __init__(self, config: Dict[Text, Any]) -> None:
-        """
-        Initialize the tokenizer.
-        """
+        """Initialize the tokenizer."""
         super().__init__(config)
-
         self.emoji_pattern = rasa.utils.io.get_emoji_regex()
 
         if "case_sensitive" in self._config:
@@ -62,11 +52,11 @@ class WhitespaceTokenizer(Tokenizer):
 
     @classmethod
     def create(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
     ) -> WhitespaceTokenizer:
         """Creates a new component (see parent class for full docstring)."""
         # Path to the dictionaries on the local filesystem.
@@ -107,7 +97,6 @@ class WhitespaceTokenizer(Tokenizer):
 
         # if we removed everything like smiles `:)`, use the whole text as 1 token
         if not words:
-            #
             words = [text]
 
         tokens = self._convert_words_to_tokens(words, text)

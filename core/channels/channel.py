@@ -2,10 +2,8 @@ import json
 import logging
 import uuid
 import jwt
-
 from sanic import Sanic, Blueprint
 from sanic.request import Request
-
 from typing import (
     Text,
     List,
@@ -32,23 +30,21 @@ logger = logging.getLogger(__name__)
 
 
 class UserMessage:
-    """
-    Represents an incoming message.
+    """Represents an incoming message.
 
     Includes the channel the responses should be sent to."""
 
     def __init__(
-            self,
-            text: Optional[Text] = None,
-            output_channel: Optional["OutputChannel"] = None,
-            sender_id: Optional[Text] = None,
-            parse_data: Dict[Text, Any] = None,
-            input_channel: Optional[Text] = None,
-            message_id: Optional[Text] = None,
-            metadata: Optional[Dict] = None,
+        self,
+        text: Optional[Text] = None,
+        output_channel: Optional["OutputChannel"] = None,
+        sender_id: Optional[Text] = None,
+        parse_data: Dict[Text, Any] = None,
+        input_channel: Optional[Text] = None,
+        message_id: Optional[Text] = None,
+        metadata: Optional[Dict] = None,
     ) -> None:
-        """
-        Creates a ``UserMessage`` object.
+        """Creates a ``UserMessage`` object.
 
         Args:
             text: the message text content.
@@ -85,11 +81,9 @@ class UserMessage:
 
 
 def register(
-        input_channels: List["InputChannel"], app: Sanic, route: Optional[Text]
+    input_channels: List["InputChannel"], app: Sanic, route: Optional[Text]
 ) -> None:
-    """
-    Registers input channel blueprints with Sanic.
-    """
+    """Registers input channel blueprints with Sanic."""
 
     async def handler(message: UserMessage) -> None:
         await app.ctx.agent.handle_message(message)
@@ -105,15 +99,11 @@ def register(
 
 
 class InputChannel:
-    """
-    Input channel base class.
-    """
+    """Input channel base class."""
 
     @classmethod
     def name(cls) -> Text:
-        """
-        Every input channel needs a name to identify it.
-        """
+        """Every input channel needs a name to identify it."""
         return cls.__name__
 
     @classmethod
@@ -124,10 +114,9 @@ class InputChannel:
         return self.name()
 
     def blueprint(
-            self, on_new_message: Callable[[UserMessage], Awaitable[Any]]
+        self, on_new_message: Callable[[UserMessage], Awaitable[Any]]
     ) -> Blueprint:
-        """
-        Defines a Sanic blueprint.
+        """Defines a Sanic blueprint.
 
         The blueprint will be attached to a running sanic server and handle
         incoming routes it registered for."""
@@ -145,8 +134,7 @@ class InputChannel:
         )
 
     def get_output_channel(self) -> Optional["OutputChannel"]:
-        """
-        Create ``OutputChannel`` based on information provided by the input channel.
+        """Create ``OutputChannel`` based on information provided by the input channel.
 
         Implementing this function is not required. If this function returns a valid
         ``OutputChannel`` this can be used by Rasa to send bot responses to the user
@@ -160,8 +148,7 @@ class InputChannel:
         pass
 
     def get_metadata(self, request: Request) -> Optional[Dict[Text, Any]]:
-        """
-        Extracts additional information from the incoming request.
+        """Extracts additional information from the incoming request.
 
          Implementing this function is not required. However, it can be used to extract
          metadata from the request. The return value is passed on to the
@@ -177,8 +164,7 @@ class InputChannel:
 
 
 def decode_jwt(bearer_token: Text, jwt_key: Text, jwt_algorithm: Text) -> Dict:
-    """
-    Decodes a Bearer Token using the specific JWT key and algorithm.
+    """Decodes a Bearer Token using the specific JWT key and algorithm.
 
     Args:
         bearer_token: Encoded Bearer token
@@ -194,10 +180,9 @@ def decode_jwt(bearer_token: Text, jwt_key: Text, jwt_algorithm: Text) -> Dict:
 
 
 def decode_bearer_token(
-        bearer_token: Text, jwt_key: Text, jwt_algorithm: Text
+    bearer_token: Text, jwt_key: Text, jwt_algorithm: Text
 ) -> Optional[Dict]:
-    """
-    Decodes a Bearer Token using the specific JWT key and algorithm.
+    """Decodes a Bearer Token using the specific JWT key and algorithm.
 
     Args:
         bearer_token: Encoded Bearer token
@@ -219,8 +204,7 @@ def decode_bearer_token(
 
 
 class OutputChannel:
-    """
-    Output channel base class.
+    """Output channel base class.
 
     Provides sane implementation of the send methods
     for text only output channels.
@@ -228,15 +212,11 @@ class OutputChannel:
 
     @classmethod
     def name(cls) -> Text:
-        """
-        Every output channel needs a name to identify it.
-        """
+        """Every output channel needs a name to identify it."""
         return cls.__name__
 
     async def send_response(self, recipient_id: Text, message: Dict[Text, Any]) -> None:
-        """
-        Send a message to the client.
-        """
+        """Send a message to the client."""
 
         if message.get("quick_replies"):
             await self.send_quick_replies(
@@ -268,46 +248,38 @@ class OutputChannel:
             await self.send_elements(recipient_id, message.pop("elements"), **message)
 
     async def send_text_message(
-            self, recipient_id: Text, text: Text, **kwargs: Any
+        self, recipient_id: Text, text: Text, **kwargs: Any
     ) -> None:
-        """
-        Send a message through this channel.
-        """
+        """Send a message through this channel."""
 
         raise NotImplementedError(
             "Output channel needs to implement a send message for simple texts."
         )
 
     async def send_image_url(
-            self, recipient_id: Text, image: Text, **kwargs: Any
+        self, recipient_id: Text, image: Text, **kwargs: Any
     ) -> None:
-        """
-        Sends an image. Default will just post the url as a string.
-        """
+        """Sends an image. Default will just post the url as a string."""
 
         await self.send_text_message(recipient_id, f"Image: {image}")
 
     async def send_attachment(
-            self, recipient_id: Text, attachment: Text, **kwargs: Any
+        self, recipient_id: Text, attachment: Text, **kwargs: Any
     ) -> None:
-        """
-        Sends an attachment. Default will just post as a string.
-        """
+        """Sends an attachment. Default will just post as a string."""
 
         await self.send_text_message(recipient_id, f"Attachment: {attachment}")
 
     async def send_text_with_buttons(
-            self,
-            recipient_id: Text,
-            text: Text,
-            buttons: List[Dict[Text, Any]],
-            **kwargs: Any,
+        self,
+        recipient_id: Text,
+        text: Text,
+        buttons: List[Dict[Text, Any]],
+        **kwargs: Any,
     ) -> None:
-        """
-        Sends buttons to the output.
+        """Sends buttons to the output.
 
-        Default implementation will just post the buttons as a string.
-        """
+        Default implementation will just post the buttons as a string."""
 
         await self.send_text_message(recipient_id, text)
         for idx, button in enumerate(buttons):
@@ -315,25 +287,22 @@ class OutputChannel:
             await self.send_text_message(recipient_id, button_msg)
 
     async def send_quick_replies(
-            self,
-            recipient_id: Text,
-            text: Text,
-            quick_replies: List[Dict[Text, Any]],
-            **kwargs: Any,
+        self,
+        recipient_id: Text,
+        text: Text,
+        quick_replies: List[Dict[Text, Any]],
+        **kwargs: Any,
     ) -> None:
-        """
-        Sends quick replies to the output.
+        """Sends quick replies to the output.
 
-        Default implementation will just send as buttons.
-        """
+        Default implementation will just send as buttons."""
 
         await self.send_text_with_buttons(recipient_id, text, quick_replies)
 
     async def send_elements(
-            self, recipient_id: Text, elements: Iterable[Dict[Text, Any]], **kwargs: Any
+        self, recipient_id: Text, elements: Iterable[Dict[Text, Any]], **kwargs: Any
     ) -> None:
-        """
-        Sends elements to the output.
+        """Sends elements to the output.
 
         Default implementation will just post the elements as a string."""
 
@@ -346,7 +315,7 @@ class OutputChannel:
             )
 
     async def send_custom_json(
-            self, recipient_id: Text, json_message: Dict[Text, Any], **kwargs: Any
+        self, recipient_id: Text, json_message: Dict[Text, Any], **kwargs: Any
     ) -> None:
         """Sends json dict to the output channel.
 
@@ -371,12 +340,12 @@ class CollectingOutputChannel(OutputChannel):
 
     @staticmethod
     def _message(
-            recipient_id: Text,
-            text: Text = None,
-            image: Text = None,
-            buttons: List[Dict[Text, Any]] = None,
-            attachment: Text = None,
-            custom: Dict[Text, Any] = None,
+        recipient_id: Text,
+        text: Text = None,
+        image: Text = None,
+        buttons: List[Dict[Text, Any]] = None,
+        attachment: Text = None,
+        custom: Dict[Text, Any] = None,
     ) -> Dict:
         """Create a message object that will be stored."""
 
@@ -402,37 +371,37 @@ class CollectingOutputChannel(OutputChannel):
         self.messages.append(message)
 
     async def send_text_message(
-            self, recipient_id: Text, text: Text, **kwargs: Any
+        self, recipient_id: Text, text: Text, **kwargs: Any
     ) -> None:
         for message_part in text.strip().split("\n\n"):
             await self._persist_message(self._message(recipient_id, text=message_part))
 
     async def send_image_url(
-            self, recipient_id: Text, image: Text, **kwargs: Any
+        self, recipient_id: Text, image: Text, **kwargs: Any
     ) -> None:
         """Sends an image. Default will just post the url as a string."""
 
         await self._persist_message(self._message(recipient_id, image=image))
 
     async def send_attachment(
-            self, recipient_id: Text, attachment: Text, **kwargs: Any
+        self, recipient_id: Text, attachment: Text, **kwargs: Any
     ) -> None:
         """Sends an attachment. Default will just post as a string."""
 
         await self._persist_message(self._message(recipient_id, attachment=attachment))
 
     async def send_text_with_buttons(
-            self,
-            recipient_id: Text,
-            text: Text,
-            buttons: List[Dict[Text, Any]],
-            **kwargs: Any,
+        self,
+        recipient_id: Text,
+        text: Text,
+        buttons: List[Dict[Text, Any]],
+        **kwargs: Any,
     ) -> None:
         await self._persist_message(
             self._message(recipient_id, text=text, buttons=buttons)
         )
 
     async def send_custom_json(
-            self, recipient_id: Text, json_message: Dict[Text, Any], **kwargs: Any
+        self, recipient_id: Text, json_message: Dict[Text, Any], **kwargs: Any
     ) -> None:
         await self._persist_message(self._message(recipient_id, custom=json_message))

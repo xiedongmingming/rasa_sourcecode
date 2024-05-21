@@ -1,5 +1,4 @@
 import rasa.shared.nlu.constants
-
 from rasa.shared.nlu.constants import ENTITY_ATTRIBUTE_CONFIDENCE
 
 BILOU_ENTITIES = "bilou_entities"

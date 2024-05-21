@@ -3,6 +3,7 @@ from typing import Text
 
 from rasa.shared.exceptions import RasaException
 
+
 logger = logging.getLogger(__name__)
 
 

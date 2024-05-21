@@ -1,26 +1,19 @@
 from __future__ import annotations
-
 import logging
 import os
-
 from typing import Any, Dict, List, Optional, Text, Tuple, Type
 
 import tensorflow as tf
-
 from tensorflow.python.eager.wrap_function import WrappedFunction
-
 from tqdm import tqdm
-
 import numpy as np
 
 from rasa.engine.graph import GraphComponent, ExecutionContext
 from rasa.engine.recipes.default_recipe import DefaultV1Recipe
 from rasa.engine.storage.storage import ModelStorage
 from rasa.engine.storage.resource import Resource
-
 import rasa.shared.utils.io
 import rasa.core.utils
-
 from rasa.nlu.tokenizers.tokenizer import Token, Tokenizer
 from rasa.nlu.featurizers.dense_featurizer.dense_featurizer import DenseFeaturizer
 from rasa.shared.nlu.training_data.training_data import TrainingData
@@ -31,9 +24,7 @@ from rasa.nlu.constants import (
     NUMBER_OF_SUB_TOKENS,
 )
 from rasa.shared.nlu.constants import TEXT, ACTION_TEXT
-
 from rasa.exceptions import RasaException
-
 import rasa.nlu.utils
 import rasa.utils.train_utils as train_utils
 
@@ -57,8 +48,7 @@ RESTRICTED_ACCESS_URL = (
     DefaultV1Recipe.ComponentType.MESSAGE_FEATURIZER, is_trainable=False
 )
 class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
-    """
-    Featurizer using ConveRT model.
+    """Featurizer using ConveRT model.
 
     Loads the ConveRT(https://github.com/PolyAI-LDN/polyai-models#convert)
     model from TFHub and computes sentence and sequence level feature representations
@@ -67,16 +57,12 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @classmethod
     def required_components(cls) -> List[Type]:
-        """
-        Components that should be included in the pipeline before this component.
-        """
+        """Components that should be included in the pipeline before this component."""
         return [Tokenizer]
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """
-        The component's default config (see parent class for full docstring).
-        """
+        """The component's default config (see parent class for full docstring)."""
         return {
             **DenseFeaturizer.get_default_config(),
             # Remote URL/Local path to model files
@@ -85,15 +71,12 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @staticmethod
     def required_packages() -> List[Text]:
-        """
-        Packages needed to be installed.
-        """
+        """Packages needed to be installed."""
         return ["tensorflow_text", "tensorflow_hub"]
 
     @staticmethod
     def supported_languages() -> Optional[List[Text]]:
-        """
-        Determines which languages this component can work with.
+        """Determines which languages this component can work with.
 
         Returns: A list of supported languages, or `None` to signify all are supported.
         """
@@ -101,20 +84,17 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @classmethod
     def create(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
     ) -> ConveRTFeaturizer:
-        """
-        Creates a new component (see parent class for full docstring).
-        """
+        """Creates a new component (see parent class for full docstring)."""
         return cls(name=execution_context.node_name, config=config)
 
     def __init__(self, name: Text, config: Dict[Text, Any]) -> None:
-        """
-        Initializes a `ConveRTFeaturizer`.
+        """Initializes a `ConveRTFeaturizer`.
 
         Args:
             name: An identifier for this featurizer.
@@ -123,7 +103,6 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
         super().__init__(name=name, config=config)
 
         model_url = self._config["model_url"]
-
         self.model_url = (
             model_url
             if rasa.nlu.utils.is_url(model_url)
@@ -144,15 +123,12 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @classmethod
     def validate_config(cls, config: Dict[Text, Any]) -> None:
-        """
-        Validates that the component is configured properly.
-        """
+        """Validates that the component is configured properly."""
         cls._validate_model_url(config)
 
     @staticmethod
     def _validate_model_files_exist(model_directory: Text) -> None:
-        """
-        Check if essential model files exist inside the model_directory.
+        """Check if essential model files exist inside the model_directory.
 
         Args:
             model_directory: Directory to investigate
@@ -165,7 +141,6 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
         ]
 
         for file_path in files_to_check:
-
             if not os.path.exists(file_path):
                 raise RasaException(
                     f"File {file_path} does not exist. "
@@ -176,8 +151,7 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @classmethod
     def _validate_model_url(cls, config: Dict[Text, Any]) -> None:
-        """
-        Validates the specified `model_url` parameter.
+        """Validates the specified `model_url` parameter.
 
         The `model_url` parameter cannot be left empty. It can either
         be set to a remote URL where the model is hosted or it can be
@@ -248,9 +222,7 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @staticmethod
     def _get_signature(signature: Text, module: Any) -> WrappedFunction:
-        """
-        Retrieve a signature from a (hopefully loaded) TF model.
-        """
+        """Retrieve a signature from a (hopefully loaded) TF model."""
         if not module:
             raise Exception(
                 f"{ConveRTFeaturizer.__name__} needs "
@@ -261,9 +233,8 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
         return module.signatures[signature]
 
     def _compute_features(
-            self, batch_examples: List[Message], attribute: Text = TEXT
+        self, batch_examples: List[Message], attribute: Text = TEXT
     ) -> Tuple[np.ndarray, np.ndarray]:
-
         sentence_encodings = self._compute_sentence_encodings(batch_examples, attribute)
 
         (
@@ -276,20 +247,18 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
         )
 
     def _compute_sentence_encodings(
-            self, batch_examples: List[Message], attribute: Text = TEXT
+        self, batch_examples: List[Message], attribute: Text = TEXT
     ) -> np.ndarray:
         # Get text for attribute of each example
         batch_attribute_text = [ex.get(attribute) for ex in batch_examples]
-
         sentence_encodings = self._sentence_encoding_of_text(batch_attribute_text)
 
         # convert them to a sequence of 1
         return np.reshape(sentence_encodings, (len(batch_examples), 1, -1))
 
     def _compute_sequence_encodings(
-            self, batch_examples: List[Message], attribute: Text = TEXT
+        self, batch_examples: List[Message], attribute: Text = TEXT
     ) -> Tuple[np.ndarray, List[int]]:
-
         list_of_tokens = [
             self.tokenize(example, attribute) for example in batch_examples
         ]
@@ -314,12 +283,11 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @staticmethod
     def _get_features(
-            sentence_encodings: np.ndarray,
-            sequence_encodings: np.ndarray,
-            number_of_tokens_in_sentence: List[int],
+        sentence_encodings: np.ndarray,
+        sequence_encodings: np.ndarray,
+        number_of_tokens_in_sentence: List[int],
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Get the sequence and sentence features."""
+        """Get the sequence and sentence features."""
         sentence_embeddings = []
         sequence_embeddings = []
 
@@ -335,28 +303,21 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
 
     @staticmethod
     def _tokens_to_text(list_of_tokens: List[List[Token]]) -> List[Text]:
-        """
-        Convert list of tokens to text.
+        """Convert list of tokens to text.
 
         Add a whitespace between two tokens if the end value of the first tokens
         is not the same as the end value of the second token.
         """
         texts = []
-
         for tokens in list_of_tokens:
-
             text = ""
             offset = 0
-
             for token in tokens:
-
                 if offset != token.start:
                     text += " "
-
                 text += token.text
 
                 offset = token.end
-
             texts.append(text)
 
         return texts
@@ -374,8 +335,7 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
         ].numpy()
 
     def process_training_data(self, training_data: TrainingData) -> TrainingData:
-        """
-        Featurize all message attributes in the training data with the ConveRT model.
+        """Featurize all message attributes in the training data with the ConveRT model.
 
         Args:
             training_data: Training data to be featurized
@@ -395,7 +355,6 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
                 range(0, len(non_empty_examples), batch_size),
                 desc=attribute.capitalize() + " batches",
             )
-
             for batch_start_index in progress_bar:
                 batch_end_index = min(
                     batch_start_index + batch_size, len(non_empty_examples)
@@ -415,20 +374,16 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
                     batch_sentence_features,
                     attribute,
                 )
-
         return training_data
 
     def process(self, messages: List[Message]) -> List[Message]:
-        """
-        Featurize an incoming message with the ConveRT model.
+        """Featurize an incoming message with the ConveRT model.
 
         Args:
             messages: Message to be featurized
         """
         for message in messages:
-
             for attribute in {TEXT, ACTION_TEXT}:
-
                 if message.get(attribute):
                     sequence_features, sentence_features = self._compute_features(
                         [message], attribute=attribute
@@ -437,17 +392,15 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
                     self._set_features(
                         [message], sequence_features, sentence_features, attribute
                     )
-
         return messages
 
     def _set_features(
-            self,
-            examples: List[Message],
-            sequence_features: np.ndarray,
-            sentence_features: np.ndarray,
-            attribute: Text,
+        self,
+        examples: List[Message],
+        sequence_features: np.ndarray,
+        sentence_features: np.ndarray,
+        attribute: Text,
     ) -> None:
-
         for index, example in enumerate(examples):
             self.add_features_to_message(
                 sequence=sequence_features[index],
@@ -463,8 +416,7 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
         ].numpy()
 
     def tokenize(self, message: Message, attribute: Text) -> List[Token]:
-        """
-        Tokenize the text using the ConveRT model.
+        """Tokenize the text using the ConveRT model.
 
         ConveRT adds a special char in front of (some) words and splits words into
         sub-words. To ensure the entity start and end values matches the token values,
@@ -488,14 +440,10 @@ class ConveRTFeaturizer(DenseFeaturizer, GraphComponent):
             tokens_out.append(token)
 
         message.set(TOKENS_NAMES[attribute], tokens_out)
-
         return tokens_out
 
     @staticmethod
     def _clean_tokens(tokens: List[bytes]) -> List[Text]:
-        """
-        Encode tokens and remove special char added by ConveRT.
-        """
+        """Encode tokens and remove special char added by ConveRT."""
         decoded_tokens = [string.decode("utf-8").replace("﹏", "") for string in tokens]
-
         return [string for string in decoded_tokens if string]

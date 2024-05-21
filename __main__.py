@@ -10,7 +10,6 @@ from rasa.constants import MINIMUM_COMPATIBLE_VERSION
 import rasa.telemetry
 import rasa.utils.io
 import rasa.utils.tensorflow.environment as tf_env
-
 from rasa import version
 from rasa.cli import (
     data,
@@ -37,31 +36,25 @@ logger = logging.getLogger(__name__)
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
-    """
-    Parse all the command line arguments for the training script.
-    """
+    """Parse all the command line arguments for the training script."""
     parser = argparse.ArgumentParser(
-        prog="rasa",  # 此脚本程序名称(默认:SYS.ARGV[0])
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # 输出帮助信息的定制类
+        prog="rasa",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="Rasa command line interface. Rasa allows you to build "
-                    "your own conversational assistants 🤖. The 'rasa' command "
-                    "allows you to easily run most common commands like "
-                    "creating a new bot, training or evaluating models.",  # 脚本说明
+        "your own conversational assistants 🤖. The 'rasa' command "
+        "allows you to easily run most common commands like "
+        "creating a new bot, training or evaluating models.",
     )
-
-    # 命令行参数解析：https://blog.csdn.net/weixin_39975810/article/details/110961418
 
     parser.add_argument(
         "--version",
-        action="store_true",  # ？？？
+        action="store_true",
         default=argparse.SUPPRESS,
         help="Print installed Rasa version",
     )
 
-    parent_parser = argparse.ArgumentParser(add_help=False)  # 表示不添加-H/--HELP参数
-
-    add_logging_options(parent_parser)  # 配置日志相关参数
-
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    add_logging_options(parent_parser)
     parent_parsers = [parent_parser]
 
     subparsers = parser.add_subparsers(help="Rasa commands")
@@ -78,8 +71,6 @@ def create_argument_parser() -> argparse.ArgumentParser:
     export.add_subparser(subparsers, parents=parent_parsers)
     x.add_subparser(subparsers, parents=parent_parsers)
     evaluate.add_subparser(subparsers, parents=parent_parsers)
-
-    # 插件相关命令行参数
     plugin_manager().hook.refine_cli(
         subparsers=subparsers, parent_parsers=parent_parsers
     )
@@ -88,9 +79,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
 
 
 def print_version() -> None:
-    """
-    Prints version information of rasa tooling and python.
-    """
+    """Prints version information of rasa tooling and python."""
     print(f"Rasa Version      :         {version.__version__}")
     print(f"Minimum Compatible Version: {MINIMUM_COMPATIBLE_VERSION}")
     print(f"Rasa SDK Version  :         {rasa_sdk_version}")
@@ -99,86 +88,57 @@ def print_version() -> None:
     print(f"Python Path       :         {sys.executable}")
 
     result = plugin_manager().hook.get_version_info()
-
     if result:
-        #
         print(f"\t{result[0][0]}  :         {result[0][1]}")
 
 
 def main() -> None:
-    """
-    Run as standalone python application.
-    """
+    """Run as standalone python application."""
     parse_last_positional_argument_as_model_path()
-
     arg_parser = create_argument_parser()
-
     cmdline_arguments = arg_parser.parse_args()
 
     log_level = getattr(cmdline_arguments, "loglevel", None)
-
     logging_config_file = getattr(cmdline_arguments, "logging_config_file", None)
-
     configure_logging_and_warnings(
-        log_level,
-        logging_config_file,
-        warn_only_once=True,
-        filter_repeated_logs=True
+        log_level, logging_config_file, warn_only_once=True, filter_repeated_logs=True
     )
 
     tf_env.setup_tf_environment()
     tf_env.check_deterministic_ops()
 
-    sys.path.insert(1, os.getcwd())  # insert current path in syspath so custom modules are found
+    # insert current path in syspath so custom modules are found
+    sys.path.insert(1, os.getcwd())
 
     try:
-
         if hasattr(cmdline_arguments, "func"):
-
             rasa.utils.io.configure_colored_logging(log_level)
 
-            result = plugin_manager().hook.configure_commandline(  # []
+            result = plugin_manager().hook.configure_commandline(
                 cmdline_arguments=cmdline_arguments
             )
-
             endpoints_file = result[0] if result else None
 
             rasa.telemetry.initialize_telemetry()
             rasa.telemetry.initialize_error_reporting()
-
             plugin_manager().hook.init_telemetry(endpoints_file=endpoints_file)
 
             cmdline_arguments.func(cmdline_arguments)
-
         elif hasattr(cmdline_arguments, "version"):
-
             print_version()
-
         else:
-            #
             # user has not provided a subcommand, let's print the help
-            #
             logger.error("No command specified.")
-
             arg_parser.print_help()
-
             sys.exit(1)
-
     except RasaException as e:
-        #
         # these are exceptions we expect to happen (e.g. invalid training data format)
         # it doesn't make sense to print a stacktrace for these if we are not in
         # debug mode
-
         logger.debug("Failed to run CLI command due to an exception.", exc_info=e)
-
         print_error(f"{e.__class__.__name__}: {e}")
-
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    #
-    # RASA命令入口函数
-    #
     main()

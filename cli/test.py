@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_subparser(
-        subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+    subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     """Add all test parsers.
 
@@ -147,16 +147,16 @@ async def run_core_test_async(args: argparse.Namespace) -> None:
 
 
 async def run_nlu_test_async(
-        config: Optional[Union[Text, List[Text]]],
-        data_path: Text,
-        models_path: Text,
-        output_dir: Text,
-        cross_validation: bool,
-        percentages: List[int],
-        runs: int,
-        no_errors: bool,
-        domain_path: Text,
-        all_args: Dict[Text, Any],
+    config: Optional[Union[Text, List[Text]]],
+    data_path: Text,
+    models_path: Text,
+    output_dir: Text,
+    cross_validation: bool,
+    percentages: List[int],
+    runs: int,
+    no_errors: bool,
+    domain_path: Text,
+    all_args: Dict[Text, Any],
 ) -> None:
     """Runs NLU tests.
 

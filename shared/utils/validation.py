@@ -32,11 +32,11 @@ class YamlValidationException(YamlException, ValueError):
     """Raised if a yaml file does not correspond to the expected schema."""
 
     def __init__(
-            self,
-            message: Text,
-            validation_errors: Optional[List[SchemaError.SchemaErrorEntry]] = None,
-            filename: Optional[Text] = None,
-            content: Any = None,
+        self,
+        message: Text,
+        validation_errors: Optional[List[SchemaError.SchemaErrorEntry]] = None,
+        filename: Optional[Text] = None,
+        content: Any = None,
     ) -> None:
         """Create The Error.
 
@@ -203,7 +203,7 @@ def validate_training_data(json_data: Dict[Text, Any], schema: Dict[Text, Any]) 
 
 
 def validate_training_data_format_version(
-        yaml_file_content: Dict[Text, Any], filename: Optional[Text]
+    yaml_file_content: Dict[Text, Any], filename: Optional[Text]
 ) -> bool:
     """Validates version on the training data content using `version` field
        and warns users if the file is not compatible with the current version of
@@ -263,6 +263,7 @@ def validate_training_data_format_version(
             )
 
         if latest_version >= parsed_version:
+
             return True
 
     except TypeError:

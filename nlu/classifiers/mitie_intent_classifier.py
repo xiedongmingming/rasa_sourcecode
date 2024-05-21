@@ -27,34 +27,26 @@ logger = logging.getLogger(__name__)
     model_from="MitieNLP",
 )
 class MitieIntentClassifier(GraphComponent, IntentClassifier):
-    """
-    Intent classifier which uses the `mitie` library.
-    """
+    """Intent classifier which uses the `mitie` library."""
 
     @classmethod
     def required_components(cls) -> List[Type]:
-        """
-        Components that should be included in the pipeline before this component.
-        """
+        """Components that should be included in the pipeline before this component."""
         return [MitieNLP, Featurizer]
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """
-        Returns default config (see parent class for full docstring).
-        """
+        """Returns default config (see parent class for full docstring)."""
         return {"num_threads": 1}
 
     def __init__(
-            self,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            clf: Optional["mitie.text_categorizer"] = None,
+        self,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        clf: Optional["mitie.text_categorizer"] = None,
     ) -> None:
-        """
-        Constructs a new intent classifier using the MITIE framework.
-        """
+        """Constructs a new intent classifier using the MITIE framework."""
         self._config = config
         self._model_storage = model_storage
         self._resource = resource
@@ -62,14 +54,11 @@ class MitieIntentClassifier(GraphComponent, IntentClassifier):
 
     @staticmethod
     def required_packages() -> List[Text]:
-        """
-        Lists required dependencies (see parent class for full docstring).
-        """
+        """Lists required dependencies (see parent class for full docstring)."""
         return ["mitie"]
 
     def train(self, training_data: TrainingData, model: MitieModel) -> Resource:
-        """
-        Trains classifier.
+        """Trains classifier.
 
         Args:
             training_data: The NLU training data.
@@ -95,8 +84,7 @@ class MitieIntentClassifier(GraphComponent, IntentClassifier):
         return self._resource
 
     def process(self, messages: List[Message], model: MitieModel) -> List[Message]:
-        """
-        Make intent predictions using `mitie`.
+        """Make intent predictions using `mitie`.
 
         Args:
             messages: The message which the intents should be predicted for.
@@ -124,29 +112,25 @@ class MitieIntentClassifier(GraphComponent, IntentClassifier):
 
     @classmethod
     def create(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
     ) -> MitieIntentClassifier:
-        """
-        Creates component for training see parent class for full docstring).
-        """
+        """Creates component for training see parent class for full docstring)."""
         return cls(config, model_storage, resource)
 
     @classmethod
     def load(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
-            **kwargs: Any,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
+        **kwargs: Any,
     ) -> MitieIntentClassifier:
-        """
-        Loads component for inference see parent class for full docstring).
-        """
+        """Loads component for inference see parent class for full docstring)."""
         import mitie
 
         text_categorizer = None
@@ -155,8 +139,8 @@ class MitieIntentClassifier(GraphComponent, IntentClassifier):
             with model_storage.read_from(resource) as directory:
                 text_categorizer = mitie.text_categorizer(str(directory / "model.dat"))
         except (
-                ValueError,
-                Exception,
+            ValueError,
+            Exception,
         ):  # the latter is thrown by the `mitie.text_categorizer`
             logger.warning(
                 f"Failed to load {cls.__class__.__name__} from model storage. Resource "
@@ -166,9 +150,7 @@ class MitieIntentClassifier(GraphComponent, IntentClassifier):
         return cls(config, model_storage, resource, text_categorizer)
 
     def _persist(self, text_categorizer: "mitie.text_categorizer") -> None:
-        """
-        Persists trained model (see parent class for full docstring).
-        """
+        """Persists trained model (see parent class for full docstring)."""
         with self._model_storage.write_to(self._resource) as directory:
             classifier_file = directory / "model.dat"
             text_categorizer.save_to_disk(str(classifier_file), pure_model=True)

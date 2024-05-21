@@ -14,24 +14,19 @@ import_name_to_package_map = {"sklearn": "scikit_learn"}
 
 @runtime_checkable
 class Fingerprintable(Protocol):
-    """
-    Interface that enforces training data can be fingerprinted.
-    """
+    """Interface that enforces training data can be fingerprinted."""
 
     def fingerprint(self) -> Text:
-        """
-        Returns a unique stable fingerprint of the data.
-        """
+        """Returns a unique stable fingerprint of the data."""
         ...
 
 
 def calculate_fingerprint_key(
-        graph_component_class: Type[GraphComponent],
-        config: Dict[Text, Any],
-        inputs: Dict[Text, Fingerprintable],
+    graph_component_class: Type[GraphComponent],
+    config: Dict[Text, Any],
+    inputs: Dict[Text, Fingerprintable],
 ) -> Text:
-    """
-    Calculates a fingerprint key that uniquely represents a single node's execution.
+    """Calculates a fingerprint key that uniquely represents a single node's execution.
 
     Args:
         graph_component_class: The graph component class.
@@ -47,7 +42,6 @@ def calculate_fingerprint_key(
         ).version
         for package in graph_component_class.required_packages()
     }
-
     fingerprint_data = {
         "node_name": rasa.utils.common.module_path_from_class(graph_component_class),
         "component_implementation": inspect.getsource(graph_component_class),

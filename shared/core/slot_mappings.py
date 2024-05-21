@@ -204,7 +204,6 @@ class SlotMapping:
 
         if (
             mapping_type == SlotMappingType.FROM_INTENT
-            and mapping.get(INTENT) is not None
             and mapping.get(INTENT) not in domain.intents
         ):
             rasa.shared.utils.io.raise_warning(

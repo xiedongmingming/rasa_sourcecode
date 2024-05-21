@@ -46,8 +46,7 @@ FEATURES = "features"
     DefaultV1Recipe.ComponentType.MESSAGE_FEATURIZER, is_trainable=True
 )
 class LexicalSyntacticFeaturizer(SparseFeaturizer, GraphComponent):
-    """
-    Extracts and encodes lexical syntactic features.
+    """Extracts and encodes lexical syntactic features.
 
     Given a sequence of tokens, this featurizer produces a sequence of features
     where the `t`-th feature encodes lexical and syntactic information about the `t`-th
@@ -102,8 +101,7 @@ class LexicalSyntacticFeaturizer(SparseFeaturizer, GraphComponent):
     def _extract_raw_features_from_token(
         cls, feature_name: Text, token: Token, token_position: int, num_tokens: int
     ) -> Text:
-        """
-        Extracts a raw feature from the token at the given position.
+        """Extracts a raw feature from the token at the given position.
 
         Args:
           feature_name: the name of a supported feature
@@ -126,16 +124,12 @@ class LexicalSyntacticFeaturizer(SparseFeaturizer, GraphComponent):
 
     @classmethod
     def required_components(cls) -> List[Type]:
-        """
-        Components that should be included in the pipeline before this component.
-        """
+        """Components that should be included in the pipeline before this component."""
         return [Tokenizer]
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """
-        Returns the component's default config.
-        """
+        """Returns the component's default config."""
         return {
             **SparseFeaturizer.get_default_config(),
             FEATURES: [
@@ -153,9 +147,7 @@ class LexicalSyntacticFeaturizer(SparseFeaturizer, GraphComponent):
         execution_context: ExecutionContext,
         feature_to_idx_dict: Optional[Dict[Tuple[int, Text], Dict[Text, int]]] = None,
     ) -> None:
-        """
-        Instantiates a new `LexicalSyntacticFeaturizer` instance.
-        """
+        """Instantiates a new `LexicalSyntacticFeaturizer` instance."""
         super().__init__(execution_context.node_name, config)
         # graph component
         self._model_storage = model_storage
@@ -169,9 +161,7 @@ class LexicalSyntacticFeaturizer(SparseFeaturizer, GraphComponent):
 
     @classmethod
     def validate_config(cls, config: Dict[Text, Any]) -> None:
-        """
-        Validates that the component is configured properly.
-        """
+        """Validates that the component is configured properly."""
         if FEATURES not in config:
             return  # will be replaced with default
         feature_config = config[FEATURES]
@@ -197,8 +187,7 @@ class LexicalSyntacticFeaturizer(SparseFeaturizer, GraphComponent):
         feature_to_idx_dict: Dict[Tuple[int, Text], Dict[Text, int]],
         check_consistency_with_config: bool = False,
     ) -> None:
-        """
-        Sets the "feature" to index mapping.
+        """Sets the "feature" to index mapping.
 
         Here, "feature" denotes the combination of window position, feature name,
         and feature_value.

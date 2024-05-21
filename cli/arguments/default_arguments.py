@@ -12,10 +12,10 @@ from rasa.shared.constants import (
 
 
 def add_model_param(
-        parser: argparse.ArgumentParser,
-        model_name: Text = "Rasa",
-        add_positional_arg: bool = True,
-        default: Optional[Text] = DEFAULT_MODELS_PATH,
+    parser: argparse.ArgumentParser,
+    model_name: Text = "Rasa",
+    add_positional_arg: bool = True,
+    default: Optional[Text] = DEFAULT_MODELS_PATH,
 ) -> None:
     help_text = (
         "Path to a trained {} model. If a directory is specified, it will "
@@ -29,8 +29,8 @@ def add_model_param(
 
 
 def add_stories_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        stories_name: Text = "training",
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    stories_name: Text = "training",
 ) -> None:
     parser.add_argument(
         "-s",
@@ -42,16 +42,16 @@ def add_stories_param(
 
 
 def add_nlu_data_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        help_text: Text,
-        default: Optional[Text] = DEFAULT_DATA_PATH,
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    help_text: Text,
+    default: Optional[Text] = DEFAULT_DATA_PATH,
 ) -> None:
     parser.add_argument("-u", "--nlu", type=str, default=default, help=help_text)
 
 
 def add_domain_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        default: Optional[Text] = DEFAULT_DOMAIN_PATH,
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    default: Optional[Text] = DEFAULT_DOMAIN_PATH,
 ) -> None:
     parser.add_argument(
         "-d",
@@ -59,14 +59,14 @@ def add_domain_param(
         type=str,
         default=default,
         help="Domain specification. This can be a single YAML file, or a directory "
-             "that contains several files with domain specifications in it. The content "
-             "of these files will be read and merged together.",
+        "that contains several files with domain specifications in it. The content "
+        "of these files will be read and merged together.",
     )
 
 
 def add_config_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        default: Optional[Text] = DEFAULT_CONFIG_PATH,
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    default: Optional[Text] = DEFAULT_CONFIG_PATH,
 ) -> None:
     parser.add_argument(
         "-c",
@@ -78,10 +78,10 @@ def add_config_param(
 
 
 def add_out_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        help_text: Text,
-        default: Optional[Text] = DEFAULT_MODELS_PATH,
-        required: bool = False,
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    help_text: Text,
+    default: Optional[Text] = DEFAULT_MODELS_PATH,
+    required: bool = False,
 ) -> None:
     parser.add_argument(
         "--out",
@@ -96,19 +96,19 @@ def add_out_param(
 
 
 def add_endpoint_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        help_text: Text,
-        default: Optional[Text] = DEFAULT_ENDPOINTS_PATH,
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    help_text: Text,
+    default: Optional[Text] = DEFAULT_ENDPOINTS_PATH,
 ) -> None:
     """Adds an option to an argument parser to configure endpoints path."""
     parser.add_argument("--endpoints", type=str, default=default, help=help_text)
 
 
 def add_data_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
-        default: Optional[Text] = DEFAULT_DATA_PATH,
-        required: bool = False,
-        data_type: Text = "Rasa ",
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer],
+    default: Optional[Text] = DEFAULT_DATA_PATH,
+    required: bool = False,
+    data_type: Text = "Rasa ",
 ) -> None:
     parser.add_argument(
         "--data",
@@ -124,9 +124,7 @@ def add_data_param(
 
 
 def add_logging_options(parser: argparse.ArgumentParser) -> None:
-    """
-    Add options to an argument parser to configure logging levels.
-    """
+    """Add options to an argument parser to configure logging levels."""
     logging_arguments = parser.add_argument_group(
         "Python Logging Options",
         "You can control level of log messages printed. "
@@ -134,7 +132,8 @@ def add_logging_options(parser: argparse.ArgumentParser) -> None:
         "achieved with environment variables. See online documentation for more info.",
     )
 
-    logging_arguments.add_argument(  # arguments for logging configuration
+    # arguments for logging configuration
+    logging_arguments.add_argument(
         "-v",
         "--verbose",
         help="Be verbose. Sets logging level to INFO.",
@@ -142,7 +141,6 @@ def add_logging_options(parser: argparse.ArgumentParser) -> None:
         dest="loglevel",
         const=logging.INFO,
     )
-
     logging_arguments.add_argument(
         "-vv",
         "--debug",
@@ -151,7 +149,6 @@ def add_logging_options(parser: argparse.ArgumentParser) -> None:
         dest="loglevel",
         const=logging.DEBUG,
     )
-
     logging_arguments.add_argument(
         "--quiet",
         help="Be quiet! Sets logging level to WARNING.",
@@ -164,5 +161,5 @@ def add_logging_options(parser: argparse.ArgumentParser) -> None:
         "--logging-config-file",
         type=str,
         help="If set, the name of the logging configuration file will be set "
-             "to the given name.",
+        "to the given name.",
     )

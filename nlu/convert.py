@@ -8,10 +8,9 @@ from rasa.nlu.utils import write_to_file
 
 
 def convert_training_data(
-        data_file: Union[list, Text], out_file: Text, output_format: Text, language: Text
+    data_file: Union[list, Text], out_file: Text, output_format: Text, language: Text
 ) -> None:
-    """
-    Convert training data.
+    """Convert training data.
 
     Args:
         data_file (Union[list, Text]): Path to the file or directory

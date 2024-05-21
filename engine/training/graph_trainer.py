@@ -1,8 +1,6 @@
 import copy
 import logging
-
 from pathlib import Path
-
 from typing import Any, Dict, Text, Type, Union
 
 from rasa.engine.caching import TrainingCache
@@ -10,7 +8,6 @@ from rasa.engine.graph import ExecutionContext, GraphSchema, GraphModelConfigura
 from rasa.engine.constants import PLACEHOLDER_IMPORTER
 from rasa.engine.runner.interface import GraphRunner
 from rasa.engine.storage.storage import ModelStorage, ModelMetadata
-
 from rasa.engine.training.components import (
     PrecomputedValueProvider,
     FingerprintComponent,
@@ -23,18 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 class GraphTrainer:
-    """
-    Trains a model using a graph schema.
-    """
+    """Trains a model using a graph schema."""
 
     def __init__(
-            self,
-            model_storage: ModelStorage,  # 存储
-            cache: TrainingCache,  # 缓存
-            graph_runner_class: Type[GraphRunner],
+        self,
+        model_storage: ModelStorage,
+        cache: TrainingCache,
+        graph_runner_class: Type[GraphRunner],
     ) -> None:
-        """
-        Initializes a `GraphTrainer`.
+        """Initializes a `GraphTrainer`.
 
         Args:
             model_storage: Storage which graph components can use to persist and load.
@@ -47,15 +41,14 @@ class GraphTrainer:
         self._graph_runner_class = graph_runner_class
 
     def train(
-            self,
-            model_configuration: GraphModelConfiguration,
-            importer: TrainingDataImporter,
-            output_filename: Path,
-            force_retraining: bool = False,
-            is_finetuning: bool = False,
+        self,
+        model_configuration: GraphModelConfiguration,
+        importer: TrainingDataImporter,
+        output_filename: Path,
+        force_retraining: bool = False,
+        is_finetuning: bool = False,
     ) -> ModelMetadata:
-        """
-        Trains and packages a model and returns the prediction graph runner.
+        """Trains and packages a model and returns the prediction graph runner.
 
         Args:
             model_configuration: The model configuration (schemas, language, etc.)
@@ -74,21 +67,16 @@ class GraphTrainer:
         domain = copy.deepcopy(importer.get_domain())
 
         if force_retraining:
-
             logger.debug(
                 "Skip fingerprint run as a full training of the model was enforced."
             )
-
             pruned_training_schema = model_configuration.train_schema
-
         else:
-
             fingerprint_run_outputs = self.fingerprint(
                 model_configuration.train_schema,
                 importer=importer,
                 is_finetuning=is_finetuning,
             )
-
             pruned_training_schema = self._prune_schema(
                 model_configuration.train_schema, fingerprint_run_outputs
             )
@@ -114,20 +102,19 @@ class GraphTrainer:
 
         logger.debug("Running the pruned train graph with real node execution.")
 
-        graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})  # 执行训练
+        graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})
 
         return self._model_storage.create_model_package(
             output_filename, model_configuration, domain
         )
 
     def fingerprint(
-            self,
-            train_schema: GraphSchema,
-            importer: TrainingDataImporter,
-            is_finetuning: bool = False, # False
+        self,
+        train_schema: GraphSchema,
+        importer: TrainingDataImporter,
+        is_finetuning: bool = False,
     ) -> Dict[Text, Union[FingerprintStatus, Any]]:
-        """
-        Runs the graph using fingerprints to determine which nodes need to re-run.
+        """Runs the graph using fingerprints to determine which nodes need to re-run.
 
         Nodes which have a matching fingerprint key in the cache can either be removed
         entirely from the graph, or replaced with a cached value if their output is
@@ -152,15 +139,11 @@ class GraphTrainer:
         )
 
         logger.debug("Running the train graph in fingerprint mode.")
-
         return fingerprint_graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})
 
     def _create_fingerprint_schema(self, train_schema: GraphSchema) -> GraphSchema:
-
         fingerprint_schema = copy.deepcopy(train_schema)
-
         for node_name, schema_node in fingerprint_schema.nodes.items():
-            #
             # We make every node a target so that `graph_runner.run(...)` returns
             # the output for each node. We need the output of each node
             # to decide which nodes we can prune.
@@ -170,19 +153,15 @@ class GraphTrainer:
             # any input data to the graph. This means we can prune according to what
             # has actually changed.
             if not schema_node.is_input:
-                #
                 FingerprintComponent.replace_schema_node(schema_node, self._cache)
-
         return fingerprint_schema
 
     def _prune_schema(
-            self,
-            schema: GraphSchema,
-            fingerprint_run_outputs: Dict[Text, Union[FingerprintStatus, Any]],
+        self,
+        schema: GraphSchema,
+        fingerprint_run_outputs: Dict[Text, Union[FingerprintStatus, Any]],
     ) -> GraphSchema:
-
-        """
-        Uses the fingerprint statuses to prune the graph schema.
+        """Uses the fingerprint statuses to prune the graph schema.
 
         Walks the graph starting at each target node. If a node has a cache hit we
         replace it with a `PrecomputedValueProvider` and remove its input dependencies.
@@ -208,13 +187,12 @@ class GraphTrainer:
         return pruned_schema.minimal_graph_schema()
 
     def _walk_and_prune(
-            self,
-            schema: GraphSchema,
-            current_node_name: Text,
-            fingerprint_run_outputs: Dict[Text, Union[FingerprintStatus, Any]],
+        self,
+        schema: GraphSchema,
+        current_node_name: Text,
+        fingerprint_run_outputs: Dict[Text, Union[FingerprintStatus, Any]],
     ) -> None:
-        """
-        Recursively walks backwards though a graph checking the status of each node.
+        """Recursively walks backwards though a graph checking the status of each node.
 
         If node has a fingerprint key hit then we check if there is a cached output.
         If there is a cached output we will replace the node with a
@@ -230,7 +208,6 @@ class GraphTrainer:
                 from node name to status.
         """
         fingerprint_run_output = fingerprint_run_outputs[current_node_name]
-
         node = schema.nodes[current_node_name]
 
         # If we have replaced this node with a `PrecomputedValueProvider` we have

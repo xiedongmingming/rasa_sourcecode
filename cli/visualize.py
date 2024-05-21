@@ -8,7 +8,7 @@ from rasa.shared.constants import DEFAULT_DATA_PATH
 
 
 def add_subparser(
-        subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
+    subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
     """Add all visualization parsers.
 

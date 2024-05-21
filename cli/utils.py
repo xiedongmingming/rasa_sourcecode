@@ -21,38 +21,38 @@ FREE_TEXT_INPUT_PROMPT = "Type out your own message..."
 
 @overload
 def get_validated_path(
-        current: Optional[Union["Path", Text]],
-        parameter: Text,
-        default: Optional[Union["Path", Text]] = ...,
-        none_is_valid: "Literal[False]" = ...,
+    current: Optional[Union["Path", Text]],
+    parameter: Text,
+    default: Optional[Union["Path", Text]] = ...,
+    none_is_valid: "Literal[False]" = ...,
 ) -> Union["Path", Text]:
     ...
 
 
 @overload
 def get_validated_path(
-        current: Optional[Union["Path", Text]],
-        parameter: Text,
-        default: Optional[Union["Path", Text]] = ...,
-        none_is_valid: "Literal[True]" = ...,
+    current: Optional[Union["Path", Text]],
+    parameter: Text,
+    default: Optional[Union["Path", Text]] = ...,
+    none_is_valid: "Literal[True]" = ...,
 ) -> Optional[Union["Path", Text]]:
     ...
 
 
 def get_validated_path(
-        current: Optional[Union["Path", Text]],
-        parameter: Text,
-        default: Optional[Union["Path", Text]] = None,
-        none_is_valid: bool = False,
+    current: Optional[Union["Path", Text]],
+    parameter: Text,
+    default: Optional[Union["Path", Text]] = None,
+    none_is_valid: bool = False,
 ) -> Optional[Union["Path", Text]]:
-    """
-    Checks whether a file path or its default value is valid and returns it.
+    """Checks whether a file path or its default value is valid and returns it.
 
     Args:
         current: The parsed value.
         parameter: The name of the parameter.
         default: The default value of the parameter.
-        none_is_valid: `True` if `None` is valid value for the path, else `False``
+        none_is_valid: `True` if `None` is valid value for the path,
+                        else `False``
 
     Returns:
         The current value if it was valid, else the default value of the
@@ -80,7 +80,7 @@ def get_validated_path(
 
 
 def missing_config_keys(
-        path: Union["Path", Text], mandatory_keys: List[Text]
+    path: Union["Path", Text], mandatory_keys: List[Text]
 ) -> List[Text]:
     """Checks whether the config file at `path` contains the `mandatory_keys`.
 
@@ -102,9 +102,9 @@ def missing_config_keys(
 
 
 def cancel_cause_not_found(
-        current: Optional[Union["Path", Text]],
-        parameter: Text,
-        default: Optional[Union["Path", Text]],
+    current: Optional[Union["Path", Text]],
+    parameter: Text,
+    default: Optional[Union["Path", Text]],
 ) -> None:
     """Exits with an error because the given path was not valid.
 
@@ -125,28 +125,22 @@ def cancel_cause_not_found(
 
 
 def parse_last_positional_argument_as_model_path() -> None:
-    """
-    Fixes the parsing of a potential positional model path argument.
-    """
-    # ['D:/workspace/python/rasa-demo/rasa-main/rasa/__main__.py', 'train']
-    if (len(sys.argv) >= 2
-            # support relevant commands ...
-            and sys.argv[1] in ["run", "shell", "interactive"]
-            # but avoid interpreting subparser commands as model paths
-            and sys.argv[1:] != ["run", "actions"]
-            and not sys.argv[-2].startswith("-")
-            and os.path.exists(sys.argv[-1])
+    """Fixes the parsing of a potential positional model path argument."""
+    if (
+        len(sys.argv) >= 2
+        # support relevant commands ...
+        and sys.argv[1] in ["run", "shell", "interactive"]
+        # but avoid interpreting subparser commands as model paths
+        and sys.argv[1:] != ["run", "actions"]
+        and not sys.argv[-2].startswith("-")
+        and os.path.exists(sys.argv[-1])
     ):
-        # 将最后一个参数作为MODEL路径文件
         sys.argv.append(sys.argv[-1])
-
         sys.argv[-2] = "--model"
 
 
 def button_to_string(button: Dict[Text, Any], idx: int = 0) -> Text:
-    """
-    Create a string representation of a button.
-    """
+    """Create a string representation of a button."""
     title = button.pop("title", "")
 
     if "payload" in button:
@@ -179,7 +173,7 @@ def element_to_string(element: Dict[Text, Any], idx: int = 0) -> Text:
 
 
 def button_choices_from_message_data(
-        message: Dict[Text, Any], allow_free_text_input: bool = True
+    message: Dict[Text, Any], allow_free_text_input: bool = True
 ) -> List[Text]:
     """Return list of choices to present to the user.
 
@@ -201,7 +195,7 @@ async def payload_from_button_question(button_question: "Question") -> Text:
     response = await button_question.ask_async()
     if response != FREE_TEXT_INPUT_PROMPT:
         # Extract intent slash command if it's a button
-        response = response[response.find("(") + 1: response.find(")")]
+        response = response[response.find("(") + 1 : response.find(")")]
     return response
 
 

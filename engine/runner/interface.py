@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
-
 from typing import Any, Dict, List, Optional, Text
 
 from rasa.engine.graph import ExecutionContext, GraphNodeHook, GraphSchema
@@ -9,21 +7,18 @@ from rasa.engine.storage.storage import ModelStorage
 
 
 class GraphRunner(ABC):
-    """
-    A `GraphRunner` is responsible for running a `GraphSchema`.
-    """
+    """A `GraphRunner` is responsible for running a `GraphSchema`."""
 
     @classmethod
     @abstractmethod
     def create(
-            cls,
-            graph_schema: GraphSchema,  # SCHEMA
-            model_storage: ModelStorage,
-            execution_context: ExecutionContext,
-            hooks: Optional[List[GraphNodeHook]] = None,
+        cls,
+        graph_schema: GraphSchema,
+        model_storage: ModelStorage,
+        execution_context: ExecutionContext,
+        hooks: Optional[List[GraphNodeHook]] = None,
     ) -> GraphRunner:
-        """
-        Creates a new instance of a `GraphRunner`.
+        """Creates a new instance of a `GraphRunner`.
 
         Args:
             graph_schema: The graph schema that will be instantiated and run.
@@ -38,12 +33,11 @@ class GraphRunner(ABC):
 
     @abstractmethod
     def run(
-            self,
-            inputs: Optional[Dict[Text, Any]] = None,
-            targets: Optional[List[Text]] = None,
+        self,
+        inputs: Optional[Dict[Text, Any]] = None,
+        targets: Optional[List[Text]] = None,
     ) -> Dict[Text, Any]:
-        """
-        Runs the instantiated graph with the given inputs and targets.
+        """Runs the instantiated graph with the given inputs and targets.
 
         Args:
             inputs: Input nodes to be added to the graph. These can be referenced by

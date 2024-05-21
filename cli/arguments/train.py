@@ -18,9 +18,7 @@ USE_LATEST_MODEL_FOR_FINE_TUNING = True
 
 
 def set_train_arguments(parser: argparse.ArgumentParser) -> None:
-    """
-    Specifies CLI arguments for `rasa train`.
-    """
+    """Specifies CLI arguments for `rasa train`."""
     add_data_param(parser)
     add_config_param(parser)
     add_domain_param(parser)
@@ -76,7 +74,7 @@ def set_train_nlu_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def add_force_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Specifies if the model should be trained from scratch."""
     parser.add_argument(
@@ -87,7 +85,7 @@ def add_force_param(
 
 
 def add_data_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Specifies path to training data."""
     parser.add_argument(
@@ -105,13 +103,13 @@ def _add_core_config_param(parser: argparse.ArgumentParser) -> None:
         nargs="+",
         default=[DEFAULT_CONFIG_PATH],
         help="The policy and NLU pipeline configuration of your bot. "
-             "If multiple configuration files are provided, multiple Rasa Core "
-             "models are trained to compare policies.",
+        "If multiple configuration files are provided, multiple Rasa Core "
+        "models are trained to compare policies.",
     )
 
 
 def _add_compare_params(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     parser.add_argument(
         "--percentages",
@@ -126,7 +124,7 @@ def _add_compare_params(
 
 
 def add_dry_run_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Adds `--dry-run` argument to a specified `parser`.
 
@@ -138,19 +136,19 @@ def add_dry_run_param(
         default=False,
         action="store_true",
         help="If enabled, no actual training will be performed. Instead, "
-             "it will be determined whether a model should be re-trained "
-             "and this information will be printed as the output. The return "
-             "code is a 4-bit bitmask that can also be used to determine what exactly needs "
-             "to be retrained:\n"
-             "- 0 means that no extensive training is required (note that the responses "
-             "still might require updating by running 'rasa train').\n"
-             "- 1 means the model needs to be retrained\n"
-             "- 8 means the training was forced (--force argument is specified)",
+        "it will be determined whether a model should be re-trained "
+        "and this information will be printed as the output. The return "
+        "code is a 4-bit bitmask that can also be used to determine what exactly needs "
+        "to be retrained:\n"
+        "- 0 means that no extensive training is required (note that the responses "
+        "still might require updating by running 'rasa train').\n"
+        "- 1 means the model needs to be retrained\n"
+        "- 8 means the training was forced (--force argument is specified)",
     )
 
 
 def add_augmentation_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Sets the augmentation factor for the Core training.
 
@@ -166,7 +164,7 @@ def add_augmentation_param(
 
 
 def add_debug_plots_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Specifies if conversation flow should be visualized."""
     parser.add_argument(
@@ -174,13 +172,13 @@ def add_debug_plots_param(
         default=TrainingTrackerProvider.get_default_config()["debug_plots"],
         action="store_true",
         help="If enabled, will create plots showing checkpoints "
-             "and their connections between story blocks in a  "
-             "file called `story_blocks_connections.html`.",
+        "and their connections between story blocks in a  "
+        "file called `story_blocks_connections.html`.",
     )
 
 
 def _add_num_threads_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     parser.add_argument(
         "--num-threads",
@@ -194,12 +192,12 @@ def _add_model_name_param(parser: argparse.ArgumentParser) -> None:
         "--fixed-model-name",
         type=str,
         help="If set, the name of the model file/directory will be set to the given "
-             "name.",
+        "name.",
     )
 
 
 def add_persist_nlu_data_param(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Adds parameters for persisting the NLU training data with the model."""
     parser.add_argument(
@@ -210,7 +208,7 @@ def add_persist_nlu_data_param(
 
 
 def add_finetune_params(
-        parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
+    parser: Union[argparse.ArgumentParser, argparse._ActionsContainer]
 ) -> None:
     """Adds parameters for model finetuning."""
     parser.add_argument(
@@ -221,13 +219,13 @@ def add_finetune_params(
         # If the user only specifies `--finetune` without an additional path
         const=USE_LATEST_MODEL_FOR_FINE_TUNING,
         help="Fine-tune a previously trained model. If no model path is provided, Rasa "
-             "Open Source will try to finetune the latest trained model from the "
-             "model directory specified via '--out'.",
+        "Open Source will try to finetune the latest trained model from the "
+        "model directory specified via '--out'.",
     )
 
     parser.add_argument(
         "--epoch-fraction",
         type=float,
         help="Fraction of epochs which are currently specified in the model "
-             "configuration which should be used when finetuning a model.",
+        "configuration which should be used when finetuning a model.",
     )

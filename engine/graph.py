@@ -1,19 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-
 import logging
-
 from typing import Any, Callable, Dict, List, Optional, Text, Type, Tuple
 
 from rasa.engine.exceptions import GraphComponentException, GraphSchemaException
-
 import rasa.shared.utils.common
 import rasa.utils.common
-
 from rasa.engine.storage.resource import Resource
 
 from rasa.engine.storage.storage import ModelStorage
@@ -25,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SchemaNode:
-    """
-    Represents one node in the schema.
+    """Represents one node in the schema.
 
     Args:
-        needs: describes which parameters in `fn` (or `constructor_name` if `eager==False`) are filled by which parent nodes.
+        needs: describes which parameters in `fn` (or `constructor_name`
+            if `eager==False`) are filled by which parent nodes.
         uses: The class which models the behavior of this specific graph node.
         constructor_name: The name of the constructor which should be used to
             instantiate the component. If `eager==False` then the `constructor` can
@@ -70,23 +65,18 @@ class SchemaNode:
 
 @dataclass
 class GraphSchema:
-    """
-    Represents a graph for training a model or making predictions.
-    """
+    """Represents a graph for training a model or making predictions."""
 
     nodes: Dict[Text, SchemaNode]
 
     def as_dict(self) -> Dict[Text, Any]:
-        """
-        Returns graph schema in a serializable format.
+        """Returns graph schema in a serializable format.
 
         Returns:
             The graph schema in a format which can be dumped as JSON or other formats.
         """
         serializable_graph_schema: Dict[Text, Dict[Text, Any]] = {"nodes": {}}
-
         for node_name, node in self.nodes.items():
-            #
             serializable = dataclasses.asdict(node)
 
             # Classes are not JSON serializable (surprise)
@@ -98,8 +88,7 @@ class GraphSchema:
 
     @classmethod
     def from_dict(cls, serialized_graph_schema: Dict[Text, Any]) -> GraphSchema:
-        """
-        Loads a graph schema which has been serialized using `schema.as_dict()`.
+        """Loads a graph schema which has been serialized using `schema.as_dict()`.
 
         Args:
             serialized_graph_schema: A serialized graph schema.
@@ -108,14 +97,12 @@ class GraphSchema:
             A properly loaded schema.
 
         Raises:
-            GraphSchemaException: In case the component class for a node couldn't be found.
+            GraphSchemaException: In case the component class for a node couldn't be
+                found.
         """
         nodes = {}
-
         for node_name, serialized_node in serialized_graph_schema["nodes"].items():
-
             try:
-
                 serialized_node[
                     "uses"
                 ] = rasa.shared.utils.common.class_from_module_path(
@@ -123,13 +110,10 @@ class GraphSchema:
                 )
 
                 resource = serialized_node["resource"]
-
                 if resource:
-                    #
                     serialized_node["resource"] = Resource(**resource)
 
             except ImportError as e:
-
                 raise GraphSchemaException(
                     "Error deserializing graph schema. Can't "
                     "find class for graph component type "
@@ -142,73 +126,62 @@ class GraphSchema:
 
     @property
     def target_names(self) -> List[Text]:
-        """
-        Returns the names of all target nodes.
-        """
+        """Returns the names of all target nodes."""
         return [node_name for node_name, node in self.nodes.items() if node.is_target]
 
     def minimal_graph_schema(self, targets: Optional[List[Text]] = None) -> GraphSchema:
-        """
-        Returns a new schema where all nodes are a descendant of a target. 返回一个新架构，其中所有节点都是目标的后代。
-        """
+        """Returns a new schema where all nodes are a descendant of a target."""
         dependencies = self._all_dependencies_schema(
             targets if targets else self.target_names
         )
 
         return GraphSchema(
             {
-                node_name: node for node_name, node in self.nodes.items() if node_name in dependencies
+                node_name: node
+                for node_name, node in self.nodes.items()
+                if node_name in dependencies
             }
         )
 
     def _all_dependencies_schema(self, targets: List[Text]) -> List[Text]:
-
         required = []
-
         for target in targets:
-
             required.append(target)
-
             try:
                 target_dependencies = self.nodes[target].needs.values()
             except KeyError:  # This can happen if the target is an input placeholder.
                 continue
-
             for dependency in target_dependencies:
-                #
                 required += self._all_dependencies_schema([dependency])
 
         return required
 
 
 class GraphComponent(ABC):
-    """
-    Interface for any component which will run in a graph.
-    """
+    """Interface for any component which will run in a graph."""
 
     @classmethod
     def required_components(cls) -> List[Type]:
-        """
-        Components that should be included in the pipeline before this component.
-        """
+        """Components that should be included in the pipeline before this component."""
         return []
 
     @classmethod
     @abstractmethod
     def create(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
     ) -> GraphComponent:
-        """
-        Creates a new `GraphComponent`.
+        """Creates a new `GraphComponent`.
 
         Args:
             config: This config overrides the `default_config`.
-            model_storage: Storage which graph components can use to persist and load themselves.
-            resource: Resource locator for this component which can be used to persist and load itself from the `model_storage`.
+            model_storage: Storage which graph components can use to persist and load
+                themselves.
+            resource: Resource locator for this component which can be used to persist
+                and load itself from the `model_storage`.
             execution_context: Information about the current graph run.
 
         Returns: An instantiated `GraphComponent`.
@@ -217,15 +190,14 @@ class GraphComponent(ABC):
 
     @classmethod
     def load(
-            cls,
-            config: Dict[Text, Any],
-            model_storage: ModelStorage,
-            resource: Resource,
-            execution_context: ExecutionContext,
-            **kwargs: Any,
+        cls,
+        config: Dict[Text, Any],
+        model_storage: ModelStorage,
+        resource: Resource,
+        execution_context: ExecutionContext,
+        **kwargs: Any,
     ) -> GraphComponent:
-        """
-        Creates a component using a persisted version of itself.
+        """Creates a component using a persisted version of itself.
 
         If not overridden this method merely calls `create`.
 
@@ -246,8 +218,7 @@ class GraphComponent(ABC):
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """
-        Returns the component's default config.
+        """Returns the component's default config.
 
         Default config and user config are merged by the `GraphNode` before the
         config is passed to the `create` and `load` method of the component.
@@ -259,8 +230,7 @@ class GraphComponent(ABC):
 
     @staticmethod
     def supported_languages() -> Optional[List[Text]]:
-        """
-        Determines which languages this component can work with.
+        """Determines which languages this component can work with.
 
         Returns: A list of supported languages, or `None` to signify all are supported.
         """
@@ -268,8 +238,7 @@ class GraphComponent(ABC):
 
     @staticmethod
     def not_supported_languages() -> Optional[List[Text]]:
-        """
-        Determines which languages this component cannot work with.
+        """Determines which languages this component cannot work with.
 
         Returns: A list of not supported languages, or
             `None` to signify all are supported.
@@ -278,27 +247,22 @@ class GraphComponent(ABC):
 
     @staticmethod
     def required_packages() -> List[Text]:
-        """
-        Any extra python dependencies required for this component to run.
-        """
+        """Any extra python dependencies required for this component to run."""
         return []
 
 
 class GraphNodeHook(ABC):
-    """
-    Holds functionality to be run before and after a `GraphNode`.
-    """
+    """Holds functionality to be run before and after a `GraphNode`."""
 
     @abstractmethod
     def on_before_node(
-            self,
-            node_name: Text,
-            execution_context: ExecutionContext,
-            config: Dict[Text, Any],
-            received_inputs: Dict[Text, Any],
+        self,
+        node_name: Text,
+        execution_context: ExecutionContext,
+        config: Dict[Text, Any],
+        received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """
-        Runs before the `GraphNode` executes.
+        """Runs before the `GraphNode` executes.
 
         Args:
             node_name: The name of the node being run.
@@ -308,20 +272,20 @@ class GraphNodeHook(ABC):
 
         Returns:
             Data that is then passed to `on_after_node`
+
         """
         ...
 
     @abstractmethod
     def on_after_node(
-            self,
-            node_name: Text,
-            execution_context: ExecutionContext,
-            config: Dict[Text, Any],
-            output: Any,
-            input_hook_data: Dict,
+        self,
+        node_name: Text,
+        execution_context: ExecutionContext,
+        config: Dict[Text, Any],
+        output: Any,
+        input_hook_data: Dict,
     ) -> None:
-        """
-        Runs after the `GraphNode` as executed.
+        """Runs after the `GraphNode` as executed.
 
         Args:
             node_name: The name of the node that has run.
@@ -335,9 +299,7 @@ class GraphNodeHook(ABC):
 
 @dataclass
 class ExecutionContext:
-    """
-    Holds information about a single graph run.
-    """
+    """Holds information about a single graph run."""
 
     graph_schema: GraphSchema = field(repr=False)
     model_id: Optional[Text] = None
@@ -348,8 +310,7 @@ class ExecutionContext:
 
 
 class GraphNode:
-    """
-    Instantiates and runs a `GraphComponent` within a graph.
+    """Instantiates and runs a `GraphComponent` within a graph.
 
     A `GraphNode` is a wrapper for a `GraphComponent` that allows it to be executed
     in the context of a graph. It is responsible for instantiating the component at the
@@ -358,21 +319,20 @@ class GraphNode:
     """
 
     def __init__(
-            self,
-            node_name: Text,
-            component_class: Type[GraphComponent],
-            constructor_name: Text,
-            component_config: Dict[Text, Any],
-            fn_name: Text,
-            inputs: Dict[Text, Text],
-            eager: bool,
-            model_storage: ModelStorage,
-            resource: Optional[Resource],
-            execution_context: ExecutionContext,
-            hooks: Optional[List[GraphNodeHook]] = None,
+        self,
+        node_name: Text,
+        component_class: Type[GraphComponent],
+        constructor_name: Text,
+        component_config: Dict[Text, Any],
+        fn_name: Text,
+        inputs: Dict[Text, Text],
+        eager: bool,
+        model_storage: ModelStorage,
+        resource: Optional[Resource],
+        execution_context: ExecutionContext,
+        hooks: Optional[List[GraphNodeHook]] = None,
     ) -> None:
-        """
-        Initializes `GraphNode`.
+        """Initializes `GraphNode`.
 
         Args:
             node_name: The name of the node in the schema.
@@ -465,7 +425,7 @@ class GraphNode:
         return Resource(self._node_name)
 
     def __call__(
-            self, *inputs_from_previous_nodes: Tuple[Text, Any]
+        self, *inputs_from_previous_nodes: Tuple[Text, Any]
     ) -> Tuple[Text, Any]:
         """Calls the `GraphComponent` run method when the node executes in the graph.
 
@@ -563,12 +523,12 @@ class GraphNode:
 
     @classmethod
     def from_schema_node(
-            cls,
-            node_name: Text,
-            schema_node: SchemaNode,
-            model_storage: ModelStorage,
-            execution_context: ExecutionContext,
-            hooks: Optional[List[GraphNodeHook]] = None,
+        cls,
+        node_name: Text,
+        schema_node: SchemaNode,
+        model_storage: ModelStorage,
+        execution_context: ExecutionContext,
+        hooks: Optional[List[GraphNodeHook]] = None,
     ) -> GraphNode:
         """Creates a `GraphNode` from a `SchemaNode`."""
         return cls(
@@ -588,13 +548,11 @@ class GraphNode:
 
 @dataclass()
 class GraphModelConfiguration:
-    """
-    The model configuration to run as a graph during training and prediction.
-    """
+    """The model configuration to run as a graph during training and prediction."""
 
-    train_schema: GraphSchema  # 用于训练的
-    predict_schema: GraphSchema  # 用于预测的
-    training_type: TrainingType  #
+    train_schema: GraphSchema
+    predict_schema: GraphSchema
+    training_type: TrainingType
     language: Optional[Text]
     core_target: Optional[Text]
     nlu_target: Optional[Text]

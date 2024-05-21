@@ -1,16 +1,12 @@
 from abc import ABC, abstractmethod
-
 from functools import reduce
-
 from typing import Text, Optional, List, Dict, Set, Any, Tuple, Type, Union, cast
-
 import logging
 
 import rasa.shared.constants
 import rasa.shared.utils.common
 import rasa.shared.core.constants
 import rasa.shared.utils.io
-
 from rasa.shared.core.domain import (
     Domain,
     KEY_E2E_ACTIONS,
@@ -29,27 +25,22 @@ logger = logging.getLogger(__name__)
 
 
 class TrainingDataImporter(ABC):
-    """
-    Common interface for different mechanisms to load training data.
-    """
+    """Common interface for different mechanisms to load training data."""
 
     @abstractmethod
     def __init__(
-            self,
-            config_file: Optional[Text] = None,
-            domain_path: Optional[Text] = None,
-            training_data_paths: Optional[Union[List[Text], Text]] = None,
-            **kwargs: Any,
+        self,
+        config_file: Optional[Text] = None,
+        domain_path: Optional[Text] = None,
+        training_data_paths: Optional[Union[List[Text], Text]] = None,
+        **kwargs: Any,
     ) -> None:
-        """
-        Initialise the importer.
-        """
+        """Initialise the importer."""
         ...
 
     @abstractmethod
     def get_domain(self) -> Domain:
-        """
-        Retrieves the domain of the bot.
+        """Retrieves the domain of the bot.
 
         Returns:
             Loaded `Domain`.
@@ -58,8 +49,7 @@ class TrainingDataImporter(ABC):
 
     @abstractmethod
     def get_stories(self, exclusion_percentage: Optional[int] = None) -> StoryGraph:
-        """
-        Retrieves the stories that should be used for training.
+        """Retrieves the stories that should be used for training.
 
         Args:
             exclusion_percentage: Amount of training data that should be excluded.
@@ -70,8 +60,7 @@ class TrainingDataImporter(ABC):
         ...
 
     def get_conversation_tests(self) -> StoryGraph:
-        """
-        Retrieves end-to-end conversation stories for testing.
+        """Retrieves end-to-end conversation stories for testing.
 
         Returns:
             `StoryGraph` containing all loaded stories.
@@ -80,8 +69,7 @@ class TrainingDataImporter(ABC):
 
     @abstractmethod
     def get_config(self) -> Dict:
-        """
-        Retrieves the configuration that should be used for the training.
+        """Retrieves the configuration that should be used for the training.
 
         Returns:
             The configuration as dictionary.
@@ -90,15 +78,12 @@ class TrainingDataImporter(ABC):
 
     @abstractmethod
     def get_config_file_for_auto_config(self) -> Optional[Text]:
-        """
-        Returns config file path for auto-config only if there is a single one.
-        """
+        """Returns config file path for auto-config only if there is a single one."""
         ...
 
     @abstractmethod
     def get_nlu_data(self, language: Optional[Text] = "en") -> TrainingData:
-        """
-        Retrieves the NLU training data that should be used for training.
+        """Retrieves the NLU training data that should be used for training.
 
         Args:
             language: Can be used to only load training data for a certain language.
@@ -110,44 +95,38 @@ class TrainingDataImporter(ABC):
 
     @staticmethod
     def load_from_config(
-            config_path: Text,
-            domain_path: Optional[Text] = None,
-            training_data_paths: Optional[List[Text]] = None,
+        config_path: Text,
+        domain_path: Optional[Text] = None,
+        training_data_paths: Optional[List[Text]] = None,
     ) -> "TrainingDataImporter":
-        """
-        Loads a `TrainingDataImporter` instance from a configuration file.
-        """
+        """Loads a `TrainingDataImporter` instance from a configuration file."""
         config = rasa.shared.utils.io.read_config_file(config_path)
-        # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
         return TrainingDataImporter.load_from_dict(
             config, config_path, domain_path, training_data_paths
         )
 
     @staticmethod
     def load_core_importer_from_config(
-            config_path: Text,
-            domain_path: Optional[Text] = None,
-            training_data_paths: Optional[List[Text]] = None,
+        config_path: Text,
+        domain_path: Optional[Text] = None,
+        training_data_paths: Optional[List[Text]] = None,
     ) -> "TrainingDataImporter":
-        """
-        Loads core `TrainingDataImporter` instance.
+        """Loads core `TrainingDataImporter` instance.
 
         Instance loaded from configuration file will only read Core training data.
         """
         importer = TrainingDataImporter.load_from_config(
             config_path, domain_path, training_data_paths
         )
-
         return importer
 
     @staticmethod
     def load_nlu_importer_from_config(
-            config_path: Text,
-            domain_path: Optional[Text] = None,
-            training_data_paths: Optional[List[Text]] = None,
+        config_path: Text,
+        domain_path: Optional[Text] = None,
+        training_data_paths: Optional[List[Text]] = None,
     ) -> "TrainingDataImporter":
-        """
-        Loads nlu `TrainingDataImporter` instance.
+        """Loads nlu `TrainingDataImporter` instance.
 
         Instance loaded from configuration file will only read NLU training data.
         """
@@ -164,32 +143,25 @@ class TrainingDataImporter(ABC):
 
     @staticmethod
     def load_from_dict(
-            config: Optional[Dict] = None,
-            config_path: Optional[Text] = None,
-            domain_path: Optional[Text] = None,
-            training_data_paths: Optional[List[Text]] = None,
+        config: Optional[Dict] = None,
+        config_path: Optional[Text] = None,
+        domain_path: Optional[Text] = None,
+        training_data_paths: Optional[List[Text]] = None,
     ) -> "TrainingDataImporter":
-        """
-        Loads a `TrainingDataImporter` instance from a dictionary.
-        """
+        """Loads a `TrainingDataImporter` instance from a dictionary."""
         from rasa.shared.importers.rasa import RasaFileImporter
 
         config = config or {}
-
-        importers = config.get("importers", [])  # []
-        
-        importers = [  # []
+        importers = config.get("importers", [])
+        importers = [
             TrainingDataImporter._importer_from_dict(
                 importer, config_path, domain_path, training_data_paths
             )
             for importer in importers
         ]
-        
-        importers = [importer for importer in importers if importer]  # []
-        
+        importers = [importer for importer in importers if importer]
         if not importers:
-            
-            importers = [  # [RasaFileImporter]
+            importers = [
                 RasaFileImporter(config_path, domain_path, training_data_paths)
             ]
 
@@ -197,37 +169,26 @@ class TrainingDataImporter(ABC):
 
     @staticmethod
     def _importer_from_dict(
-            importer_config: Dict,
-            config_path: Text,
-            domain_path: Optional[Text] = None,
-            training_data_paths: Optional[List[Text]] = None,
+        importer_config: Dict,
+        config_path: Text,
+        domain_path: Optional[Text] = None,
+        training_data_paths: Optional[List[Text]] = None,
     ) -> Optional["TrainingDataImporter"]:
-
         from rasa.shared.importers.multi_project import MultiProjectImporter
         from rasa.shared.importers.rasa import RasaFileImporter
 
         module_path = importer_config.pop("name", None)
-
         if module_path == RasaFileImporter.__name__:
-
             importer_class: Type[TrainingDataImporter] = RasaFileImporter
-
         elif module_path == MultiProjectImporter.__name__:
-
             importer_class = MultiProjectImporter
-
         else:
-
             try:
-
                 importer_class = rasa.shared.utils.common.class_from_module_path(
                     module_path
                 )
-
             except (AttributeError, ImportError):
-
                 logging.warning(f"Importer '{module_path}' not found.")
-
                 return None
 
         constructor_arguments = rasa.shared.utils.common.minimal_kwargs(
@@ -239,33 +200,23 @@ class TrainingDataImporter(ABC):
         )
 
     def fingerprint(self) -> Text:
-        """
-        Returns a random fingerprint as data shouldn't be cached.
-        """
+        """Returns a random fingerprint as data shouldn't be cached."""
         return rasa.shared.utils.io.random_string(25)
 
     def __repr__(self) -> Text:
-        """
-        Returns text representation of object.
-        """
+        """Returns text representation of object."""
         return self.__class__.__name__
 
 
 class NluDataImporter(TrainingDataImporter):
-    """
-    Importer that skips any Core-related file reading.
-    """
+    """Importer that skips any Core-related file reading."""
 
     def __init__(self, actual_importer: TrainingDataImporter):
-        """
-        Initializes the NLUDataImporter.
-        """
+        """Initializes the NLUDataImporter."""
         self._importer = actual_importer
 
     def get_domain(self) -> Domain:
-        """
-        Retrieves model domain (see parent class for full docstring).
-        """
+        """Retrieves model domain (see parent class for full docstring)."""
         return Domain.empty()
 
     def get_stories(self, exclusion_percentage: Optional[int] = None) -> StoryGraph:
@@ -291,10 +242,10 @@ class NluDataImporter(TrainingDataImporter):
 
 
 class CombinedDataImporter(TrainingDataImporter):
-    """
-    A `TrainingDataImporter` that combines multiple importers.
+    """A `TrainingDataImporter` that combines multiple importers.
 
-    Uses multiple `TrainingDataImporter` instances to load the data as if they were a single instance.
+    Uses multiple `TrainingDataImporter` instances
+    to load the data as if they were a single instance.
     """
 
     def __init__(self, importers: List[TrainingDataImporter]):
@@ -368,22 +319,16 @@ class ResponsesSyncImporter(TrainingDataImporter):
     """
 
     def __init__(self, importer: TrainingDataImporter):
-        """
-        Initializes the ResponsesSyncImporter.
-        """
+        """Initializes the ResponsesSyncImporter."""
         self._importer = importer
 
     def get_config(self) -> Dict:
-        """
-        Retrieves model config (see parent class for full docstring).
-        """
+        """Retrieves model config (see parent class for full docstring)."""
         return self._importer.get_config()
 
     @rasa.shared.utils.common.cached_method
     def get_config_file_for_auto_config(self) -> Optional[Text]:
-        """
-        Returns config file path for auto-config only if there is a single one.
-        """
+        """Returns config file path for auto-config only if there is a single one."""
         return self._importer.get_config_file_for_auto_config()
 
     @rasa.shared.utils.common.cached_method
@@ -426,9 +371,9 @@ class ResponsesSyncImporter(TrainingDataImporter):
 
     @staticmethod
     def _get_domain_with_retrieval_intents(
-            retrieval_intents: Set[Text],
-            responses: Dict[Text, List[Dict[Text, Any]]],
-            existing_domain: Domain,
+        retrieval_intents: Set[Text],
+        responses: Dict[Text, List[Dict[Text, Any]]],
+        existing_domain: Domain,
     ) -> Domain:
         """Construct a domain consisting of retrieval intents.
 
@@ -490,7 +435,7 @@ class ResponsesSyncImporter(TrainingDataImporter):
 
     @staticmethod
     def _get_nlu_data_with_responses(
-            responses: Dict[Text, List[Dict[Text, Any]]]
+        responses: Dict[Text, List[Dict[Text, Any]]]
     ) -> TrainingData:
         """Construct training data object with only the responses supplied.
 
@@ -505,17 +450,14 @@ class ResponsesSyncImporter(TrainingDataImporter):
 
 
 class E2EImporter(TrainingDataImporter):
-    """
-    Importer with the following functionality.
+    """Importer with the following functionality.
 
     - enhances the NLU training data with actions / user messages from the stories.
     - adds potential end-to-end bot messages from stories as actions to the domain
     """
 
     def __init__(self, importer: TrainingDataImporter) -> None:
-        """
-        Initializes the E2EImporter.
-        """
+        """Initializes the E2EImporter."""
         self.importer = importer
 
     @rasa.shared.utils.common.cached_method
@@ -527,6 +469,7 @@ class E2EImporter(TrainingDataImporter):
         return original.merge(e2e_domain)
 
     def _get_domain_with_e2e_actions(self) -> Domain:
+
         stories = self.get_stories()
 
         additional_e2e_action_names = set()
@@ -590,8 +533,8 @@ class E2EImporter(TrainingDataImporter):
         )
 
         additional_messages_from_stories = [
-                                               _messages_from_action(action) for action in sorted_actions
-                                           ] + [_messages_from_user_utterance(user) for user in sorted_utterances]
+            _messages_from_action(action) for action in sorted_actions
+        ] + [_messages_from_user_utterance(user) for user in sorted_utterances]
 
         logger.debug(
             f"Added {len(additional_messages_from_stories)} training data examples "
@@ -601,7 +544,7 @@ class E2EImporter(TrainingDataImporter):
 
 
 def _unique_events_from_stories(
-        stories: StoryGraph,
+    stories: StoryGraph,
 ) -> Tuple[Set[UserUttered], Set[ActionExecuted]]:
     action_events = set()
     user_events = set()

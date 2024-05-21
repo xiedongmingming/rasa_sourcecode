@@ -10,15 +10,14 @@ from rasa.shared.constants import DEFAULT_MODELS_PATH
 
 from rasa.exceptions import ModelNotFound
 
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 # TODO: rename this whole module.
 
 
 def get_local_model(model_path: Text = DEFAULT_MODELS_PATH) -> Text:
-    """
-    Returns verified path to local model archive.
+    """Returns verified path to local model archive.
 
     Args:
         model_path: Path to the zipped model. If it's a directory, the latest
@@ -38,27 +37,20 @@ def get_local_model(model_path: Text = DEFAULT_MODELS_PATH) -> Text:
         raise ModelNotFound(f"No file or directory at '{model_path}'.")
 
     if os.path.isdir(model_path):
-
         file_model_path = get_latest_model(model_path)
-
         if not file_model_path:
-            #
             raise ModelNotFound(
                 f"Could not find any Rasa model files in '{model_path}'."
             )
-
         model_path = file_model_path
-
     elif not model_path.endswith(".tar.gz"):
-        #
         raise ModelNotFound(f"Path '{model_path}' does not point to a Rasa model file.")
 
     return model_path
 
 
 def get_latest_model(model_path: Text = DEFAULT_MODELS_PATH) -> Optional[Text]:
-    """
-    Get the latest model from a path.
+    """Get the latest model from a path.
 
     Args:
         model_path: Path to a directory containing zipped models.
@@ -68,27 +60,23 @@ def get_latest_model(model_path: Text = DEFAULT_MODELS_PATH) -> Optional[Text]:
 
     """
     if not model_path:
-        #
         return None
 
     if not os.path.exists(model_path) or os.path.isfile(model_path):
-        #
         model_path = os.path.dirname(model_path)
 
     list_of_files = glob.glob(os.path.join(model_path, "*.tar.gz"))
 
     if len(list_of_files) == 0:
-        #
         return None
 
     return max(list_of_files, key=os.path.getctime)
 
 
 def get_model_for_finetuning(
-        previous_model_file_or_dir: Union[Path, Text]
+    previous_model_file_or_dir: Union[Path, Text]
 ) -> Optional[Path]:
-    """
-    Gets validated path for model to finetune.
+    """Gets validated path for model to finetune.
 
     Args:
         previous_model_file: Path to model file which should be used for finetuning or

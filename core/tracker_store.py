@@ -1,11 +1,9 @@
 from __future__ import annotations
-
 import contextlib
 import itertools
 import json
 import logging
 import os
-
 from inspect import isawaitable, iscoroutinefunction
 
 from time import sleep
@@ -129,18 +127,15 @@ class SerializedTrackerAsDict(SerializedTrackerRepresentation[Dict]):
 
 
 class TrackerStore:
-    """
-    Represents common behavior and interface for all `TrackerStore`s.
-    """
+    """Represents common behavior and interface for all `TrackerStore`s."""
 
     def __init__(
-            self,
-            domain: Optional[Domain],
-            event_broker: Optional[EventBroker] = None,
-            **kwargs: Dict[Text, Any],
+        self,
+        domain: Optional[Domain],
+        event_broker: Optional[EventBroker] = None,
+        **kwargs: Dict[Text, Any],
     ) -> None:
-        """
-        Create a TrackerStore.
+        """Create a TrackerStore.
 
         Args:
             domain: The `Domain` to initialize the `DialogueStateTracker`.
@@ -154,13 +149,11 @@ class TrackerStore:
 
     @staticmethod
     def create(
-            obj: Union[TrackerStore, EndpointConfig, None],
-            domain: Optional[Domain] = None,
-            event_broker: Optional[EventBroker] = None,
+        obj: Union[TrackerStore, EndpointConfig, None],
+        domain: Optional[Domain] = None,
+        event_broker: Optional[EventBroker] = None,
     ) -> TrackerStore:
-        """
-        Factory to create a tracker store.
-        """
+        """Factory to create a tracker store."""
         if isinstance(obj, TrackerStore):
             return obj
 
@@ -182,24 +175,23 @@ class TrackerStore:
                 tracker_store = AwaitableTrackerStore(tracker_store)
             return tracker_store
         except (
-                BotoCoreError,
-                pymongo.errors.ConnectionFailure,
-                sqlalchemy.exc.OperationalError,
-                ConnectionError,
-                pymongo.errors.OperationFailure,
+            BotoCoreError,
+            pymongo.errors.ConnectionFailure,
+            sqlalchemy.exc.OperationalError,
+            ConnectionError,
+            pymongo.errors.OperationFailure,
         ) as error:
             raise ConnectionException(
                 "Cannot connect to tracker store." + str(error)
             ) from error
 
     async def get_or_create_tracker(
-            self,
-            sender_id: Text,
-            max_event_history: Optional[int] = None,
-            append_action_listen: bool = True,
+        self,
+        sender_id: Text,
+        max_event_history: Optional[int] = None,
+        append_action_listen: bool = True,
     ) -> "DialogueStateTracker":
-        """
-        Returns tracker or creates one if the retrieval returns None.
+        """Returns tracker or creates one if the retrieval returns None.
 
         Args:
             sender_id: Conversation ID associated with the requested tracker.
@@ -218,8 +210,7 @@ class TrackerStore:
         return tracker
 
     def init_tracker(self, sender_id: Text) -> "DialogueStateTracker":
-        """
-        Returns a Dialogue State Tracker."""
+        """Returns a Dialogue State Tracker."""
         return DialogueStateTracker(
             sender_id,
             self.domain.slots,
@@ -227,10 +218,9 @@ class TrackerStore:
         )
 
     async def create_tracker(
-            self, sender_id: Text, append_action_listen: bool = True
+        self, sender_id: Text, append_action_listen: bool = True
     ) -> DialogueStateTracker:
-        """
-        Creates a new tracker for `sender_id`.
+        """Creates a new tracker for `sender_id`.
 
         The tracker begins with a `SessionStarted` event and is initially listening.
 
@@ -251,14 +241,11 @@ class TrackerStore:
         return tracker
 
     async def save(self, tracker: DialogueStateTracker) -> None:
-        """
-        Save method that will be overridden by specific tracker.
-        """
+        """Save method that will be overridden by specific tracker."""
         raise NotImplementedError()
 
     async def exists(self, conversation_id: Text) -> bool:
-        """
-        Checks if tracker exists for the specified ID.
+        """Checks if tracker exists for the specified ID.
 
         This method may be overridden by the specific tracker store for
         faster implementations.
@@ -272,8 +259,7 @@ class TrackerStore:
         return await self.retrieve(conversation_id) is not None
 
     async def retrieve(self, sender_id: Text) -> Optional[DialogueStateTracker]:
-        """
-        Retrieves tracker for the latest conversation session.
+        """Retrieves tracker for the latest conversation session.
 
         This method will be overridden by the specific tracker store.
 
@@ -286,10 +272,9 @@ class TrackerStore:
         raise NotImplementedError()
 
     async def retrieve_full_tracker(
-            self, conversation_id: Text
+        self, conversation_id: Text
     ) -> Optional[DialogueStateTracker]:
-        """
-        Retrieve method for fetching all tracker events across conversation sessions\
+        """Retrieve method for fetching all tracker events across conversation sessions\
         that may be overridden by specific tracker.
 
         The default implementation uses `self.retrieve()`.
@@ -303,9 +288,7 @@ class TrackerStore:
         return await self.retrieve(conversation_id)
 
     async def stream_events(self, tracker: DialogueStateTracker) -> None:
-        """
-        Streams events to a message broker.
-        """
+        """Streams events to a message broker."""
         if self.event_broker is None:
             return None
 
@@ -316,14 +299,12 @@ class TrackerStore:
         await self._stream_new_events(self.event_broker, new_events, tracker.sender_id)
 
     async def _stream_new_events(
-            self,
-            event_broker: EventBroker,
-            new_events: List[Event],
-            sender_id: Text,
+        self,
+        event_broker: EventBroker,
+        new_events: List[Event],
+        sender_id: Text,
     ) -> None:
-        """
-        Publishes new tracker events to a message broker.
-        """
+        """Publishes new tracker events to a message broker."""
         for event in new_events:
             body = {"sender_id": sender_id}
             body.update(event.as_dict())
@@ -340,7 +321,7 @@ class TrackerStore:
         raise NotImplementedError()
 
     def deserialise_tracker(
-            self, sender_id: Text, serialised_tracker: Union[Text, bytes]
+        self, sender_id: Text, serialised_tracker: Union[Text, bytes]
     ) -> Optional[DialogueStateTracker]:
         """Deserializes the tracker and returns it."""
         tracker = self.init_tracker(sender_id)
@@ -372,10 +353,10 @@ class InMemoryTrackerStore(TrackerStore, SerializedTrackerAsText):
     """Stores conversation history in memory."""
 
     def __init__(
-            self,
-            domain: Domain,
-            event_broker: Optional[EventBroker] = None,
-            **kwargs: Dict[Text, Any],
+        self,
+        domain: Domain,
+        event_broker: Optional[EventBroker] = None,
+        **kwargs: Dict[Text, Any],
     ) -> None:
         """Initializes the tracker store."""
         self.store: Dict[Text, Text] = {}
@@ -406,20 +387,20 @@ class RedisTrackerStore(TrackerStore, SerializedTrackerAsText):
     """Stores conversation history in Redis."""
 
     def __init__(
-            self,
-            domain: Domain,
-            host: Text = "localhost",
-            port: int = 6379,
-            db: int = 0,
-            password: Optional[Text] = None,
-            event_broker: Optional[EventBroker] = None,
-            record_exp: Optional[float] = None,
-            key_prefix: Optional[Text] = None,
-            use_ssl: bool = False,
-            ssl_keyfile: Optional[Text] = None,
-            ssl_certfile: Optional[Text] = None,
-            ssl_ca_certs: Optional[Text] = None,
-            **kwargs: Dict[Text, Any],
+        self,
+        domain: Domain,
+        host: Text = "localhost",
+        port: int = 6379,
+        db: int = 0,
+        password: Optional[Text] = None,
+        event_broker: Optional[EventBroker] = None,
+        record_exp: Optional[float] = None,
+        key_prefix: Optional[Text] = None,
+        use_ssl: bool = False,
+        ssl_keyfile: Optional[Text] = None,
+        ssl_certfile: Optional[Text] = None,
+        ssl_ca_certs: Optional[Text] = None,
+        **kwargs: Dict[Text, Any],
     ) -> None:
         """Initializes the tracker store."""
         import redis
@@ -457,7 +438,7 @@ class RedisTrackerStore(TrackerStore, SerializedTrackerAsText):
         return self.key_prefix
 
     async def save(
-            self, tracker: DialogueStateTracker, timeout: Optional[float] = None
+        self, tracker: DialogueStateTracker, timeout: Optional[float] = None
     ) -> None:
         """Saves the current conversation state."""
         await self.stream_events(tracker)
@@ -496,12 +477,12 @@ class DynamoTrackerStore(TrackerStore, SerializedTrackerAsDict):
     """Stores conversation history in DynamoDB."""
 
     def __init__(
-            self,
-            domain: Domain,
-            table_name: Text = "states",
-            region: Text = "us-east-1",
-            event_broker: Optional[EndpointConfig] = None,
-            **kwargs: Dict[Text, Any],
+        self,
+        domain: Domain,
+        table_name: Text = "states",
+        region: Text = "us-east-1",
+        event_broker: Optional[EndpointConfig] = None,
+        **kwargs: Dict[Text, Any],
     ) -> None:
         """Initialize `DynamoTrackerStore`.
 
@@ -523,7 +504,7 @@ class DynamoTrackerStore(TrackerStore, SerializedTrackerAsDict):
         super().__init__(domain, event_broker, **kwargs)
 
     def get_or_create_table(
-            self, table_name: Text
+        self, table_name: Text
     ) -> "boto3.resources.factory.dynamodb.Table":
         """Returns table or creates one if the table name is not in the table list."""
         import boto3
@@ -557,7 +538,7 @@ class DynamoTrackerStore(TrackerStore, SerializedTrackerAsDict):
 
     @staticmethod
     def serialise_tracker(
-            tracker: "DialogueStateTracker",
+        tracker: "DialogueStateTracker",
     ) -> Dict:
         """Serializes the tracker, returns object with decimal types.
 
@@ -616,16 +597,16 @@ class MongoTrackerStore(TrackerStore, SerializedTrackerAsText):
     """
 
     def __init__(
-            self,
-            domain: Domain,
-            host: Optional[Text] = "mongodb://localhost:27017",
-            db: Optional[Text] = "rasa",
-            username: Optional[Text] = None,
-            password: Optional[Text] = None,
-            auth_source: Optional[Text] = "admin",
-            collection: Optional[Text] = "conversations",
-            event_broker: Optional[EventBroker] = None,
-            **kwargs: Dict[Text, Any],
+        self,
+        domain: Domain,
+        host: Optional[Text] = "mongodb://localhost:27017",
+        db: Optional[Text] = "rasa",
+        username: Optional[Text] = None,
+        password: Optional[Text] = None,
+        auth_source: Optional[Text] = "admin",
+        collection: Optional[Text] = "conversations",
+        event_broker: Optional[EventBroker] = None,
+        **kwargs: Dict[Text, Any],
     ) -> None:
         from pymongo.database import Database
         from pymongo import MongoClient
@@ -728,7 +709,7 @@ class MongoTrackerStore(TrackerStore, SerializedTrackerAsText):
         return list(reversed(events_after_session_start))
 
     async def _retrieve(
-            self, sender_id: Text, fetch_events_from_all_sessions: bool
+        self, sender_id: Text, fetch_events_from_all_sessions: bool
     ) -> Optional[List[Dict[Text, Any]]]:
         stored = self.conversations.find_one({"sender_id": sender_id})
 
@@ -763,7 +744,7 @@ class MongoTrackerStore(TrackerStore, SerializedTrackerAsText):
         return DialogueStateTracker.from_dict(sender_id, events, self.domain.slots)
 
     async def retrieve_full_tracker(
-            self, conversation_id: Text
+        self, conversation_id: Text
     ) -> Optional[DialogueStateTracker]:
         """Fetching all tracker events across conversation sessions."""
         events = await self._retrieve(
@@ -867,8 +848,8 @@ def ensure_schema_exists(session: "Session") -> None:
     if is_postgresql_url(engine.url):
         query = sa.exists(
             sa.select([(sa.text("schema_name"))])
-                .select_from(sa.text("information_schema.schemata"))
-                .where(sa.text(f"schema_name = '{schema_name}'"))
+            .select_from(sa.text("information_schema.schemata"))
+            .where(sa.text(f"schema_name = '{schema_name}'"))
         )
         if not session.query(query).scalar():
             raise ValueError(schema_name)
@@ -910,18 +891,18 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
         data = sa.Column(sa.Text)
 
     def __init__(
-            self,
-            domain: Optional[Domain] = None,
-            dialect: Text = "sqlite",
-            host: Optional[Text] = None,
-            port: Optional[int] = None,
-            db: Text = "rasa.db",
-            username: Text = None,
-            password: Text = None,
-            event_broker: Optional[EventBroker] = None,
-            login_db: Optional[Text] = None,
-            query: Optional[Dict] = None,
-            **kwargs: Dict[Text, Any],
+        self,
+        domain: Optional[Domain] = None,
+        dialect: Text = "sqlite",
+        host: Optional[Text] = None,
+        port: Optional[int] = None,
+        db: Text = "rasa.db",
+        username: Text = None,
+        password: Text = None,
+        event_broker: Optional[EventBroker] = None,
+        login_db: Optional[Text] = None,
+        query: Optional[Dict] = None,
+        **kwargs: Dict[Text, Any],
     ) -> None:
         import sqlalchemy.exc
 
@@ -948,8 +929,8 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
                 try:
                     self.Base.metadata.create_all(self.engine)
                 except (
-                        sqlalchemy.exc.OperationalError,
-                        sqlalchemy.exc.ProgrammingError,
+                    sqlalchemy.exc.OperationalError,
+                    sqlalchemy.exc.ProgrammingError,
                 ) as e:
                     # Several Rasa services started in parallel may attempt to
                     # create tables at the same time. That is okay so long as
@@ -959,8 +940,8 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
                 self.sessionmaker = sa.orm.session.sessionmaker(bind=self.engine)
                 break
             except (
-                    sqlalchemy.exc.OperationalError,
-                    sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.OperationalError,
+                sqlalchemy.exc.IntegrityError,
             ) as error:
 
                 logger.warning(error)
@@ -972,14 +953,14 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
 
     @staticmethod
     def get_db_url(
-            dialect: Text = "sqlite",
-            host: Optional[Text] = None,
-            port: Optional[int] = None,
-            db: Text = "rasa.db",
-            username: Text = None,
-            password: Text = None,
-            login_db: Optional[Text] = None,
-            query: Optional[Dict] = None,
+        dialect: Text = "sqlite",
+        host: Optional[Text] = None,
+        port: Optional[int] = None,
+        db: Text = "rasa.db",
+        username: Text = None,
+        password: Text = None,
+        login_db: Optional[Text] = None,
+        query: Optional[Dict] = None,
     ) -> Union[Text, "URL"]:
         """Build an SQLAlchemy `URL` object representing the parameters needed
         to connect to an SQL database.
@@ -1056,22 +1037,22 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
 
         matching_rows = (
             conn.execution_options(isolation_level="AUTOCOMMIT")
-                .execute(
+            .execute(
                 sa.text(
                     "SELECT 1 FROM pg_catalog.pg_database "
                     "WHERE datname = :database_name"
                 ),
                 database_name=database_name,
             )
-                .rowcount
+            .rowcount
         )
 
         if not matching_rows:
             try:
                 conn.execute(f"CREATE DATABASE {database_name}")
             except (
-                    sqlalchemy.exc.ProgrammingError,
-                    sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.ProgrammingError,
+                sqlalchemy.exc.IntegrityError,
             ) as e:
                 logger.error(f"Could not create database '{database_name}': {e}")
 
@@ -1105,7 +1086,7 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
         return await self._retrieve(sender_id, fetch_events_from_all_sessions=False)
 
     async def retrieve_full_tracker(
-            self, conversation_id: Text
+        self, conversation_id: Text
     ) -> Optional[DialogueStateTracker]:
         """Fetching all tracker events across conversation sessions."""
         return await self._retrieve(
@@ -1113,7 +1094,7 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
         )
 
     async def _retrieve(
-            self, sender_id: Text, fetch_events_from_all_sessions: bool
+        self, sender_id: Text, fetch_events_from_all_sessions: bool
     ) -> Optional[DialogueStateTracker]:
         with self.session_scope() as session:
 
@@ -1139,7 +1120,7 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
                 return None
 
     def _event_query(
-            self, session: "Session", sender_id: Text, fetch_events_from_all_sessions: bool
+        self, session: "Session", sender_id: Text, fetch_events_from_all_sessions: bool
     ) -> "Query":
         """Provide the query to retrieve the conversation events for a specific sender.
 
@@ -1156,11 +1137,11 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
         # Subquery to find the timestamp of the latest `SessionStarted` event
         session_start_sub_query = (
             session.query(sa.func.max(self.SQLEvent.timestamp).label("session_start"))
-                .filter(
+            .filter(
                 self.SQLEvent.sender_id == sender_id,
                 self.SQLEvent.type_name == SessionStarted.type_name,
             )
-                .subquery()
+            .subquery()
         )
 
         event_query = session.query(self.SQLEvent).filter(
@@ -1210,7 +1191,7 @@ class SQLTrackerStore(TrackerStore, SerializedTrackerAsText):
         logger.debug(f"Tracker with sender_id '{tracker.sender_id}' stored to database")
 
     def _additional_events(
-            self, session: "Session", tracker: DialogueStateTracker
+        self, session: "Session", tracker: DialogueStateTracker
     ) -> Iterator:
         """Return events from the tracker which aren't currently stored."""
         number_of_events_since_last_session = self._event_query(
@@ -1229,10 +1210,10 @@ class FailSafeTrackerStore(TrackerStore):
     """
 
     def __init__(
-            self,
-            tracker_store: TrackerStore,
-            on_tracker_store_error: Optional[Callable[[Exception], None]] = None,
-            fallback_tracker_store: Optional[TrackerStore] = None,
+        self,
+        tracker_store: TrackerStore,
+        on_tracker_store_error: Optional[Callable[[Exception], None]] = None,
+        fallback_tracker_store: Optional[TrackerStore] = None,
     ) -> None:
         """Create a `FailSafeTrackerStore`.
 
@@ -1306,9 +1287,9 @@ class FailSafeTrackerStore(TrackerStore):
 
 
 def _create_from_endpoint_config(
-        endpoint_config: Optional[EndpointConfig] = None,
-        domain: Optional[Domain] = None,
-        event_broker: Optional[EventBroker] = None,
+    endpoint_config: Optional[EndpointConfig] = None,
+    domain: Optional[Domain] = None,
+    event_broker: Optional[EventBroker] = None,
 ) -> TrackerStore:
     """Given an endpoint configuration, create a proper tracker store object."""
     domain = domain or Domain.empty()
@@ -1352,7 +1333,7 @@ def _create_from_endpoint_config(
 
 
 def _load_from_module_name_in_endpoint_config(
-        domain: Domain, store: EndpointConfig, event_broker: Optional[EventBroker] = None
+    domain: Domain, store: EndpointConfig, event_broker: Optional[EventBroker] = None
 ) -> TrackerStore:
     """Initializes a custom tracker.
 
@@ -1386,8 +1367,8 @@ class AwaitableTrackerStore(TrackerStore):
     """Wraps a tracker store so it can be implemented with async overrides."""
 
     def __init__(
-            self,
-            tracker_store: TrackerStore,
+        self,
+        tracker_store: TrackerStore,
     ) -> None:
         """Create a `AwaitableTrackerStore`.
 
@@ -1410,9 +1391,9 @@ class AwaitableTrackerStore(TrackerStore):
 
     @staticmethod
     def create(
-            obj: Union[TrackerStore, EndpointConfig, None],
-            domain: Optional[Domain] = None,
-            event_broker: Optional[EventBroker] = None,
+        obj: Union[TrackerStore, EndpointConfig, None],
+        domain: Optional[Domain] = None,
+        event_broker: Optional[EventBroker] = None,
     ) -> TrackerStore:
         """Wrapper to call `create` method of primary tracker store."""
         if isinstance(obj, TrackerStore):
@@ -1446,7 +1427,7 @@ class AwaitableTrackerStore(TrackerStore):
         return await result if isawaitable(result) else result
 
     async def retrieve_full_tracker(
-            self, conversation_id: Text
+        self, conversation_id: Text
     ) -> Optional[DialogueStateTracker]:
         """Wrapper to call `retrieve_full_tracker` method of primary tracker store."""
         result = self._tracker_store.retrieve_full_tracker(conversation_id)

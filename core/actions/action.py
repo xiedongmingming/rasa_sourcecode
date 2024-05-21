@@ -1026,7 +1026,7 @@ class ActionExtractSlots(Action):
     Action is executed automatically in MessageProcessor.handle_message(...)
     before the next predicted action is run.
 
-    Set slots to extracted values from user message
+    Sets slots to extracted values from user message
     according to assigned slot mappings.
     """
 

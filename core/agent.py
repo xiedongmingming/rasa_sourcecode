@@ -1,19 +1,14 @@
 from __future__ import annotations
-
 from asyncio import AbstractEventLoop, CancelledError
-
 import functools
 import logging
 import os
 import tempfile
-
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Text, Union
-
 import uuid
 
 import aiohttp
-
 from aiohttp import ClientError
 
 from rasa.core import jobs
@@ -32,9 +27,7 @@ from rasa.shared.core.trackers import DialogueStateTracker, EventVerbosity
 from rasa.exceptions import ModelNotFound
 from rasa.nlu.utils import is_url
 from rasa.shared.exceptions import RasaException
-
 import rasa.shared.utils.io
-
 from rasa.utils.endpoints import EndpointConfig
 
 from rasa.core.tracker_store import TrackerStore
@@ -44,9 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 async def load_from_server(agent: Agent, model_server: EndpointConfig) -> Agent:
-    """
-    Load a persisted model from a server.
-    """
+    """Load a persisted model from a server."""
     # We are going to pull the model once first, and then schedule a recurring
     # job. the benefit of this approach is that we can be sure that there
     # is a model after this function completes -> allows to do proper
@@ -67,8 +58,7 @@ async def load_from_server(agent: Agent, model_server: EndpointConfig) -> Agent:
 def _load_and_set_updated_model(
     agent: Agent, model_directory: Text, fingerprint: Text
 ) -> None:
-    """
-    Load the persisted model into memory and set the model on the agent.
+    """Load the persisted model into memory and set the model on the agent.
 
     Args:
         agent: Instance of `Agent` to update with the new model.
@@ -82,9 +72,7 @@ def _load_and_set_updated_model(
 
 
 async def _update_model_from_server(model_server: EndpointConfig, agent: Agent) -> None:
-    """
-    Load a zipped Rasa Core model from a URL and update the passed agent.
-    """
+    """Load a zipped Rasa Core model from a URL and update the passed agent."""
     if not is_url(model_server.url):
         raise aiohttp.InvalidURL(model_server.url)
 
