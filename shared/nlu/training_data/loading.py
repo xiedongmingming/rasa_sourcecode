@@ -105,7 +105,8 @@ def _load(filename: Text, language: Optional[Text] = "en") -> Optional["Training
 
 
 def guess_format(filename: Text) -> Text:
-    """Applies heuristics to guess the data format of a file.
+    """
+    Applies heuristics to guess the data format of a file. 试探法
 
     Args:
         filename: file whose type should be guessed
@@ -118,18 +119,29 @@ def guess_format(filename: Text) -> Text:
     guess = UNK
 
     if not os.path.isfile(filename):
+        #
         return guess
 
     try:
+
         content = rasa.shared.utils.io.read_file(filename)
+
         js = json.loads(content)
+
     except ValueError:
+
         if RasaYAMLReader.is_yaml_nlu_file(filename):
+
             guess = RASA_YAML
+
     else:
+
         for file_format, format_heuristic in _json_format_heuristics.items():
+
             if format_heuristic(js, filename):
+
                 guess = file_format
+
                 break
 
     logger.debug(f"Training data format of '{filename}' is '{guess}'.")

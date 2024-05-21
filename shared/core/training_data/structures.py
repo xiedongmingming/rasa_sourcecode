@@ -110,7 +110,8 @@ class Checkpoint:
 
 
 class StoryStep:
-    """A StoryStep is a section of a story block between two checkpoints.
+    """
+    A StoryStep is a section of a story block between two checkpoints.
 
     NOTE: Checkpoints are not only limited to those manually written
     in the story file, but are also implicitly created at points where
@@ -306,7 +307,9 @@ class StoryStep:
 
 
 class RuleStep(StoryStep):
-    """A Special type of StoryStep representing a Rule."""
+    """
+    A Special type of StoryStep representing a Rule.
+    """
 
     def __init__(  # noqa: D107
         self,
@@ -419,25 +422,34 @@ class Story:
 
 
 class StoryGraph:
-    """Graph of the story-steps pooled from all stories in the training data."""
+    """
+    Graph of the story-steps pooled from all stories in the training data.
+    """
 
     def __init__(
         self,
         story_steps: List[StoryStep],
         story_end_checkpoints: Optional[Dict[Text, Text]] = None,
     ) -> None:
+
         self.story_steps = story_steps
+
         self.step_lookup = {s.id: s for s in self.story_steps}
+
         ordered_ids, cyclic_edges = StoryGraph.order_steps(story_steps)
+
         self.ordered_ids = ordered_ids
+
         self.cyclic_edge_ids = cyclic_edges
+
         if story_end_checkpoints:
             self.story_end_checkpoints = story_end_checkpoints
         else:
             self.story_end_checkpoints = {}
 
     def __hash__(self) -> int:
-        """Return hash for the story step.
+        """
+        Return hash for the story step.
 
         Returns:
             Hash of the story step.
@@ -445,7 +457,8 @@ class StoryGraph:
         return int(self.fingerprint(), 16)
 
     def fingerprint(self) -> Text:
-        """Returns a unique hash for the stories which is stable across python runs.
+        """
+        Returns a unique hash for the stories which is stable across python runs.
 
         Returns:
             fingerprint of the stories
@@ -455,40 +468,55 @@ class StoryGraph:
         )
 
         stories_as_yaml = YAMLStoryWriter().stories_to_yaml(self.story_steps)
+
         return rasa.shared.utils.io.deep_container_fingerprint(stories_as_yaml)
 
     def ordered_steps(self) -> List[StoryStep]:
-        """Returns the story steps ordered by topological order of the DAG."""
+        """
+        Returns the story steps ordered by topological order of the DAG.
+        """
         return [self._get_step(step_id) for step_id in self.ordered_ids]
 
     def cyclic_edges(self) -> List[Tuple[Optional[StoryStep], Optional[StoryStep]]]:
-        """Returns the story steps ordered by topological order of the DAG."""
+        """
+        Returns the story steps ordered by topological order of the DAG.
+        """
         return [
             (self._get_step(source), self._get_step(target))
             for source, target in self.cyclic_edge_ids
         ]
 
     def merge(self, other: Optional["StoryGraph"]) -> "StoryGraph":
-        """Merge two StoryGraph together."""
+        """
+        Merge two StoryGraph together.
+        """
         if not other:
+
             return self
 
         steps = self.story_steps.copy() + other.story_steps
+
         story_end_checkpoints = self.story_end_checkpoints.copy().update(
             other.story_end_checkpoints
         )
+
         return StoryGraph(steps, story_end_checkpoints)
 
     @staticmethod
     def overlapping_checkpoint_names(
         cps: List[Checkpoint], other_cps: List[Checkpoint]
     ) -> Set[Text]:
-        """Find overlapping checkpoints names."""
+        """
+        Find overlapping checkpoints names.
+        """
         return {cp.name for cp in cps} & {cp.name for cp in other_cps}
 
     def with_cycles_removed(self) -> "StoryGraph":
-        """Create a graph with the cyclic edges removed from this graph."""
+        """
+        Create a graph with the cyclic edges removed from this graph.
+        """
         story_end_checkpoints = self.story_end_checkpoints.copy()
+
         cyclic_edge_ids = self.cyclic_edge_ids
         # we need to remove the start steps and replace them with steps ending
         # in a special end checkpoint
@@ -576,8 +604,9 @@ class StoryGraph:
     def _checkpoint_difference(
         cps: List[Checkpoint], cp_name_to_ignore: Set[Text]
     ) -> List[Checkpoint]:
-        """Finds checkpoints which names are
-        different form names of checkpoints to ignore"""
+        """
+        Finds checkpoints which names are different form names of checkpoints to ignore
+        """
 
         return [cp for cp in cps if cp.name not in cp_name_to_ignore]
 
@@ -587,8 +616,9 @@ class StoryGraph:
         overlapping_cps: Set[Text],
         story_end_checkpoints: Dict[Text, Text],
     ) -> None:
-        """Finds unused generated checkpoints
-        and remove them from story steps."""
+        """
+        Finds unused generated checkpoints and remove them from story steps.
+        """
 
         unused_cps = self._find_unused_checkpoints(
             story_steps.values(), story_end_checkpoints
@@ -603,6 +633,7 @@ class StoryGraph:
         }
 
         k_to_remove = set()
+
         for k, step in story_steps.items():
             # changed all ends
             updated = step.create_copy(use_new_id=False)

@@ -16,8 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 def _get_reader(filename: Text, domain: Domain) -> StoryReader:
+    #
     if rasa.shared.data.is_likely_yaml_file(filename):
+        #
         return YAMLStoryReader(domain, filename)
+
     else:
         # This is a use case for uploading the story over REST API.
         # The source file has a random name.
@@ -60,7 +63,8 @@ def load_data_from_resource(
 def load_data_from_files(
     story_files: List[Text], domain: Domain, exclusion_percentage: Optional[int] = None
 ) -> List["StoryStep"]:
-    """Loads core training data from the specified files.
+    """
+    Loads core training data from the specified files.
 
     Args:
         story_files: List of files with training data in it.
@@ -75,16 +79,20 @@ def load_data_from_files(
 
     for story_file in story_files:
 
-        reader = _get_reader(story_file, domain)
+        reader = _get_reader(story_file, domain) # YAMLStoryReader
 
         steps = reader.read_from_file(story_file)
+
         story_steps.extend(steps)
 
     if exclusion_percentage and exclusion_percentage != 100:
+        #
         import random
 
         idx = int(round(exclusion_percentage / 100.0 * len(story_steps)))
+
         random.shuffle(story_steps)
+
         story_steps = story_steps[:-idx]
 
     return story_steps

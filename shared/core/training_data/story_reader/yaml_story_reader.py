@@ -74,11 +74,14 @@ DEFAULT_VALUE_LIST_SLOTS = [DEFAULT_VALUE_TEXT_SLOTS]
 
 
 class YAMLStoryReader(StoryReader):
-    """Class that reads Core training data and rule data in YAML format."""
+    """
+    Class that reads Core training data and rule data in YAML format.
+    """
 
     @classmethod
     def from_reader(cls, reader: "YAMLStoryReader") -> "YAMLStoryReader":
-        """Create a reader from another reader.
+        """
+        Create a reader from another reader.
 
         Args:
             reader: Another reader.
@@ -91,7 +94,8 @@ class YAMLStoryReader(StoryReader):
     def read_from_file(
         self, filename: Union[Text, Path], skip_validation: bool = False
     ) -> List[StoryStep]:
-        """Read stories or rules from file.
+        """
+        Read stories or rules from file.
 
         Args:
             filename: Path to the story/rule file.
@@ -102,21 +106,27 @@ class YAMLStoryReader(StoryReader):
             `StoryStep`s read from `filename`.
         """
         self.source_name = str(filename)
+
         try:
+
             return self.read_from_string(
                 rasa.shared.utils.io.read_file(
                     filename, rasa.shared.utils.io.DEFAULT_ENCODING
                 ),
                 skip_validation,
             )
+
         except YamlException as e:
+
             e.filename = str(filename)
+
             raise e
 
     def read_from_string(
         self, string: Text, skip_validation: bool = False
     ) -> List[StoryStep]:
-        """Read stories or rules from a string.
+        """
+        Read stories or rules from a string.
 
         Args:
             string: Unprocessed YAML file content.
@@ -127,6 +137,7 @@ class YAMLStoryReader(StoryReader):
             `StoryStep`s read from `string`.
         """
         if not skip_validation:
+            #
             rasa.shared.utils.validation.validate_yaml_schema(string, CORE_SCHEMA_FILE)
 
         yaml_content = rasa.shared.utils.io.read_yaml(string)
@@ -136,7 +147,8 @@ class YAMLStoryReader(StoryReader):
     def read_from_parsed_yaml(
         self, parsed_content: Dict[Text, Union[Dict, List]]
     ) -> List[StoryStep]:
-        """Read stories from parsed YAML.
+        """
+        Read stories from parsed YAML.
 
         Args:
             parsed_content: The parsed YAML as a dictionary.
@@ -148,22 +160,28 @@ class YAMLStoryReader(StoryReader):
         if not rasa.shared.utils.validation.validate_training_data_format_version(
             parsed_content, self.source_name
         ):
+            #
             return []
 
         for key, parser_class in {
             KEY_STORIES: StoryParser,
             KEY_RULES: RuleParser,
         }.items():
+
             data = parsed_content.get(key) or []
+
             parser = parser_class.from_reader(self)
+
             parser.parse_data(data)
+
             self.story_steps.extend(parser.get_steps())
 
         return self.story_steps
 
     @classmethod
     def is_stories_file(cls, file_path: Union[Text, Path]) -> bool:
-        """Check if file contains Core training data or rule data in YAML format.
+        """
+        Check if file contains Core training data or rule data in YAML format.
 
         Args:
             file_path: Path of the file to check.
@@ -182,7 +200,8 @@ class YAMLStoryReader(StoryReader):
 
     @classmethod
     def _has_test_prefix(cls, file_path: Text) -> bool:
-        """Check if the filename of a file at a path has a certain prefix.
+        """
+        Check if the filename of a file at a path has a certain prefix.
 
         Arguments:
             file_path: path to the file
@@ -194,7 +213,8 @@ class YAMLStoryReader(StoryReader):
 
     @classmethod
     def is_test_stories_file(cls, file_path: Union[Text, Path]) -> bool:
-        """Checks if a file is a test conversations file.
+        """
+        Checks if a file is a test conversations file.
 
         Args:
             file_path: Path of the file which should be checked.
@@ -206,14 +226,19 @@ class YAMLStoryReader(StoryReader):
         return cls._has_test_prefix(file_path) and cls.is_stories_file(file_path)
 
     def get_steps(self) -> List[StoryStep]:
+
         self._add_current_stories_to_result()
+
         return self.story_steps
 
     def parse_data(self, data: List[Dict[Text, Any]]) -> None:
+
         item_title = self._get_item_title()
 
         for item in data:
+
             if not isinstance(item, dict):
+
                 rasa.shared.utils.io.raise_warning(
                     f"Unexpected block found in '{self.source_name}':\n"
                     f"{item}\nItems under the "
@@ -221,15 +246,19 @@ class YAMLStoryReader(StoryReader):
                     f"dictionaries. It will be skipped.",
                     docs=self._get_docs_link(),
                 )
+
                 continue
 
             if item_title in item.keys():
+
                 self._parse_plain_item(item)
 
     def _parse_plain_item(self, item: Dict[Text, Any]) -> None:
+
         item_name = item.get(self._get_item_title(), "")
 
         if not item_name:
+
             rasa.shared.utils.io.raise_warning(
                 f"Issue found in '{self.source_name}': \n"
                 f"{item}\n"
@@ -243,29 +272,36 @@ class YAMLStoryReader(StoryReader):
         steps: List[Union[Text, Dict[Text, Any]]] = item.get(KEY_STEPS, [])
 
         if not steps:
+
             rasa.shared.utils.io.raise_warning(
                 f"Issue found in '{self.source_name}': "
                 f"The {self._get_item_title()} has no steps. "
                 f"It will be skipped.",
                 docs=self._get_docs_link(),
             )
+
             return
 
         self._new_part(item_name, item)
 
         for step in steps:
+
             self._parse_step(step)
 
         self._close_part(item)
 
     def _new_part(self, item_name: Text, item: Dict[Text, Any]) -> None:
+
         raise NotImplementedError()
 
     def _close_part(self, item: Dict[Text, Any]) -> None:
+
         pass
 
     def _parse_step(self, step: Union[Text, Dict[Text, Any]]) -> None:
+
         if isinstance(step, str):
+
             rasa.shared.utils.io.raise_warning(
                 f"Issue found in '{self.source_name}':\n"
                 f"Found an unexpected step in the {self._get_item_title()} "
@@ -274,6 +310,7 @@ class YAMLStoryReader(StoryReader):
                 f"'{RULE_SNIPPET_ACTION_NAME}'. It will be skipped.",
                 docs=self._get_docs_link(),
             )
+
         elif KEY_USER_INTENT in step.keys() or KEY_USER_MESSAGE in step.keys():
             self._parse_user_utterance(step)
         elif KEY_OR in step.keys():
@@ -814,51 +851,74 @@ class YAMLStoryReader(StoryReader):
 
 
 class StoryParser(YAMLStoryReader):
-    """Encapsulate story-specific parser behavior."""
+    """
+    Encapsulate story-specific parser behavior.
+    """
 
     def _new_part(self, item_name: Text, item: Dict[Text, Any]) -> None:
+        #
         self._new_story_part(item_name, self.source_name)
 
     def _get_item_title(self) -> Text:
+        #
         return KEY_STORY_NAME
 
     def _get_plural_item_title(self) -> Text:
+        #
         return KEY_STORIES
 
     def _get_docs_link(self) -> Text:
+        #
         return DOCS_URL_STORIES
 
 
 class RuleParser(YAMLStoryReader):
-    """Encapsulate rule-specific parser behavior."""
+    """
+    Encapsulate rule-specific parser behavior.
+    """
 
     def _new_part(self, item_name: Text, item: Dict[Text, Any]) -> None:
+
         self._new_rule_part(item_name, self.source_name)
+
         conditions = item.get(KEY_RULE_CONDITION, [])
+
         self._parse_rule_conditions(conditions)
+
         if not item.get(KEY_RULE_FOR_CONVERSATION_START):
+            #
             self._parse_rule_snippet_action()
 
     def _parse_rule_conditions(
         self, conditions: List[Union[Text, Dict[Text, Any]]]
     ) -> None:
+
         self._is_parsing_conditions = True
+
         for condition in conditions:
+
             self._parse_step(condition)
+
         self._is_parsing_conditions = False
 
     def _close_part(self, item: Dict[Text, Any]) -> None:
+
         if item.get(KEY_WAIT_FOR_USER_INPUT_AFTER_RULE) is False:
+
             self._parse_rule_snippet_action()
 
     def _get_item_title(self) -> Text:
+
         return KEY_RULE_NAME
 
     def _get_plural_item_title(self) -> Text:
+
         return KEY_RULES
 
     def _get_docs_link(self) -> Text:
+
         return DOCS_URL_RULES
 
     def _parse_rule_snippet_action(self) -> None:
+
         self._add_event(RULE_SNIPPET_ACTION_NAME, {})

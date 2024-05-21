@@ -337,7 +337,8 @@ class RasaYAMLReader(TrainingDataReader):
 
     @staticmethod
     def is_yaml_nlu_file(filename: Union[Text, Path]) -> bool:
-        """Checks if the specified file possibly contains NLU training data in YAML.
+        """
+        Checks if the specified file possibly contains NLU training data in YAML.
 
         Args:
             filename: name of the file to check.
@@ -351,6 +352,7 @@ class RasaYAMLReader(TrainingDataReader):
                 can not be read / parsed.
         """
         if not rasa.shared.data.is_likely_yaml_file(filename):
+            #
             return False
 
         return rasa.shared.utils.io.is_key_in_yaml(filename, KEY_NLU, KEY_RESPONSES)

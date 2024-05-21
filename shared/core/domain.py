@@ -157,7 +157,8 @@ class EntityProperties:
 
 
 class Domain:
-    """The domain specifies the universe in which the bot's policy acts.
+    """
+    The domain specifies the universe in which the bot's policy acts.
 
     A Domain subclass provides the actions the bot can take, the intents
     and entities it can recognise.
@@ -165,7 +166,9 @@ class Domain:
 
     @classmethod
     def empty(cls) -> "Domain":
-        """Returns empty Domain."""
+        """
+        Returns empty Domain.
+        """
         return Domain.from_dict({})
 
     @classmethod

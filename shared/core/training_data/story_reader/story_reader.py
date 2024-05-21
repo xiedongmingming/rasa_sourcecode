@@ -14,12 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 class StoryReader:
-    """Helper class to read a story file."""
+    """
+    Helper class to read a story file.
+    """
 
     def __init__(
         self, domain: Optional[Domain] = None, source_name: Optional[Text] = None
     ) -> None:
-        """Constructor for the StoryReader.
+        """
+        Constructor for the StoryReader.
 
         Args:
             domain: Domain object.
@@ -34,7 +37,8 @@ class StoryReader:
     def read_from_file(
         self, filename: Text, skip_validation: bool = False
     ) -> List[StoryStep]:
-        """Reads stories or rules from file.
+        """
+        Reads stories or rules from file.
 
         Args:
             filename: Path to the story/rule file.

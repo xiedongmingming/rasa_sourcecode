@@ -41,7 +41,7 @@ PACKAGE_NAME = "rasa"
 NEXT_MAJOR_VERSION_FOR_DEPRECATIONS = "4.0.0"
 
 MODEL_CONFIG_SCHEMA_FILE = "shared/utils/schemas/model_config.yml"
-CONFIG_SCHEMA_FILE = "shared/utils/schemas/config.yml"
+CONFIG_SCHEMA_FILE = "shared/utils/schemas/config.yml" # 默认的RASA配置文件
 RESPONSES_SCHEMA_FILE = "shared/nlu/training_data/schemas/responses.yml"
 SCHEMA_EXTENSIONS_FILE = "shared/utils/pykwalify_extensions.py"
 LATEST_TRAINING_DATA_FORMAT_VERSION = "3.1"
@@ -85,7 +85,7 @@ DEFAULT_CREDENTIALS_PATH = "credentials.yml"
 DEFAULT_CONFIG_PATH = "config.yml"
 DEFAULT_DOMAIN_PATH = "domain.yml"
 DEFAULT_ACTIONS_PATH = "actions"
-DEFAULT_MODELS_PATH = "models"
+DEFAULT_MODELS_PATH = "models" # 模型的默认存放目录
 DEFAULT_CONVERTED_DATA_PATH = "converted_data"
 DEFAULT_DATA_PATH = "data"
 DEFAULT_RESULTS_PATH = "results"

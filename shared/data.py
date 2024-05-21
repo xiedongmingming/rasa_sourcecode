@@ -8,6 +8,8 @@ from typing import Text, Optional, Union, List, Callable, Set, Iterable
 
 YAML_FILE_EXTENSIONS = [".yml", ".yaml"]
 JSON_FILE_EXTENSIONS = [".json"]
+
+# NLU训练数据支持的格式
 TRAINING_DATA_EXTENSIONS = set(JSON_FILE_EXTENSIONS + YAML_FILE_EXTENSIONS)
 
 
@@ -17,7 +19,8 @@ def yaml_file_extension() -> Text:
 
 
 def is_likely_yaml_file(file_path: Union[Text, Path]) -> bool:
-    """Check if a file likely contains yaml.
+    """
+    Check if a file likely contains yaml.
 
     Arguments:
         file_path: path to the file
@@ -29,7 +32,8 @@ def is_likely_yaml_file(file_path: Union[Text, Path]) -> bool:
 
 
 def is_likely_json_file(file_path: Text) -> bool:
-    """Check if a file likely contains json.
+    """
+    Check if a file likely contains json.
 
     Arguments:
         file_path: path to the file
@@ -41,7 +45,8 @@ def is_likely_json_file(file_path: Text) -> bool:
 
 
 def get_core_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
-    """Recursively collects all Core training files from a list of paths.
+    """
+    Recursively collects all Core training files from a list of paths.
 
     Args:
         paths: List of paths to training files or folders containing them.
@@ -54,11 +59,13 @@ def get_core_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
     )
 
     core_files = get_data_files(paths, YAMLStoryReader.is_stories_file)
+
     return _copy_files_to_new_dir(core_files)
 
 
 def get_nlu_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
-    """Recursively collects all NLU training files from a list of paths.
+    """
+    Recursively collects all NLU training files from a list of paths.
 
     Args:
         paths: List of paths to training files or folders containing them.
@@ -73,7 +80,8 @@ def get_nlu_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
 def get_data_files(
     paths: Optional[Union[Text, List[Text]]], filter_predicate: Callable[[Text], bool]
 ) -> List[Text]:
-    """Recursively collects all training files from a list of paths.
+    """
+    Recursively collects all training files from a list of paths.
 
     Args:
         paths: List of paths to training files or folders containing them.
@@ -90,14 +98,21 @@ def get_data_files(
         paths = [paths]
 
     for path in set(paths):
+
         if not path:
+            #
             continue
 
         if is_valid_filetype(path):
+            #
             if filter_predicate(path):
+                #
                 data_files.add(os.path.abspath(path))
+
         else:
+
             new_data_files = _find_data_files_in_directory(path, filter_predicate)
+
             data_files.update(new_data_files)
 
     return sorted(data_files)
@@ -124,7 +139,8 @@ def _find_data_files_in_directory(
 
 
 def is_valid_filetype(path: Union[Path, Text]) -> bool:
-    """Checks if given file has a supported extension.
+    """
+    Checks if given file has a supported extension.
 
     Args:
         path: Path to the source file.
@@ -136,7 +152,8 @@ def is_valid_filetype(path: Union[Path, Text]) -> bool:
 
 
 def is_nlu_file(file_path: Text) -> bool:
-    """Checks if a file is a Rasa compatible nlu file.
+    """
+    Checks if a file is a Rasa compatible nlu file.
 
     Args:
         file_path: Path of the file which should be checked.
