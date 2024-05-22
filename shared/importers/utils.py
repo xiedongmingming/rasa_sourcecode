@@ -13,7 +13,7 @@ def training_data_from_paths(paths: Iterable[Text], language: Text) -> TrainingD
 
 
 def story_graph_from_paths(
-    files: List[Text], # ['./data\\rules.yml', './data\\stories.yml']
+    files: List[Text], # ['./data/rules.yml', './data/stories.yml']
     domain: Domain, exclusion_percentage: Optional[int] = None
 ) -> StoryGraph:
     """

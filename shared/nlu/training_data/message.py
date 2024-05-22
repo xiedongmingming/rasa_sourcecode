@@ -30,7 +30,8 @@ if typing.TYPE_CHECKING:
 
 
 class Message:
-    """Container for data that can be used to describe a conversation turn.
+    """
+    Container for data that can be used to describe a conversation turn.
 
     The turn is described by a set of attributes such as e.g. `TEXT`  and  `INTENT`
     when describing a user utterance or e.g. `ACTION_NAME` for describing a bot action.
@@ -48,7 +49,9 @@ class Message:
         features: Optional[List["Features"]] = None,
         **kwargs: Any,
     ) -> None:
-        """Creates an instance of Message."""
+        """
+        Creates an instance of Message.
+        """
         self.time = time
         self.data = data.copy() if data else {}
         self.features = features if features else []
@@ -60,33 +63,42 @@ class Message:
             self.output_properties = output_properties
         else:
             self.output_properties = set()
+
         self.output_properties.add(TEXT)
 
     def add_features(self, features: Optional["Features"]) -> None:
-        """Add more vectorized features to the message."""
+        """
+        Add more vectorized features to the message.
+        """
         if features is not None:
+
             self.features.append(features)
+
         self._cached_fingerprint = None
 
     def add_diagnostic_data(self, origin: Text, data: Dict[Text, Any]) -> None:
-        """Adds diagnostic data from the `origin` component.
+        """
+        Adds diagnostic data from the `origin` component.
 
         Args:
             origin: Name of the component that created the data.
             data: The diagnostic data.
         """
         if origin in self.get(DIAGNOSTIC_DATA, {}):
+
             rasa.shared.utils.io.raise_warning(
                 f"Please make sure every pipeline component has a distinct name. "
                 f"The name '{origin}' appears at least twice and diagnostic "
                 f"data will be overwritten."
             )
+
         self.data.setdefault(DIAGNOSTIC_DATA, {})
         self.data[DIAGNOSTIC_DATA][origin] = data
         self._cached_fingerprint = None
 
     def set(self, prop: Text, info: Any, add_to_output: bool = False) -> None:
-        """Sets the message's property to the given value.
+        """
+        Sets the message's property to the given value.
 
         Args:
             prop: Name of the property to be set.
@@ -94,35 +106,54 @@ class Message:
             add_to_output: Decides whether to add `prop` to the `output_properties`.
         """
         self.data[prop] = info
+
         if add_to_output:
+
             self.output_properties.add(prop)
+
         self._cached_fingerprint = None
 
     def get(self, prop: Text, default: Optional[Any] = None) -> Any:
-        """Retrieve message property."""
+        """
+        Retrieve message property.
+        """
         return self.data.get(prop, default)
 
     def as_dict_nlu(self) -> dict:
-        """Get dict representation of message as it would appear in training data"""
+        """
+        Get dict representation of message as it would appear in training data
+        """
 
         d = self.as_dict()
+
         if d.get(INTENT, None):
+
             d[INTENT] = self.get_full_intent()
+
         d.pop(RESPONSE, None)
         d.pop(INTENT_RESPONSE_KEY, None)
+
         return d
 
     def as_dict(self, only_output_properties: bool = False) -> Dict:
-        """Gets dict representation of message."""
+        """
+        Gets dict representation of message.
+        """
         if only_output_properties:
+
             d = {}
+
             for key, value in self.data.items():
+
                 if key in self.output_properties:
+
                     if key == TEXT_TOKENS:
                         d[TEXT_TOKENS] = [(t.start, t.end) for t in value]
                     else:
                         d[key] = value
+
         else:
+
             d = self.data
 
         # Filter all keys with None value. These could have come while building the
@@ -130,13 +161,15 @@ class Message:
         return {key: value for key, value in d.items() if value is not None}
 
     def __eq__(self, other: Any) -> bool:
+
         if not isinstance(other, Message):
             return False
         else:
             return other.fingerprint() == self.fingerprint()
 
     def __hash__(self) -> int:
-        """Calculate a hash for the message.
+        """
+        Calculate a hash for the message.
 
         Returns:
             Hash of the message.
@@ -144,7 +177,8 @@ class Message:
         return int(self.fingerprint(), 16)
 
     def fingerprint(self) -> Text:
-        """Calculate a string fingerprint for the message.
+        """
+        Calculate a string fingerprint for the message.
 
         Returns:
             Fingerprint of the message.
@@ -165,7 +199,8 @@ class Message:
         example_metadata: Optional[Any] = None,
         **kwargs: Any,
     ) -> "Message":
-        """Builds a Message from `UserUttered` data.
+        """
+        Builds a Message from `UserUttered` data.
 
         Args:
             text: text of a user's utterance
@@ -178,14 +213,20 @@ class Message:
             Message
         """
         data: Dict[Text, Any] = {TEXT: text}
+
         if intent:
+
             split_intent, response_key = cls.separate_intent_response_key(intent)
+
             if split_intent:
+
                 data[INTENT] = split_intent
+
             if response_key:
                 # intent label can be of the form - {intent}/{response_key},
                 # so store the full intent label in intent_response_key
                 data[INTENT_RESPONSE_KEY] = intent
+
         if entities:
             data[ENTITIES] = entities
         if intent_metadata is not None:
@@ -196,7 +237,8 @@ class Message:
         return cls(data, **kwargs)
 
     def get_full_intent(self) -> Text:
-        """Get intent as it appears in training data"""
+        """
+        Get intent as it appears in training data"""
 
         return (
             self.get(INTENT_RESPONSE_KEY)
@@ -208,7 +250,8 @@ class Message:
     def separate_intent_response_key(
         original_intent: Text,
     ) -> Tuple[Text, Optional[Text]]:
-        """Splits intent into main intent name and optional sub-intent name.
+        """
+        Splits intent into main intent name and optional sub-intent name.
 
         For example, `"FAQ/how_to_contribute"` would be split into
         `("FAQ", "how_to_contribute")`. The response delimiter can
@@ -231,7 +274,8 @@ class Message:
     def get_sparse_features(
         self, attribute: Text, featurizers: Optional[List[Text]] = None
     ) -> Tuple[Optional["Features"], Optional["Features"]]:
-        """Gets all sparse features for the attribute given the list of featurizers.
+        """
+        Gets all sparse features for the attribute given the list of featurizers.
 
         If no featurizers are provided, all available features will be considered.
 
@@ -261,7 +305,8 @@ class Message:
     def get_sparse_feature_sizes(
         self, attribute: Text, featurizers: Optional[List[Text]] = None
     ) -> Dict[Text, List[int]]:
-        """Gets sparse feature sizes for the attribute given the list of featurizers.
+        """
+        Gets sparse feature sizes for the attribute given the list of featurizers.
 
         If no featurizers are provided, all available features will be considered.
 
@@ -289,7 +334,8 @@ class Message:
     def get_dense_features(
         self, attribute: Text, featurizers: Optional[List[Text]] = None
     ) -> Tuple[Optional["Features"], Optional["Features"]]:
-        """Gets all dense features for the attribute given the list of featurizers.
+        """
+        Gets all dense features for the attribute given the list of featurizers.
 
         If no featurizers are provided, all available features will be considered.
 
@@ -319,7 +365,8 @@ class Message:
     def get_all_features(
         self, attribute: Text, featurizers: Optional[List[Text]] = None
     ) -> List["Features"]:
-        """Gets all features for the attribute given the list of featurizers.
+        """
+        Gets all features for the attribute given the list of featurizers.
 
         If no featurizers are provided, all available features will be considered.
 
@@ -338,7 +385,8 @@ class Message:
     def features_present(
         self, attribute: Text, featurizers: Optional[List[Text]] = None
     ) -> bool:
-        """Checks if there are any features present for the attribute and featurizers.
+        """
+        Checks if there are any features present for the attribute and featurizers.
 
         If no featurizers are provided, all available features will be considered.
 
@@ -350,12 +398,14 @@ class Message:
             ``True``, if features are present, ``False`` otherwise.
         """
         if featurizers is None:
+
             featurizers = []
 
         (
             sequence_sparse_features,
             sentence_sparse_features,
         ) = self._filter_sparse_features(attribute, featurizers)
+
         sequence_dense_features, sentence_dense_features = self._filter_dense_features(
             attribute, featurizers
         )
@@ -370,6 +420,7 @@ class Message:
     def _filter_dense_features(
         self, attribute: Text, featurizers: List[Text]
     ) -> Tuple[List["Features"], List["Features"]]:
+
         sentence_features = [
             f
             for f in self.features
@@ -378,6 +429,7 @@ class Message:
             and f.type == FEATURE_TYPE_SENTENCE
             and (f.origin in featurizers or not featurizers)
         ]
+
         sequence_features = [
             f
             for f in self.features
@@ -386,11 +438,13 @@ class Message:
             and f.type == FEATURE_TYPE_SEQUENCE
             and (f.origin in featurizers or not featurizers)
         ]
+
         return sequence_features, sentence_features
 
     def _filter_sparse_features(
         self, attribute: Text, featurizers: List[Text]
     ) -> Tuple[List["Features"], List["Features"]]:
+
         sentence_features = [
             f
             for f in self.features
@@ -399,6 +453,7 @@ class Message:
             and f.type == FEATURE_TYPE_SENTENCE
             and (f.origin in featurizers or not featurizers)
         ]
+
         sequence_features = [
             f
             for f in self.features
@@ -414,9 +469,11 @@ class Message:
     def _combine_features(
         features: List["Features"], featurizers: List[Text]
     ) -> Optional["Features"]:
+
         combined_features = None
 
         for f in features:
+
             if combined_features is None:
                 combined_features = copy.deepcopy(f)
                 combined_features.origin = featurizers
@@ -426,7 +483,8 @@ class Message:
         return combined_features
 
     def is_core_or_domain_message(self) -> bool:
-        """Checks whether the message is a core message or from the domain.
+        """
+        Checks whether the message is a core message or from the domain.
 
         E.g. a core message is created from a story or a domain action,
         not from the NLU data.
@@ -448,32 +506,41 @@ class Message:
         )
 
     def is_e2e_message(self) -> bool:
-        """Checks whether the message came from an e2e story.
+        """
+        Checks whether the message came from an e2e story.
 
         Returns:
             `True`, if message is a from an e2e story, `False` otherwise.
         """
         return bool(
-            (self.get(ACTION_TEXT) and not self.get(ACTION_NAME))
-            or (self.get(TEXT) and not self.get(INTENT))
+            (self.get(ACTION_TEXT) and not self.get(ACTION_NAME)) or (self.get(TEXT) and not self.get(INTENT))
         )
 
     def find_overlapping_entities(
         self,
     ) -> List[Tuple[Dict[Text, Any], Dict[Text, Any]]]:
-        """Finds any overlapping entity annotations."""
+        """
+        Finds any overlapping entity annotations.
+        """
         entities = self.get(ENTITIES, [])[:]
+
         entities_with_location = [
             e
             for e in entities
             if (ENTITY_ATTRIBUTE_START in e.keys() and ENTITY_ATTRIBUTE_END in e.keys())
         ]
+
         entities_with_location.sort(key=lambda e: e[ENTITY_ATTRIBUTE_START])
+
         overlapping_pairs: List[Tuple[Dict[Text, Any], Dict[Text, Any]]] = []
+
         for i, entity in enumerate(entities_with_location):
+
             for other_entity in entities_with_location[i + 1 :]:
+
                 if other_entity[ENTITY_ATTRIBUTE_START] < entity[ENTITY_ATTRIBUTE_END]:
                     overlapping_pairs.append((entity, other_entity))
                 else:
                     break
+
         return overlapping_pairs

@@ -17,7 +17,7 @@ from rasa.shared.core.training_data.story_reader.yaml_story_reader import (
 logger = logging.getLogger(__name__)
 
 
-class RasaFileImporter(TrainingDataImporter):
+class RasaFileImporter(TrainingDataImporter): # 默认的IMPORTER
     """
     Default `TrainingFileImporter` implementation.
     """
@@ -29,12 +29,12 @@ class RasaFileImporter(TrainingDataImporter):
         training_data_paths: Optional[Union[List[Text], Text]] = None, # NLU训练数据文件：data
     ):
 
-        self._domain_path = domain_path
+        self._domain_path = domain_path # ./domain.yml
 
-        self._nlu_files = rasa.shared.data.get_data_files( # ['./data\\nlu.yml']
+        self._nlu_files = rasa.shared.data.get_data_files( # NLU有关的文件过滤：['./data\\nlu.yml']
             training_data_paths, rasa.shared.data.is_nlu_file
         )
-        self._story_files = rasa.shared.data.get_data_files( # ['./data\\rules.yml', './data\\stories.yml']
+        self._story_files = rasa.shared.data.get_data_files( # STORY有关的文件过滤：['./data\\rules.yml', './data\\stories.yml']
             training_data_paths, YAMLStoryReader.is_stories_file
         )
         self._conversation_test_files = rasa.shared.data.get_data_files( # []
@@ -68,7 +68,7 @@ class RasaFileImporter(TrainingDataImporter):
         """
         Retrieves training stories / rules (see parent class for full docstring).
         """
-        return utils.story_graph_from_paths(
+        return utils.story_graph_from_paths( # 最底层实现
             self._story_files, self.get_domain(), exclusion_percentage
         )
 

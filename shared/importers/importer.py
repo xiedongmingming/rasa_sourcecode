@@ -214,16 +214,24 @@ class TrainingDataImporter(ABC): # 抽象类--用于加载训练数据
         module_path = importer_config.pop("name", None)
 
         if module_path == RasaFileImporter.__name__:
+
             importer_class: Type[TrainingDataImporter] = RasaFileImporter
+
         elif module_path == MultiProjectImporter.__name__:
+
             importer_class = MultiProjectImporter
+
         else:
+
             try:
                 importer_class = rasa.shared.utils.common.class_from_module_path(
                     module_path
                 )
+
             except (AttributeError, ImportError):
+
                 logging.warning(f"Importer '{module_path}' not found.")
+
                 return None
 
         constructor_arguments = rasa.shared.utils.common.minimal_kwargs(
@@ -543,7 +551,7 @@ class ResponsesSyncImporter(TrainingDataImporter):
         return TrainingData(responses=responses)
 
 
-class E2EImporter(TrainingDataImporter):
+class E2EImporter(TrainingDataImporter): # 最外层
     """
     Importer with the following functionality.
 

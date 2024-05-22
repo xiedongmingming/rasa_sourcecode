@@ -30,10 +30,14 @@ CODE_FORCED_TRAINING = 0b1000
 
 
 class TrainingResult(NamedTuple):
-    """Holds information about the results of training."""
+    """
+    Holds information about the results of training.
+    """
 
-    model: Optional[Text] = None
+    model: Optional[Text] = None # models\20240522-123009-medium-cream.tar.gz
+
     code: int = 0
+
     dry_run_results: Optional[Dict[Text, Union[FingerprintStatus, Any]]] = None
 
 
@@ -41,7 +45,8 @@ def _dry_run_result(
     fingerprint_results: Dict[Text, Union[FingerprintStatus, Any]],
     force_full_training: bool,
 ) -> TrainingResult:
-    """Returns a dry run result.
+    """
+    Returns a dry run result.
 
     Args:
         fingerprint_results: A result of fingerprint run..
@@ -52,7 +57,9 @@ def _dry_run_result(
         Result containing the return code and the fingerprint results.
     """
     if force_full_training:
+
         rasa.shared.utils.cli.print_warning("The training was forced.")
+
         return TrainingResult(
             code=CODE_FORCED_TRAINING, dry_run_results=fingerprint_results
         )
@@ -63,7 +70,9 @@ def _dry_run_result(
     )
 
     if training_required:
+
         rasa.shared.utils.cli.print_warning("The model needs to be retrained.")
+
         return TrainingResult(
             code=CODE_NEEDS_TO_BE_RETRAINED, dry_run_results=fingerprint_results
         )
@@ -72,6 +81,7 @@ def _dry_run_result(
         "No training of components required "
         "(the responses might still need updating!)."
     )
+
     return TrainingResult(dry_run_results=fingerprint_results)
 
 
@@ -89,7 +99,8 @@ def train(
     model_to_finetune: Optional[Text] = None,
     finetuning_epoch_fraction: float = 1.0,
 ) -> TrainingResult:
-    """Trains a Rasa model (Core and NLU).
+    """
+    Trains a Rasa model (Core and NLU).
 
     Args:
         domain: Path to the domain file.
@@ -113,7 +124,7 @@ def train(
     Returns:
         An instance of `TrainingResult`.
     """
-    file_importer = TrainingDataImporter.load_from_config(
+    file_importer = TrainingDataImporter.load_from_config( # E2EImporter
         config, domain, training_files
     )
 

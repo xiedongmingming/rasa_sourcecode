@@ -78,7 +78,8 @@ def train(
     model_to_finetune: "Optional[Text]" = None,
     finetuning_epoch_fraction: float = 1.0, # ？？？
 ) -> "TrainingResult":
-    """Runs Rasa Core and NLU training in `async` loop.
+    """
+    Runs Rasa Core and NLU training in `async` loop.
 
     Args:
         domain: Path to the domain file.

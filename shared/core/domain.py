@@ -173,32 +173,47 @@ class Domain:
 
     @classmethod
     def load(cls, paths: Union[List[Union[Path, Text]], Text, Path]) -> "Domain":
-        """Returns loaded Domain after merging all domain files."""
+        """
+        Returns loaded Domain after merging all domain files.
+        """
         if not paths:
+
             raise InvalidDomain(
                 "No domain file was specified. Please specify a path "
                 "to a valid domain file."
             )
+
         elif not isinstance(paths, list) and not isinstance(paths, set):
+
             paths = [paths]
 
         domain = Domain.empty()
+
         for path in paths:
+
             other = cls.from_path(path)
+
             domain = domain.merge(other)
 
         return domain
 
     @classmethod
     def from_path(cls, path: Union[Text, Path]) -> "Domain":
-        """Loads the `Domain` from a path."""
+        """
+        Loads the `Domain` from a path.
+        """
         path = os.path.abspath(path)
 
         if os.path.isfile(path):
+
             domain = cls.from_file(path)
+
         elif os.path.isdir(path):
+
             domain = cls.from_directory(path)
+
         else:
+
             raise InvalidDomain(
                 "Failed to load domain specification from '{}'. "
                 "File not found!".format(os.path.abspath(path))
@@ -208,28 +223,40 @@ class Domain:
 
     @classmethod
     def from_file(cls, path: Text) -> "Domain":
-        """Loads the `Domain` from a YAML file."""
+        """
+        Loads the `Domain` from a YAML file.
+        """
         return cls.from_yaml(rasa.shared.utils.io.read_file(path), path)
 
     @classmethod
     def from_yaml(cls, yaml: Text, original_filename: Text = "") -> "Domain":
-        """Loads the `Domain` from YAML text after validating it."""
+        """
+        Loads the `Domain` from YAML text after validating it.
+        """
         try:
+
             rasa.shared.utils.validation.validate_yaml_schema(yaml, DOMAIN_SCHEMA_FILE)
 
             data = rasa.shared.utils.io.read_yaml(yaml)
+
             if not rasa.shared.utils.validation.validate_training_data_format_version(
                 data, original_filename
             ):
+
                 return Domain.empty()
+
             return cls.from_dict(data)
+
         except YamlException as e:
+
             e.filename = original_filename
+
             raise e
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Domain":
-        """Deserializes and creates domain.
+        """
+        Deserializes and creates domain.
 
         Args:
             data: The serialized domain.
@@ -238,16 +265,23 @@ class Domain:
             The instantiated `Domain` object.
         """
         duplicates = data.pop("duplicates", None)
+
         if duplicates:
+            #
             warn_about_duplicates_found_during_domain_merging(duplicates)
 
         responses = data.get(KEY_RESPONSES, {})
 
         domain_slots = data.get(KEY_SLOTS, {})
+
         if domain_slots:
+            #
             rasa.shared.core.slot_mappings.validate_slot_mappings(domain_slots)
+
         slots = cls.collect_slots(domain_slots)
+
         domain_actions = data.get(KEY_ACTIONS, [])
+
         actions = cls._collect_action_names(domain_actions)
 
         additional_arguments = {
@@ -256,10 +290,13 @@ class Domain:
                 domain_actions
             ),
         }
+
         session_config = cls._get_session_config(data.get(SESSION_CONFIG_KEY, {}))
+
         intents = data.get(KEY_INTENTS, {})
 
         forms = data.get(KEY_FORMS, {})
+
         _validate_forms(forms)
 
         return cls(
@@ -277,9 +314,11 @@ class Domain:
 
     @staticmethod
     def _get_session_config(session_config: Dict) -> SessionConfig:
+
         session_expiration_time_min = session_config.get(SESSION_EXPIRATION_TIME_KEY)
 
         if session_expiration_time_min is None:
+
             session_expiration_time_min = DEFAULT_SESSION_EXPIRATION_TIME_IN_MINUTES
 
         carry_over_slots = session_config.get(
@@ -290,19 +329,29 @@ class Domain:
 
     @classmethod
     def from_directory(cls, path: Text) -> "Domain":
-        """Loads and merges multiple domain files recursively from a directory tree."""
+        """
+        Loads and merges multiple domain files recursively from a directory tree.
+        """
         combined: Dict[Text, Any] = {}
+
         for root, _, files in os.walk(path, followlinks=True):
+
             for file in files:
+
                 full_path = os.path.join(root, file)
+
                 if Domain.is_domain_file(full_path):
+
                     _ = Domain.from_file(full_path)  # does the validation here only
+
                     other_dict = rasa.shared.utils.io.read_yaml(
                         rasa.shared.utils.io.read_file(full_path)
                     )
+
                     combined = Domain.merge_domain_dicts(other_dict, combined)
 
         domain = Domain.from_dict(combined)
+
         return domain
 
     def merge(
@@ -310,7 +359,8 @@ class Domain:
         domain: Optional["Domain"],
         override: bool = False,
     ) -> "Domain":
-        """Merges this domain dict with another one, combining their attributes.
+        """
+        Merges this domain dict with another one, combining their attributes.
 
         This method merges domain dicts, and ensures all attributes (like ``intents``,
         ``entities``, and ``actions``) are known to the Domain when the
@@ -321,9 +371,11 @@ class Domain:
         override is `True`, in which case they are taken from `domain2`.
         """
         if not domain or domain.is_empty():
+
             return self
 
         if self.is_empty():
+
             return domain
 
         merged_dict = self.__class__.merge_domain_dicts(
@@ -338,16 +390,23 @@ class Domain:
         combined: Dict,
         override: bool = False,
     ) -> Dict:
-        """Combines two domain dictionaries."""
+        """
+        Combines two domain dictionaries.
+        """
         if not domain_dict:
+
             return combined
 
         if not combined:
+
             return domain_dict
 
         if override:
+
             config = domain_dict.get("config", {})
+
             for key, val in config.items():
+                #
                 combined["config"][key] = val
 
         if (
@@ -358,11 +417,14 @@ class Domain:
             None,
             SessionConfig.default().as_dict(),
         ]:
+
             combined[SESSION_CONFIG_KEY] = domain_dict[SESSION_CONFIG_KEY]
 
         # remove existing forms from new actions
         for form in combined.get(KEY_FORMS, []):
+
             if form in domain_dict.get(KEY_ACTIONS, []):
+
                 domain_dict[KEY_ACTIONS].remove(form)
 
         duplicates: Dict[Text, List[Text]] = {}
@@ -378,6 +440,7 @@ class Domain:
         }
 
         for key, merge_func in merge_func_mappings.items():
+
             duplicates[key] = rasa.shared.utils.common.extract_duplicates(
                 combined.get(key, []), domain_dict.get(key, [])
             )
@@ -391,7 +454,9 @@ class Domain:
             )
 
         if duplicates:
+
             duplicates = rasa.shared.utils.common.clean_duplicates(duplicates)
+
             combined.update({"duplicates": duplicates})
 
         return combined
@@ -402,11 +467,13 @@ class Domain:
         store_entities_as_slots: bool,
         session_config: SessionConfig,
     ) -> Dict:
+
         data = self._add_default_keys_to_domain_dict(
             data,
             store_entities_as_slots,
             session_config,
         )
+
         data = self._sanitize_intents_in_domain_dict(data)
 
         return data
@@ -420,11 +487,13 @@ class Domain:
         # add the config, session_config and training data version defaults
         # if not included in the original domain dict
         if "config" not in data and not store_entities_as_slots:
+
             data.update(
                 {"config": {"store_entities_as_slots": store_entities_as_slots}}
             )
 
         if SESSION_CONFIG_KEY not in data:
+
             data.update(
                 {
                     SESSION_CONFIG_KEY: {
@@ -437,6 +506,7 @@ class Domain:
             )
 
         if KEY_TRAINING_DATA_FORMAT_VERSION not in data:
+
             data.update(
                 {
                     KEY_TRAINING_DATA_FORMAT_VERSION: DoubleQuotedScalarString(
@@ -449,25 +519,34 @@ class Domain:
 
     @staticmethod
     def _reset_intent_flags(intent: Dict[Text, Any]) -> None:
+
         for intent_property in intent.values():
+
             if (
                 USE_ENTITIES_KEY in intent_property.keys()
                 and not intent_property[USE_ENTITIES_KEY]
             ):
+
                 intent_property[USE_ENTITIES_KEY] = []
+
             if (
                 IGNORE_ENTITIES_KEY in intent_property.keys()
                 and not intent_property[IGNORE_ENTITIES_KEY]
             ):
+
                 intent_property[IGNORE_ENTITIES_KEY] = []
 
     @staticmethod
     def _sanitize_intents_in_domain_dict(data: Dict[Text, Any]) -> Dict[Text, Any]:
+
         if not data.get(KEY_INTENTS):
+
             return data
 
         for intent in data.get(KEY_INTENTS, []):
+
             if isinstance(intent, dict):
+
                 Domain._reset_intent_flags(intent)
 
         data[KEY_INTENTS] = Domain._sort_intent_names_alphabetical_order(
@@ -478,24 +557,31 @@ class Domain:
 
     @staticmethod
     def collect_slots(slot_dict: Dict[Text, Any]) -> List[Slot]:
-        """Collects a list of slots from a dictionary."""
+        """
+        Collects a list of slots from a dictionary.
+        """
         slots = []
+
         # make a copy to not alter the input dictionary
         slot_dict = copy.deepcopy(slot_dict)
+
         # Don't sort the slots, see https://github.com/RasaHQ/rasa-x/issues/3900
         for slot_name in slot_dict:
             slot_type = slot_dict[slot_name].pop("type", None)
             slot_class = Slot.resolve_by_type(slot_type)
 
             slot = slot_class(slot_name, **slot_dict[slot_name])
+
             slots.append(slot)
+
         return slots
 
     @staticmethod
     def _transform_intent_properties_for_internal_use(
         intent: Dict[Text, Any], entity_properties: EntityProperties
     ) -> Dict[Text, Any]:
-        """Transforms the intent's parameters in a format suitable for internal use.
+        """
+        Transforms the intent's parameters in a format suitable for internal use.
 
         When an intent is retrieved from the `domain.yml` file, it contains two
         parameters, the `use_entities` and the `ignore_entities` parameter.
@@ -518,8 +604,11 @@ class Domain:
         name, properties = list(intent.items())[0]
 
         if properties:
+
             properties.setdefault(USE_ENTITIES_KEY, True)
+
         else:
+
             raise InvalidDomain(
                 f"In the `domain.yml` file, the intent '{name}' cannot have value of"
                 f" `{type(properties)}`. If you have placed a ':' character after the"
@@ -534,7 +623,9 @@ class Domain:
         properties.setdefault(
             IGNORE_ENTITIES_KEY, entity_properties.default_ignored_entities
         )
+
         if not properties[USE_ENTITIES_KEY]:  # this covers False, None and []
+
             properties[USE_ENTITIES_KEY] = []
 
         # `use_entities` is either a list of explicitly included entities
@@ -543,40 +634,54 @@ class Domain:
         # label with the corresponding role or group label to make sure roles and
         # groups can also influence the dialogue predictions
         if properties[USE_ENTITIES_KEY] is True:
+
             included_entities = set(entity_properties.entities) - set(
                 entity_properties.default_ignored_entities
             )
+
             included_entities.update(
                 Domain.concatenate_entity_labels(entity_properties.roles)
             )
+
             included_entities.update(
                 Domain.concatenate_entity_labels(entity_properties.groups)
             )
+
         else:
+
             included_entities = set(properties[USE_ENTITIES_KEY])
+
             for entity in list(included_entities):
+
                 included_entities.update(
                     Domain.concatenate_entity_labels(entity_properties.roles, entity)
                 )
+
                 included_entities.update(
                     Domain.concatenate_entity_labels(entity_properties.groups, entity)
                 )
+
         excluded_entities = set(properties[IGNORE_ENTITIES_KEY])
+
         for entity in list(excluded_entities):
+
             excluded_entities.update(
                 Domain.concatenate_entity_labels(entity_properties.roles, entity)
             )
             excluded_entities.update(
                 Domain.concatenate_entity_labels(entity_properties.groups, entity)
             )
+
         used_entities = list(included_entities - excluded_entities)
         used_entities.sort()
 
-        # Only print warning for ambiguous configurations if entities were included
-        # explicitly.
+        # Only print warning for ambiguous configurations if entities were included explicitly.
         explicitly_included = isinstance(properties[USE_ENTITIES_KEY], list)
+
         ambiguous_entities = included_entities.intersection(excluded_entities)
+
         if explicitly_included and ambiguous_entities:
+
             rasa.shared.utils.io.raise_warning(
                 f"Entities: '{ambiguous_entities}' are explicitly included and"
                 f" excluded for intent '{name}'."
@@ -586,6 +691,7 @@ class Domain:
             )
 
         properties[USED_ENTITIES_KEY] = used_entities
+
         del properties[USE_ENTITIES_KEY]
         del properties[IGNORE_ENTITIES_KEY]
 
@@ -593,7 +699,9 @@ class Domain:
 
     @rasa.shared.utils.common.lazy_property
     def retrieval_intents(self) -> List[Text]:
-        """List retrieval intents present in the domain."""
+        """
+        List retrieval intents present in the domain.
+        """
         return [
             intent
             for intent in self.intent_properties
@@ -604,7 +712,8 @@ class Domain:
     def collect_entity_properties(
         cls, domain_entities: List[Union[Text, Dict[Text, Any]]]
     ) -> EntityProperties:
-        """Get entity properties for a domain from what is provided by a domain file.
+        """
+        Get entity properties for a domain from what is provided by a domain file.
 
         Args:
             domain_entities: The entities as provided by a domain file.
@@ -613,27 +722,42 @@ class Domain:
             An instance of EntityProperties.
         """
         entity_properties = EntityProperties([], {}, {}, [])
+
         for entity in domain_entities:
+
             if isinstance(entity, str):
+
                 entity_properties.entities.append(entity)
+
             elif isinstance(entity, dict):
+
                 for _entity, sub_labels in entity.items():
+
                     entity_properties.entities.append(_entity)
+
                     if sub_labels:
+
                         if ENTITY_ROLES_KEY in sub_labels:
+
                             entity_properties.roles[_entity] = sub_labels[
                                 ENTITY_ROLES_KEY
                             ]
+
                         if ENTITY_GROUPS_KEY in sub_labels:
+
                             entity_properties.groups[_entity] = sub_labels[
                                 ENTITY_GROUPS_KEY
                             ]
+
                         if (
                             ENTITY_FEATURIZATION_KEY in sub_labels
                             and sub_labels[ENTITY_FEATURIZATION_KEY] is False
                         ):
+
                             entity_properties.default_ignored_entities.append(_entity)
+
                     else:
+
                         raise InvalidDomain(
                             f"In the `domain.yml` file, the entity '{_entity}' cannot"
                             f" have value of `{type(sub_labels)}`. If you have placed a"
@@ -646,7 +770,9 @@ class Domain:
                             f" for examples on when to use the ':' character after an"
                             f" entity's name."
                         )
+
             else:
+
                 raise InvalidDomain(
                     f"Invalid domain. Entity is invalid, type of entity '{entity}' "
                     f"not supported: '{type(entity).__name__}'"
@@ -660,7 +786,8 @@ class Domain:
         intents: List[Union[Text, Dict[Text, Any]]],
         entity_properties: EntityProperties,
     ) -> Dict[Text, Dict[Text, Union[bool, List]]]:
-        """Get intent properties for a domain from what is provided by a domain file.
+        """
+        Get intent properties for a domain from what is provided by a domain file.
 
         Args:
             intents: The intents as provided by a domain file.
@@ -671,18 +798,23 @@ class Domain:
         """
         # make a copy to not alter the input argument
         intents = copy.deepcopy(intents)
+
         intent_properties: Dict[Text, Any] = {}
+
         duplicates = set()
 
         for intent in intents:
+
             intent_name, properties = cls._intent_properties(intent, entity_properties)
 
             if intent_name in intent_properties.keys():
+
                 duplicates.add(intent_name)
 
             intent_properties.update(properties)
 
         if duplicates:
+
             raise InvalidDomain(
                 f"Intents are not unique! Found multiple intents "
                 f"with name(s) {sorted(duplicates)}. "
@@ -697,15 +829,20 @@ class Domain:
     def _intent_properties(
         cls, intent: Union[Text, Dict[Text, Any]], entity_properties: EntityProperties
     ) -> Tuple[Text, Dict[Text, Any]]:
+
         if not isinstance(intent, dict):
+
             intent_name = intent
+
             intent = {
                 intent_name: {
                     USE_ENTITIES_KEY: True,
                     IGNORE_ENTITIES_KEY: entity_properties.default_ignored_entities,
                 }
             }
+
         else:
+
             intent_name = list(intent.keys())[0]
 
         return (
@@ -721,9 +858,13 @@ class Domain:
         intent_properties: Dict[Text, Dict[Text, Union[bool, List]]],
         entity_properties: EntityProperties,
     ) -> None:
+
         for intent_name in rasa.shared.core.constants.DEFAULT_INTENTS:
+
             if intent_name not in intent_properties:
+
                 _, properties = cls._intent_properties(intent_name, entity_properties)
+
                 intent_properties.update(properties)
 
     def __init__(
@@ -740,7 +881,8 @@ class Domain:
         session_config: SessionConfig = SessionConfig.default(),
         **kwargs: Any,
     ) -> None:
-        """Create a `Domain`.
+        """
+        Create a `Domain`.
 
         Args:
             intents: Intent labels.
@@ -775,6 +917,7 @@ class Domain:
         self.action_texts = action_texts if action_texts is not None else []
 
         data_copy = copy.deepcopy(data)
+
         self._data = self._preprocess_domain_dict(
             data_copy,
             store_entities_as_slots,
@@ -810,7 +953,8 @@ class Domain:
         self._check_domain_sanity()
 
     def __deepcopy__(self, memo: Optional[Dict[int, Any]]) -> "Domain":
-        """Enables making a deep copy of the `Domain` using `copy.deepcopy`.
+        """
+        Enables making a deep copy of the `Domain` using `copy.deepcopy`.
 
         See https://docs.python.org/3/library/copy.html#copy.deepcopy
         for more implementation.
@@ -823,14 +967,21 @@ class Domain:
             A deep copy of the current domain.
         """
         domain_dict = self.as_dict()
+
         return self.__class__.from_dict(copy.deepcopy(domain_dict, memo))
 
     def count_conditional_response_variations(self) -> int:
-        """Returns count of conditional response variations."""
+        """
+        Returns count of conditional response variations.
+        """
         count = 0
+
         for response_variations in self.responses.values():
+
             for variation in response_variations:
+
                 if RESPONSE_CONDITION in variation:
+
                     count += 1
 
         return count
@@ -839,7 +990,8 @@ class Domain:
     def _collect_overridden_default_intents(
         intents: Union[Set[Text], List[Text], List[Dict[Text, Any]]]
     ) -> List[Text]:
-        """Collects the default intents overridden by the user.
+        """
+        Collects the default intents overridden by the user.
 
         Args:
             intents: User-provided intents.
@@ -851,6 +1003,7 @@ class Domain:
             list(intent.keys())[0] if isinstance(intent, dict) else intent
             for intent in intents
         }
+
         return sorted(
             intent_names.intersection(set(rasa.shared.core.constants.DEFAULT_INTENTS))
         )
@@ -859,7 +1012,8 @@ class Domain:
     def _initialize_forms(
         forms: Dict[Text, Any]
     ) -> Tuple[List[Text], Dict[Text, Any], List[Text]]:
-        """Retrieves the initial values for the Domain's form fields.
+        """
+        Retrieves the initial values for the Domain's form fields.
 
         Args:
             forms: Parsed content of the `forms` section in the domain.
@@ -873,23 +1027,32 @@ class Domain:
             `FormAction` which is implemented in the Rasa SDK.
         """
         for form_name, form_data in forms.items():
+
             if form_data is not None and REQUIRED_SLOTS_KEY not in form_data:
+
                 forms[form_name] = {REQUIRED_SLOTS_KEY: form_data}
+
         return list(forms.keys()), forms, []
 
     def __hash__(self) -> int:
-        """Returns a unique hash for the domain."""
+        """
+        Returns a unique hash for the domain.
+        """
         return int(self.fingerprint(), 16)
 
     def fingerprint(self) -> Text:
-        """Returns a unique hash for the domain which is stable across python runs.
+        """
+        Returns a unique hash for the domain which is stable across python runs.
 
         Returns:
             fingerprint of the domain
         """
         self_as_dict = self.as_dict()
+
         transformed_intents: List[Text] = []
+
         for intent in self_as_dict.get(KEY_INTENTS, []):
+
             if isinstance(intent, dict):
                 transformed_intents.append(*intent.keys())
             elif isinstance(intent, str):
@@ -897,40 +1060,52 @@ class Domain:
 
         self_as_dict[KEY_INTENTS] = sorted(transformed_intents)
         self_as_dict[KEY_ACTIONS] = self.action_names_or_texts
+
         return rasa.shared.utils.io.get_dictionary_fingerprint(self_as_dict)
 
     @staticmethod
     def _sort_intent_names_alphabetical_order(
         intents: List[Union[Text, Dict]]
     ) -> List[Union[Text, Dict]]:
+
         def sort(elem: Union[Text, Dict]) -> Union[Text, Dict]:
+
             if isinstance(elem, dict):
                 return list(elem.keys())[0]
             elif isinstance(elem, str):
                 return elem
 
         sorted_intents = sorted(intents, key=sort)
+
         return sorted_intents
 
     @rasa.shared.utils.common.lazy_property
     def user_actions_and_forms(self) -> List[Text]:
-        """Returns combination of user actions and forms."""
+        """
+        Returns combination of user actions and forms.
+        """
         return self.user_actions + self.form_names
 
     @rasa.shared.utils.common.lazy_property
     def num_actions(self) -> int:
-        """Returns the number of available actions."""
+        """
+        Returns the number of available actions.
+        """
         # noinspection PyTypeChecker
         return len(self.action_names_or_texts)
 
     @rasa.shared.utils.common.lazy_property
     def num_states(self) -> int:
-        """Number of used input states for the action prediction."""
+        """
+        Number of used input states for the action prediction.
+        """
         return len(self.input_states)
 
     @rasa.shared.utils.common.lazy_property
     def retrieval_intent_responses(self) -> Dict[Text, List[Dict[Text, Any]]]:
-        """Return only the responses which are defined for retrieval intents."""
+        """
+        Return only the responses which are defined for retrieval intents.
+        """
         return dict(
             filter(
                 lambda intent_response: self.is_retrieval_intent_response(
@@ -944,7 +1119,8 @@ class Domain:
     def is_retrieval_intent_response(
         response: Tuple[Text, List[Dict[Text, Any]]]
     ) -> bool:
-        """Check if the response is for a retrieval intent.
+        """
+        heck if the response is for a retrieval intent.
 
         These responses have a `/` symbol in their name. Use that to filter them from
         the rest.
@@ -952,23 +1128,28 @@ class Domain:
         return RESPONSE_IDENTIFIER_DELIMITER in response[0]
 
     def _add_default_slots(self) -> None:
-        """Sets up the default slots and slot values for the domain."""
+        """
+        Sets up the default slots and slot values for the domain.
+        """
         self._add_requested_slot()
         self._add_knowledge_base_slots()
         self._add_categorical_slot_default_value()
         self._add_session_metadata_slot()
 
     def _add_categorical_slot_default_value(self) -> None:
-        """Add a default value to all categorical slots.
+        """
+        Add a default value to all categorical slots.
 
         All unseen values found for the slot will be mapped to this default value
         for featurization.
         """
         for slot in [s for s in self.slots if isinstance(s, CategoricalSlot)]:
+
             slot.add_default_value()
 
     def _add_requested_slot(self) -> None:
-        """Add a slot called `requested_slot` to the list of slots.
+        """
+        Add a slot called `requested_slot` to the list of slots.
 
         The value of this slot will hold the name of the slot which the user
         needs to fill in next (either explicitly or implicitly) as part of a form.
@@ -976,6 +1157,7 @@ class Domain:
         if self.form_names and rasa.shared.core.constants.REQUESTED_SLOT not in [
             slot.name for slot in self.slots
         ]:
+
             self.slots.append(
                 TextSlot(
                     rasa.shared.core.constants.REQUESTED_SLOT,
@@ -985,7 +1167,8 @@ class Domain:
             )
 
     def _add_knowledge_base_slots(self) -> None:
-        """Add slots for the knowledge base action to slots.
+        """
+        Add slots for the knowledge base action to slots.
 
         Slots are only added if the default knowledge base action name is present.
 
@@ -997,37 +1180,47 @@ class Domain:
             rasa.shared.core.constants.DEFAULT_KNOWLEDGE_BASE_ACTION
             in self.action_names_or_texts
         ):
+
             logger.warning(
                 "You are using an experimental feature: Action '{}'!".format(
                     rasa.shared.core.constants.DEFAULT_KNOWLEDGE_BASE_ACTION
                 )
             )
+
             slot_names = [slot.name for slot in self.slots]
+
             knowledge_base_slots = [
                 rasa.shared.core.constants.SLOT_LISTED_ITEMS,
                 rasa.shared.core.constants.SLOT_LAST_OBJECT,
                 rasa.shared.core.constants.SLOT_LAST_OBJECT_TYPE,
             ]
+
             for slot in knowledge_base_slots:
+
                 if slot not in slot_names:
+
                     self.slots.append(
                         TextSlot(slot, mappings=[], influence_conversation=False)
                     )
 
     def _add_session_metadata_slot(self) -> None:
+
         self.slots.append(
             AnySlot(rasa.shared.core.constants.SESSION_START_METADATA_SLOT, mappings=[])
         )
 
     def index_for_action(self, action_name: Text) -> int:
-        """Looks up which action index corresponds to this action name."""
+        """
+        Looks up which action index corresponds to this action name.
+        """
         try:
             return self.action_names_or_texts.index(action_name)
         except ValueError:
             self.raise_action_not_found_exception(action_name)
 
     def raise_action_not_found_exception(self, action_name_or_text: Text) -> NoReturn:
-        """Raises exception if action name or text not part of the domain or stories.
+        """
+        Raises exception if action name or text not part of the domain or stories.
 
         Args:
             action_name_or_text: Name of an action or its text in case it's an
@@ -1038,6 +1231,7 @@ class Domain:
                 domain.
         """
         action_names = "\n".join([f"\t - {a}" for a in self.action_names_or_texts])
+
         raise ActionNotFoundException(
             f"Cannot access action '{action_name_or_text}', "
             f"as that name is not a registered "
@@ -1048,7 +1242,9 @@ class Domain:
     # noinspection PyTypeChecker
     @rasa.shared.utils.common.lazy_property
     def slot_states(self) -> List[Text]:
-        """Returns all available slot state strings."""
+        """
+        Returns all available slot state strings.
+        """
 
         return [
             f"{slot.name}_{feature_index}"
@@ -1059,11 +1255,15 @@ class Domain:
     # noinspection PyTypeChecker
     @rasa.shared.utils.common.lazy_property
     def entity_states(self) -> List[Text]:
-        """Returns all available entity state strings."""
+        """
+        Returns all available entity state strings.
+        """
         entity_states = copy.deepcopy(self.entities)
+
         entity_states.extend(
             Domain.concatenate_entity_labels(self.entity_properties.roles)
         )
+
         entity_states.extend(
             Domain.concatenate_entity_labels(self.entity_properties.groups)
         )
@@ -1074,7 +1274,8 @@ class Domain:
     def concatenate_entity_labels(
         entity_labels: Dict[Text, List[Text]], entity: Optional[Text] = None
     ) -> List[Text]:
-        """Concatenates the given entity labels with their corresponding sub-labels.
+        """
+        Concatenates the given entity labels with their corresponding sub-labels.
 
         If a specific entity label is given, only this entity label will be
         concatenated with its corresponding sub-labels.
@@ -1087,9 +1288,11 @@ class Domain:
             A list of labels.
         """
         if entity is not None and entity not in entity_labels:
+
             return []
 
         if entity:
+
             return [
                 f"{entity}"
                 f"{rasa.shared.core.constants.ENTITY_LABEL_SEPARATOR}"
@@ -1107,12 +1310,16 @@ class Domain:
 
     @rasa.shared.utils.common.lazy_property
     def input_state_map(self) -> Dict[Text, int]:
-        """Provide a mapping from state names to indices."""
+        """
+        Provide a mapping from state names to indices.
+        """
         return {f: i for i, f in enumerate(self.input_states)}
 
     @rasa.shared.utils.common.lazy_property
     def input_states(self) -> List[Text]:
-        """Returns all available states."""
+        """
+        Returns all available states.
+        """
         return (
             self.intents
             + self.entity_states
@@ -1122,13 +1329,16 @@ class Domain:
         )
 
     def _get_featurized_entities(self, latest_message: UserUttered) -> Set[Text]:
-        """Gets the names of all entities that are present and wanted in the message.
+        """
+        Gets the names of all entities that are present and wanted in the message.
 
         Wherever an entity has a role or group specified as well, an additional role-
         or group-specific entity name is added.
         """
         intent_name = latest_message.intent.get(INTENT_NAME_KEY)
+
         intent_config = self.intent_config(intent_name)
+
         entities = latest_message.entities
 
         # If Entity Roles and Groups is used, we also need to make sure the roles and
@@ -1138,18 +1348,21 @@ class Domain:
         entity_names_basic = set(
             entity["entity"] for entity in entities if "entity" in entity.keys()
         )
+
         entity_names_roles = set(
             f"{entity['entity']}"
             f"{rasa.shared.core.constants.ENTITY_LABEL_SEPARATOR}{entity['role']}"
             for entity in entities
             if "entity" in entity.keys() and "role" in entity.keys()
         )
+
         entity_names_groups = set(
             f"{entity['entity']}"
             f"{rasa.shared.core.constants.ENTITY_LABEL_SEPARATOR}{entity['group']}"
             for entity in entities
             if "entity" in entity.keys() and "group" in entity.keys()
         )
+
         entity_names = entity_names_basic.union(entity_names_roles, entity_names_groups)
 
         # the USED_ENTITIES_KEY of an intent also contains the entity labels and the
@@ -1159,7 +1372,8 @@ class Domain:
         return entity_names.intersection(wanted_entities)
 
     def _get_user_sub_state(self, tracker: "DialogueStateTracker") -> SubState:
-        """Turns latest UserUttered event into a substate.
+        """
+        Turns latest UserUttered event into a substate.
 
         The substate will contain intent, text, and entities (if any are present).
 
@@ -1171,7 +1385,9 @@ class Domain:
         # proceed with values only if the user of a bot have done something
         # at the previous step i.e., when the state is not empty.
         latest_message = tracker.latest_message
+
         if not latest_message or latest_message.is_empty():
+
             return {}
 
         sub_state = cast(SubState, latest_message.as_sub_state())
@@ -1200,7 +1416,8 @@ class Domain:
     def _get_slots_sub_state(
         tracker: "DialogueStateTracker", omit_unset_slots: bool = False
     ) -> SubState:
-        """Sets all set slots with the featurization of the stored value.
+        """
+        Sets all set slots with the featurization of the stored value.
 
         Args:
             tracker: dialog state tracker containing the dialog so far
@@ -1210,6 +1427,7 @@ class Domain:
             a mapping of slot names to their featurization
         """
         slots: SubState = {}
+
         for slot_name, slot in tracker.slots.items():
             # If the slot doesn't influence conversations, slot.as_feature() will return
             # a result that evaluates to False, meaning that the slot shouldn't be
@@ -1217,6 +1435,7 @@ class Domain:
             # Note that this condition checks if the slot itself is None. An unset slot
             # will be a Slot object and its `value` attribute will be None.
             if slot is not None and slot.as_feature():
+
                 if omit_unset_slots and not slot.has_been_set:
                     continue
                 if slot.value == rasa.shared.core.constants.SHOULD_NOT_BE_SET:
@@ -1226,13 +1445,15 @@ class Domain:
                     # unset, i.e. is set to some actual value and has been successfully
                     # featurized, and hence has at least one non-zero feature.
                     slots[slot_name] = tuple(slot.as_feature())
+
         return slots
 
     @staticmethod
     def _get_prev_action_sub_state(
         tracker: "DialogueStateTracker",
     ) -> Optional[Dict[Text, Text]]:
-        """Turn the previous taken action into a state name.
+        """
+        Turn the previous taken action into a state name.
 
         Args:
             tracker: dialog state tracker containing the dialog so far
@@ -1245,15 +1466,15 @@ class Domain:
     def _get_active_loop_sub_state(
         tracker: "DialogueStateTracker",
     ) -> Dict[Text, Optional[Text]]:
-        """Turn tracker's active loop into a state name.
+        """
+        Turn tracker's active loop into a state name.
 
         Args:
             tracker: dialog state tracker containing the dialog so far
         Returns:
             a dictionary mapping "name" to active loop name if present
         """
-        # we don't use tracker.active_loop_name
-        # because we need to keep should_not_be_set
+        # we don't use tracker.active_loop_name because we need to keep should_not_be_set
         if tracker.active_loop:
             return {rasa.shared.core.constants.LOOP_NAME: tracker.active_loop.name}
         else:
@@ -1261,6 +1482,7 @@ class Domain:
 
     @staticmethod
     def _clean_state(state: State) -> State:
+
         return {
             state_type: sub_state
             for state_type, sub_state in state.items()
@@ -1270,7 +1492,8 @@ class Domain:
     def get_active_state(
         self, tracker: "DialogueStateTracker", omit_unset_slots: bool = False
     ) -> State:
-        """Given a dialogue tracker, makes a representation of current dialogue state.
+        """
+        Given a dialogue tracker, makes a representation of current dialogue state.
 
         Args:
             tracker: dialog state tracker containing the dialog so far
@@ -1291,12 +1514,14 @@ class Domain:
                 tracker
             ),
         }
+
         return self._clean_state(state)
 
     @staticmethod
     def _remove_rule_only_features(
         state: State, rule_only_data: Optional[Dict[Text, Any]]
     ) -> None:
+
         if not rule_only_data:
             return
 
@@ -1311,6 +1536,7 @@ class Domain:
         if rule_only_slots:
             for slot in rule_only_slots:
                 state.get(rasa.shared.core.constants.SLOTS, {}).pop(slot, None)
+
         # remove active loop which only occur in rules but not in stories
         if (
             rule_only_loops
@@ -1323,12 +1549,17 @@ class Domain:
 
     @staticmethod
     def _substitute_rule_only_user_input(state: State, last_ml_state: State) -> None:
+
         if not rasa.shared.core.trackers.is_prev_action_listen_in_state(state):
+
             if not last_ml_state.get(rasa.shared.core.constants.USER) and state.get(
                 rasa.shared.core.constants.USER
             ):
+
                 del state[rasa.shared.core.constants.USER]
+
             elif last_ml_state.get(rasa.shared.core.constants.USER):
+
                 state[rasa.shared.core.constants.USER] = last_ml_state[
                     rasa.shared.core.constants.USER
                 ]
@@ -1340,7 +1571,8 @@ class Domain:
         ignore_rule_only_turns: bool = False,
         rule_only_data: Optional[Dict[Text, Any]] = None,
     ) -> List[State]:
-        """List of states for each state of the trackers history.
+        """
+        List of states for each state of the trackers history.
 
         Args:
             tracker: Dialogue state tracker containing the dialogue so far.
@@ -1354,24 +1586,31 @@ class Domain:
             A list of states.
         """
         states: List[State] = []
+
         last_ml_action_sub_state = None
+
         turn_was_hidden = False
+
         for tr, hide_rule_turn in tracker.generate_all_prior_trackers():
+
             if ignore_rule_only_turns:
-                # remember previous ml action based on the last non hidden turn
-                # we need this to override previous action in the ml state
+                #
+                # remember previous ml action based on the last non hidden turn we need this to override previous action in the ml state
+                #
                 if not turn_was_hidden:
+                    #
                     last_ml_action_sub_state = self._get_prev_action_sub_state(tr)
 
-                # followup action or happy path loop prediction
-                # don't change the fact whether dialogue turn should be hidden
+                # followup action or happy path loop prediction don't change the fact whether dialogue turn should be hidden
                 if (
                     not tr.followup_action
                     and not tr.latest_action_name == tr.active_loop_name
                 ):
+
                     turn_was_hidden = hide_rule_turn
 
                 if turn_was_hidden:
+
                     continue
 
             state = self.get_active_state(tr, omit_unset_slots=omit_unset_slots)

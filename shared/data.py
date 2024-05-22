@@ -14,11 +14,13 @@ TRAINING_DATA_EXTENSIONS = set(JSON_FILE_EXTENSIONS + YAML_FILE_EXTENSIONS)
 
 
 def yaml_file_extension() -> Text:
-    """Return YAML file extension."""
+    """
+    Return YAML file extension.
+    """
     return YAML_FILE_EXTENSIONS[0]
 
 
-def is_likely_yaml_file(file_path: Union[Text, Path]) -> bool:
+def is_likely_yaml_file(file_path: Union[Text, Path]) -> bool: # 通过后缀
     """
     Check if a file likely contains yaml.
 
@@ -78,7 +80,7 @@ def get_nlu_directory(paths: Optional[Union[Text, List[Text]]]) -> Text:
 
 
 def get_data_files(
-    paths: Optional[Union[Text, List[Text]]], filter_predicate: Callable[[Text], bool]
+    paths: Optional[Union[Text, List[Text]]], filter_predicate: Callable[[Text], bool] # ./data'
 ) -> List[Text]:
     """
     Recursively collects all training files from a list of paths.
@@ -103,15 +105,15 @@ def get_data_files(
             #
             continue
 
-        if is_valid_filetype(path):
+        if is_valid_filetype(path): # 文件：JSON和YAML
             #
             if filter_predicate(path):
                 #
                 data_files.add(os.path.abspath(path))
 
-        else:
+        else: # 目录
 
-            new_data_files = _find_data_files_in_directory(path, filter_predicate)
+            new_data_files = _find_data_files_in_directory(path, filter_predicate) # set{'./data\\nlu.yml'}
 
             data_files.update(new_data_files)
 
@@ -119,20 +121,25 @@ def get_data_files(
 
 
 def _find_data_files_in_directory(
-    directory: Text, filter_property: Callable[[Text], bool]
+    directory: Text, filter_property: Callable[[Text], bool] # 遍历目录
 ) -> Set[Text]:
+
     filtered_files = set()
 
     for root, _, files in os.walk(directory, followlinks=True):
-        # we sort the files here to ensure consistent order for repeatable training
-        # results
+        #
+        # we sort the files here to ensure consistent order for repeatable training results
+        #
         for f in sorted(files):
+
             full_path = os.path.join(root, f)
 
             if not is_valid_filetype(full_path):
+                #
                 continue
 
             if filter_property(full_path):
+                #
                 filtered_files.add(full_path)
 
     return filtered_files
@@ -192,7 +199,9 @@ def _copy_files_to_new_dir(files: Iterable[Text]) -> Text:
 
 
 class TrainingType(Enum):
-    """Enum class for defining explicitly what training types exist."""
+    """
+    Enum class for defining explicitly what training types exist.
+    """
 
     NLU = 1
     CORE = 2
@@ -201,7 +210,9 @@ class TrainingType(Enum):
 
     @property
     def model_type(self) -> Text:
-        """Returns the type of model which this training yields."""
+        """
+        Returns the type of model which this training yields.
+        """
         if self == TrainingType.NLU:
             return "nlu"
         if self == TrainingType.CORE:

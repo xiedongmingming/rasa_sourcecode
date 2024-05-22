@@ -2,9 +2,11 @@ import json
 import logging
 import os
 import typing
+
 from typing import Optional, Text, Callable, Dict, Any, List
 
 import rasa.shared.utils.io
+
 from rasa.shared.nlu.training_data.formats.dialogflow import (
     DIALOGFLOW_AGENT,
     DIALOGFLOW_ENTITIES,
@@ -13,19 +15,23 @@ from rasa.shared.nlu.training_data.formats.dialogflow import (
     DIALOGFLOW_INTENT_EXAMPLES,
     DIALOGFLOW_PACKAGE,
 )
+
 from rasa.shared.nlu.training_data.training_data import TrainingData
 
 if typing.TYPE_CHECKING:
+    #
     from rasa.shared.nlu.training_data.formats.readerwriter import TrainingDataReader
 
 logger = logging.getLogger(__name__)
 
+############################################################################
 # Different supported file formats and their identifier
 WIT = "wit"
 LUIS = "luis"
 RASA = "rasa_nlu"
 RASA_YAML = "rasa_yml"
 UNK = "unk"
+
 DIALOGFLOW_RELEVANT = {DIALOGFLOW_ENTITIES, DIALOGFLOW_INTENT}
 
 _json_format_heuristics: Dict[Text, Callable[[Any, Text], bool]] = {
@@ -39,7 +45,7 @@ _json_format_heuristics: Dict[Text, Callable[[Any, Text], bool]] = {
     DIALOGFLOW_INTENT_EXAMPLES: lambda js, fn: "_usersays_" in fn,
     DIALOGFLOW_ENTITY_ENTRIES: lambda js, fn: "_entries_" in fn,
 }
-
+############################################################################
 
 def load_data(resource_name: Text, language: Optional[Text] = "en") -> "TrainingData":
     """Load training data from disk.
@@ -126,7 +132,7 @@ def guess_format(filename: Text) -> Text:
 
         content = rasa.shared.utils.io.read_file(filename)
 
-        js = json.loads(content)
+        js = json.loads(content) # 尝试JSON解析
 
     except ValueError:
 
@@ -134,7 +140,7 @@ def guess_format(filename: Text) -> Text:
 
             guess = RASA_YAML
 
-    else:
+    else: # 继续JSON格式的处理
 
         for file_format, format_heuristic in _json_format_heuristics.items():
 

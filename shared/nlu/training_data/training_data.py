@@ -554,7 +554,8 @@ class TrainingData:
     def split_nlu_examples(
         self, train_frac: float, random_seed: Optional[int] = None
     ) -> Tuple[list, list]:
-        """Split the training data into a train and test set.
+        """
+        Split the training data into a train and test set.
 
         Args:
             train_frac: percentage of examples to add to the training set.
@@ -574,11 +575,13 @@ class TrainingData:
         # rate: we must be able to include one example per class in both
         # test and train, so num_classes is the minimum size of either.
         smaller_split_frac = train_frac if train_frac < 0.5 else (1.0 - train_frac)
+
         num_classes = (
             len(self.number_of_examples_per_intent.items())
             - len(self.retrieval_intents)
             + len(self.number_of_examples_per_response)
         )
+
         num_examples = sum(self.number_of_examples_per_intent.values())
 
         if int(smaller_split_frac * num_examples) + 1 < num_classes:
@@ -603,6 +606,7 @@ class TrainingData:
         def _split_class(
             _examples: List[Message], _running_count: int, _running_train_count: int
         ) -> Tuple[int, int]:
+
             if random_seed is not None:
                 random.Random(random_seed).shuffle(_examples)
             else:
@@ -616,6 +620,7 @@ class TrainingData:
                 int((_running_count + len(_examples)) * train_frac)
                 - _running_train_count
             )
+
             approx_train_count = min(len(_examples) - 1, max(1, exact_train_count))
 
             train.extend(_examples[:approx_train_count])
@@ -642,34 +647,44 @@ class TrainingData:
                 for e in training_examples
                 if e.get(INTENT_RESPONSE_KEY) and e.get(INTENT_RESPONSE_KEY) == response
             ]
+
             running_count, running_train_count = _split_class(
                 examples, running_count, running_train_count
             )
+
             training_examples = training_examples - set(examples)
 
         # Again for intents:
         for intent, _ in sorted(
             self.number_of_examples_per_intent.items(), key=operator.itemgetter(1)
         ):
+
             examples = [
                 e
                 for e in training_examples
                 if INTENT in e.data and e.data[INTENT] == intent
             ]
+
             if len(examples) > 0:  # will be 0 for retrieval intents
+
                 running_count, running_train_count = _split_class(
                     examples, running_count, running_train_count
                 )
+
                 training_examples = training_examples - set(examples)
 
         return test, train
 
     def print_stats(self) -> None:
+
         number_of_examples_for_each_intent = []
+
         for intent_name, example_count in self.number_of_examples_per_intent.items():
+
             number_of_examples_for_each_intent.append(
                 f"intent: {intent_name}, training examples: {example_count}   "
             )
+
         newline = "\n"
 
         logger.info("Training data stats:")
@@ -678,20 +693,25 @@ class TrainingData:
             f"({len(self.intents)} distinct intents)"
             "\n"
         )
+
         # log the number of training examples per intent
 
         logger.debug(f"{newline.join(number_of_examples_for_each_intent)}")
 
         if self.intents:
+
             logger.info(f"  Found intents: {list_to_str(self.intents)}")
+
         logger.info(
             f"Number of response examples: {len(self.response_examples)} "
             f"({len(self.responses)} distinct responses)"
         )
+
         logger.info(
             f"Number of entity examples: {len(self.entity_examples)} "
             f"({len(self.entities)} distinct entities)"
         )
+
         if self.entities:
             logger.info(f"  Found entity types: {list_to_str(self.entities)}")
         if self.entity_roles:
@@ -700,32 +720,41 @@ class TrainingData:
             logger.info(f"  Found entity groups: {list_to_str(self.entity_groups)}")
 
     def is_empty(self) -> bool:
-        """Checks if any training data was loaded."""
+        """
+        Checks if any training data was loaded.
+        """
         lists_to_check = [
             self.training_examples,
             self.entity_synonyms,
             self.regex_features,
             self.lookup_tables,
         ]
+
         return not any([len(lst) > 0 for lst in lists_to_check])
 
     def contains_no_pure_nlu_data(self) -> bool:
-        """Checks if any NLU training data was loaded."""
+        """
+        Checks if any NLU training data was loaded.
+        """
         lists_to_check = [
             self.nlu_examples,
             self.entity_synonyms,
             self.regex_features,
             self.lookup_tables,
         ]
+
         return not any([len(lst) > 0 for lst in lists_to_check])
 
     def has_e2e_examples(self) -> bool:
-        """Checks if there are any training examples from e2e stories."""
+        """
+        Checks if there are any training examples from e2e stories.
+        """
         return any(message.is_e2e_message() for message in self.training_examples)
 
 
 def list_to_str(lst: List[Text], delim: Text = ", ", quote: Text = "'") -> Text:
-    """Converts list to a string.
+    """
+    Converts list to a string.
 
     Args:
         lst: The list to convert.

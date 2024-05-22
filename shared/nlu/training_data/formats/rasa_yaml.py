@@ -351,11 +351,11 @@ class RasaYAMLReader(TrainingDataReader):
             YamlException: if the file seems to be a YAML file (extension) but
                 can not be read / parsed.
         """
-        if not rasa.shared.data.is_likely_yaml_file(filename):
+        if not rasa.shared.data.is_likely_yaml_file(filename): # 通过后缀
             #
             return False
 
-        return rasa.shared.utils.io.is_key_in_yaml(filename, KEY_NLU, KEY_RESPONSES)
+        return rasa.shared.utils.io.is_key_in_yaml(filename, KEY_NLU, KEY_RESPONSES) # 通过KEY：nlu+response
 
 
 class RasaYAMLWriter(TrainingDataWriter):

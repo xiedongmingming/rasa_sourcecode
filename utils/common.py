@@ -113,7 +113,9 @@ def get_temp_dir_name() -> Text:
 
 
 def decode_bytes(name: Union[Text, bytes]) -> Text:
-    """Converts bytes object to string."""
+    """
+    Converts bytes object to string.
+    """
     if isinstance(name, bytes):
         name = name.decode("UTF-8")
 
@@ -121,7 +123,8 @@ def decode_bytes(name: Union[Text, bytes]) -> Text:
 
 
 def read_global_config(path: Text) -> Dict[Text, Any]:
-    """Read global Rasa configuration.
+    """
+    Read global Rasa configuration.
 
     Args:
         path: Path to the configuration
@@ -137,7 +140,8 @@ def read_global_config(path: Text) -> Dict[Text, Any]:
 
 
 def configure_logging_from_file(logging_config_file: Text) -> None:
-    """Parses YAML file content to configure logging.
+    """
+    Parses YAML file content to configure logging.
 
     Args:
         logging_config_file: YAML file containing logging configuration to handle
@@ -146,8 +150,11 @@ def configure_logging_from_file(logging_config_file: Text) -> None:
     logging_config_dict = rasa.shared.utils.io.read_yaml_file(logging_config_file)
 
     try:
+
         logging.config.dictConfig(logging_config_dict)
+
     except (ValueError, TypeError, AttributeError, ImportError) as e:
+
         logging.debug(
             f"The logging config file {logging_config_file} could not "
             f"be applied because it failed validation against "
@@ -163,7 +170,8 @@ def configure_logging_and_warnings(
     warn_only_once: bool = True,
     filter_repeated_logs: bool = True,
 ) -> None:
-    """Sets log levels of various loggers and sets up filters for warnings and logs.
+    """
+    Sets log levels of various loggers and sets up filters for warnings and logs.
 
     Args:
         log_level: The log level to be used for the 'Rasa' logger. Pass `None` to use
