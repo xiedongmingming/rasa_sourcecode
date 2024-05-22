@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 class GraphTrainer:
-    """Trains a model using a graph schema."""
+    """
+    Trains a model using a graph schema.
+    """
 
     def __init__(
         self,
@@ -28,7 +30,8 @@ class GraphTrainer:
         cache: TrainingCache,
         graph_runner_class: Type[GraphRunner],
     ) -> None:
-        """Initializes a `GraphTrainer`.
+        """
+        Initializes a `GraphTrainer`.
 
         Args:
             model_storage: Storage which graph components can use to persist and load.
@@ -48,7 +51,8 @@ class GraphTrainer:
         force_retraining: bool = False,
         is_finetuning: bool = False,
     ) -> ModelMetadata:
-        """Trains and packages a model and returns the prediction graph runner.
+        """
+        Trains and packages a model and returns the prediction graph runner.
 
         Args:
             model_configuration: The model configuration (schemas, language, etc.)
@@ -67,16 +71,21 @@ class GraphTrainer:
         domain = copy.deepcopy(importer.get_domain())
 
         if force_retraining:
+
             logger.debug(
                 "Skip fingerprint run as a full training of the model was enforced."
             )
+
             pruned_training_schema = model_configuration.train_schema
+
         else:
+
             fingerprint_run_outputs = self.fingerprint(
                 model_configuration.train_schema,
                 importer=importer,
                 is_finetuning=is_finetuning,
             )
+
             pruned_training_schema = self._prune_schema(
                 model_configuration.train_schema, fingerprint_run_outputs
             )
@@ -100,7 +109,7 @@ class GraphTrainer:
             hooks=hooks,
         )
 
-        logger.debug("Running the pruned train graph with real node execution.")
+        logger.debug("Running the pruned train graph with real node execution.") # 修剪
 
         graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})  # 执行训练：DaskGraphRunner
 
@@ -114,7 +123,8 @@ class GraphTrainer:
         importer: TrainingDataImporter,
         is_finetuning: bool = False,
     ) -> Dict[Text, Union[FingerprintStatus, Any]]:
-        """Runs the graph using fingerprints to determine which nodes need to re-run.
+        """
+        Runs the graph using fingerprints to determine which nodes need to re-run.
 
         Nodes which have a matching fingerprint key in the cache can either be removed
         entirely from the graph, or replaced with a cached value if their output is
@@ -139,10 +149,13 @@ class GraphTrainer:
         )
 
         logger.debug("Running the train graph in fingerprint mode.")
+
         return fingerprint_graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})
 
     def _create_fingerprint_schema(self, train_schema: GraphSchema) -> GraphSchema:
+
         fingerprint_schema = copy.deepcopy(train_schema)
+
         for node_name, schema_node in fingerprint_schema.nodes.items():
             # We make every node a target so that `graph_runner.run(...)` returns
             # the output for each node. We need the output of each node
@@ -153,7 +166,9 @@ class GraphTrainer:
             # any input data to the graph. This means we can prune according to what
             # has actually changed.
             if not schema_node.is_input:
+
                 FingerprintComponent.replace_schema_node(schema_node, self._cache)
+
         return fingerprint_schema
 
     def _prune_schema(
@@ -161,7 +176,8 @@ class GraphTrainer:
         schema: GraphSchema,
         fingerprint_run_outputs: Dict[Text, Union[FingerprintStatus, Any]],
     ) -> GraphSchema:
-        """Uses the fingerprint statuses to prune the graph schema.
+        """
+        Uses the fingerprint statuses to prune the graph schema.
 
         Walks the graph starting at each target node. If a node has a cache hit we
         replace it with a `PrecomputedValueProvider` and remove its input dependencies.
@@ -177,9 +193,11 @@ class GraphTrainer:
             The pruned schema.
         """
         pruned_schema = copy.deepcopy(schema)
+
         target_node_names = pruned_schema.target_names
 
         for target_node_name in target_node_names:
+
             self._walk_and_prune(
                 pruned_schema, target_node_name, fingerprint_run_outputs
             )
@@ -192,7 +210,8 @@ class GraphTrainer:
         current_node_name: Text,
         fingerprint_run_outputs: Dict[Text, Union[FingerprintStatus, Any]],
     ) -> None:
-        """Recursively walks backwards though a graph checking the status of each node.
+        """
+        Recursively walks backwards though a graph checking the status of each node.
 
         If node has a fingerprint key hit then we check if there is a cached output.
         If there is a cached output we will replace the node with a
@@ -208,6 +227,7 @@ class GraphTrainer:
                 from node name to status.
         """
         fingerprint_run_output = fingerprint_run_outputs[current_node_name]
+
         node = schema.nodes[current_node_name]
 
         # If we have replaced this node with a `PrecomputedValueProvider` we have
@@ -215,39 +235,51 @@ class GraphTrainer:
         # no parent nodes, so
         # we can end the walk here.
         if node.uses == PrecomputedValueProvider:
+
             return
 
         # If the output was a `FingerprintStatus` we must check the cache and status.
         if isinstance(fingerprint_run_output, FingerprintStatus):
+
             # If there is a fingerprint key hit we can potentially use a cached output.
             if fingerprint_run_output.is_hit:
+
                 output_result = self._cache.get_cached_result(
                     output_fingerprint_key=fingerprint_run_output.output_fingerprint,
                     node_name=current_node_name,
                     model_storage=self._model_storage,
                 )
+
                 if output_result:
+
                     logger.debug(
                         f"Updating '{current_node_name}' to use a "
                         f"'{PrecomputedValueProvider.__name__}'."
                     )
+
                     PrecomputedValueProvider.replace_schema_node(node, output_result)
-                    # We remove all parent dependencies as the cached output value will
-                    # be used.
+
+                    # We remove all parent dependencies as the cached output value will be used.
+
                     node.needs = {}
+
                 else:
-                    # If there is no cached output the node must be re-run if it ends
-                    # up as an ancestor of a target node.
+
+                    # If there is no cached output the node must be re-run if it ends up as an ancestor of a target node.
+
                     fingerprint_run_output.is_hit = False
 
         # Else the node was an input node and the output is the actual node's output.
         else:
+
             # As fingerprint_run_output is just the node's output there is no need to
             # execute the node again. We can just return it from a
             # `PrecomputedValueProvider`.
             PrecomputedValueProvider.replace_schema_node(node, fingerprint_run_output)
+
             node.needs = {}
 
         # Continue walking for every parent node.
         for parent_node_name in node.needs.values():
+
             self._walk_and_prune(schema, parent_node_name, fingerprint_run_outputs)

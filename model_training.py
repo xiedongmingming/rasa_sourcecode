@@ -96,7 +96,7 @@ def train(
     persist_nlu_training_data: bool = False,
     core_additional_arguments: Optional[Dict] = None, # {'augmentation_factor': 50, 'debug_plots': False}
     nlu_additional_arguments: Optional[Dict] = None, # {'num_threads': None}
-    model_to_finetune: Optional[Text] = None,
+    model_to_finetune: Optional[Text] = None, # 要调优的模型的可选路径或者要使用最新训练模型的目录。
     finetuning_epoch_fraction: float = 1.0,
 ) -> TrainingResult:
     """
@@ -203,12 +203,12 @@ def _train_graph(
     model_to_finetune: Optional[Union[Text, Path]] = None, # None
     force_full_training: bool = False, # False
     dry_run: bool = False, # False
-    **kwargs: Any,      # {'persist_nlu_training_data': False, 'finetuning_epoch_fraction': None, 'augmentation_factor': 50, 'debug_plots': False, 'num_threads': None}
+    **kwargs: Any, # {'persist_nlu_training_data': False, 'finetuning_epoch_fraction': None, 'augmentation_factor': 50, 'debug_plots': False, 'num_threads': None}
 ) -> TrainingResult:
 
-    if model_to_finetune:
+    if model_to_finetune: # 基于已有模型的调优
 
-        model_to_finetune = rasa.model.get_model_for_finetuning(model_to_finetune)
+        model_to_finetune = rasa.model.get_model_for_finetuning(model_to_finetune) # 返回值是路径：Path
 
         if not model_to_finetune:
 
@@ -227,12 +227,12 @@ def _train_graph(
     config = file_importer.get_config() # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
 
     # <rasa.engine.recipes.default_recipe.DefaultV1Recipe object at 0x0000019065173B08>
-    recipe = Recipe.recipe_for_name(config.get("recipe"))
+    recipe = Recipe.recipe_for_name(config.get("recipe")) # default.v1 -> DefaultV1Recipe
 
     # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
     # set()
     # set()
-    config, _missing_keys, _configured_keys = recipe.auto_configure(
+    config, _missing_keys, _configured_keys = recipe.auto_configure( # _configured_keys：被自动配置的KEY
         file_importer.get_config_file_for_auto_config(),
         config,
         training_type,

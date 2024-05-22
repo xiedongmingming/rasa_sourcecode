@@ -150,17 +150,23 @@ def cached_method(f: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def transform_collection_to_sentence(collection: Collection[Text]) -> Text:
-    """Transforms e.g. a list like ['A', 'B', 'C'] into a sentence 'A, B and C'."""
+    """
+    Transforms e.g. a list like ['A', 'B', 'C'] into a sentence 'A, B and C'.
+    """
     x = list(collection)
+
     if len(x) >= 2:
+
         return ", ".join(map(str, x[:-1])) + " and " + x[-1]
+
     return "".join(collection)
 
 
 def minimal_kwargs(
     kwargs: Dict[Text, Any], func: Callable, excluded_keys: Optional[List] = None
 ) -> Dict[Text, Any]:
-    """Returns only the kwargs which are required by a function. Keys, contained in
+    """
+    Returns only the kwargs which are required by a function. Keys, contained in
     the exception list, are not included.
 
     Args:
@@ -185,7 +191,9 @@ def minimal_kwargs(
 
 
 def mark_as_experimental_feature(feature_name: Text) -> None:
-    """Warns users that they are using an experimental feature."""
+    """
+    Warns users that they are using an experimental feature.
+    """
 
     logger.warning(
         f"The {feature_name} is currently experimental and might change or be "
@@ -196,39 +204,56 @@ def mark_as_experimental_feature(feature_name: Text) -> None:
 
 
 def arguments_of(func: Callable) -> List[Text]:
-    """Return the parameters of the function `func` as a list of names."""
+    """
+    Return the parameters of the function `func` as a list of names.
+    """
     import inspect
 
     return list(inspect.signature(func).parameters.keys())
 
 
 def extract_duplicates(list1: List[Any], list2: List[Any]) -> List[Any]:
-    """Extracts duplicates from two lists."""
+    """
+    Extracts duplicates from two lists.
+    """
     if list1:
+
         dict1 = {
             (sorted(list(i.keys()))[0] if isinstance(i, dict) else i): i for i in list1
         }
+
     else:
+
         dict1 = {}
 
     if list2:
+
         dict2 = {
             (sorted(list(i.keys()))[0] if isinstance(i, dict) else i): i for i in list2
         }
+
     else:
+
         dict2 = {}
 
     set1 = set(dict1.keys())
     set2 = set(dict2.keys())
+
     dupes = set1.intersection(set2)
+
     return sorted(list(dupes))
 
 
 def clean_duplicates(dupes: Dict[Text, Any]) -> Dict[Text, Any]:
-    """Removes keys for empty values."""
+    """
+    Removes keys for empty values.
+    """
     duplicates = dupes.copy()
+
     for k in dupes:
+
         if not dupes[k]:
+
             duplicates.pop(k)
 
     return duplicates
@@ -239,20 +264,28 @@ def merge_dicts(
     tempDict2: Dict[Text, Any],
     override_existing_values: bool = False,
 ) -> Dict[Text, Any]:
-    """Merges two dicts."""
+    """
+    Merges two dicts.
+    """
     if override_existing_values:
+
         merged_dicts, b = tempDict1.copy(), tempDict2.copy()
 
     else:
+
         merged_dicts, b = tempDict2.copy(), tempDict1.copy()
+
     merged_dicts.update(b)
+
     return merged_dicts
 
 
 def merge_lists(
     list1: List[Any], list2: List[Any], override: bool = False
 ) -> List[Any]:
-    """Merges two lists."""
+    """
+    Merges two lists.
+    """
     return sorted(list(set(list1 + list2)))
 
 
@@ -261,12 +294,17 @@ def merge_lists_of_dicts(
     dict_list2: List[Dict],
     override_existing_values: bool = False,
 ) -> List[Dict]:
-    """Merges two dict lists."""
+    """
+    Merges two dict lists.
+    """
     dict1 = {
         (sorted(list(i.keys()))[0] if isinstance(i, dict) else i): i for i in dict_list1
     }
+
     dict2 = {
         (sorted(list(i.keys()))[0] if isinstance(i, dict) else i): i for i in dict_list2
     }
+
     merged_dicts = merge_dicts(dict1, dict2, override_existing_values)
+
     return list(merged_dicts.values())

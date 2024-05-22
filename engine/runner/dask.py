@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class DaskGraphRunner(GraphRunner):
-    """Dask implementation of a `GraphRunner`."""
+    """
+    Dask implementation of a `GraphRunner`.
+    """
 
     def __init__(
         self,
@@ -23,7 +25,8 @@ class DaskGraphRunner(GraphRunner):
         execution_context: ExecutionContext,
         hooks: Optional[List[GraphNodeHook]] = None,
     ) -> None:
-        """Initializes a `DaskGraphRunner`.
+        """
+        Initializes a `DaskGraphRunner`.
 
         Args:
             graph_schema: The graph schema that will be run.
@@ -34,9 +37,11 @@ class DaskGraphRunner(GraphRunner):
             hooks: These are called before and after the execution of each node.
         """
         self._graph_schema = graph_schema
+
         self._instantiated_nodes: Dict[Text, GraphNode] = self._instantiate_nodes(
             graph_schema, model_storage, execution_context, hooks
         )
+
         self._execution_context: ExecutionContext = execution_context
 
     @classmethod
@@ -47,7 +52,9 @@ class DaskGraphRunner(GraphRunner):
         execution_context: ExecutionContext,
         hooks: Optional[List[GraphNodeHook]] = None,
     ) -> DaskGraphRunner:
-        """Creates the runner (see parent class for full docstring)."""
+        """
+        Creates the runner (see parent class for full docstring).
+        """
         return cls(graph_schema, model_storage, execution_context, hooks)
 
     @staticmethod
@@ -57,6 +64,7 @@ class DaskGraphRunner(GraphRunner):
         execution_context: ExecutionContext,
         hooks: Optional[List[GraphNodeHook]] = None,
     ) -> Dict[Text, GraphNode]:
+
         return {
             node_name: GraphNode.from_schema_node(
                 node_name, schema_node, model_storage, execution_context, hooks
@@ -65,7 +73,8 @@ class DaskGraphRunner(GraphRunner):
         }
 
     def _build_dask_graph(self, schema: GraphSchema) -> Dict[Text, Any]:
-        """Builds a dask graph from the instantiated graph.
+        """
+        Builds a dask graph from the instantiated graph.
 
         For more information about dask graphs
         see: https://docs.dask.org/en/latest/spec.html
@@ -77,6 +86,7 @@ class DaskGraphRunner(GraphRunner):
             )
             for node_name, schema_node in schema.nodes.items()
         }
+
         return run_graph
 
     def run(
@@ -84,12 +94,17 @@ class DaskGraphRunner(GraphRunner):
         inputs: Optional[Dict[Text, Any]] = None,
         targets: Optional[List[Text]] = None,
     ) -> Dict[Text, Any]:
-        """Runs the graph (see parent class for full docstring)."""
+        """
+        Runs the graph (see parent class for full docstring).
+        """
         run_targets = targets if targets else self._graph_schema.target_names
+
         minimal_schema = self._graph_schema.minimal_graph_schema(run_targets)
+
         run_graph = self._build_dask_graph(minimal_schema)
 
         if inputs:
+
             self._add_inputs_to_graph(inputs, run_graph)
 
         logger.debug(
@@ -98,22 +113,31 @@ class DaskGraphRunner(GraphRunner):
         )
 
         try:
+
             # ['schema_validator', 'finetuning_validator', 'nlu_training_data_provider', 'train_JiebaTokenizer0', 'run_JiebaTokenizer0', 'run_LanguageModelFeaturizer1', 'train_RegexFeaturizer2', 'run_RegexFeaturizer2', 'train_DIETClassifier3', 'train_ResponseSelector4', 'train_EntitySynonymMapper5', 'domain_provider', 'domain_for_core_training_provider', 'story_graph_provider', 'training_tracker_provider', 'train_MemoizationPolicy0', 'train_TEDPolicy1', 'train_RulePolicy2']
             dask_result = dask.get(run_graph, run_targets)
+
             return dict(dask_result)
+
         except RuntimeError as e:
+
             raise GraphRunError("Error running runner.") from e
 
     @staticmethod
     def _add_inputs_to_graph(inputs: Optional[Dict[Text, Any]], graph: Any) -> None:
+
         if inputs is None:
+
             return
 
         for input_name, input_value in inputs.items():
+
             if isinstance(input_value, str) and input_value in graph.keys():
+
                 raise GraphRunError(
                     f"Input value '{input_value}' clashes with a node name. Make sure "
                     f"that none of the input names passed to the `run` method are the "
                     f"same as node names in the graph schema."
                 )
+
             graph[input_name] = (input_name, input_value)

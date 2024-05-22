@@ -40,7 +40,8 @@ logger = logging.getLogger(__name__)
     DefaultV1Recipe.ComponentType.POLICY_WITHOUT_END_TO_END_SUPPORT, is_trainable=True
 )
 class MemoizationPolicy(Policy):
-    """A policy that follows exact examples of `max_history` turns in training stories.
+    """
+    A policy that follows exact examples of `max_history` turns in training stories.
 
     Since `slots` that are set some time in the past are
     preserved in all future feature vectors until they are set
@@ -324,7 +325,8 @@ class MemoizationPolicy(Policy):
     DefaultV1Recipe.ComponentType.POLICY_WITHOUT_END_TO_END_SUPPORT, is_trainable=True
 )
 class AugmentedMemoizationPolicy(MemoizationPolicy):
-    """The policy that remembers examples from training stories for `max_history` turns.
+    """
+    The policy that remembers examples from training stories for `max_history` turns.
 
     If it is needed to recall turns from training dialogues
     where some slots might not be set during prediction time,

@@ -91,11 +91,14 @@ class SupportedData(Enum):
 
 
 class Policy(GraphComponent):
-    """Common parent class for all dialogue policies."""
+    """
+    Common parent class for all dialogue policies.
+    """
 
     @staticmethod
     def supported_data() -> SupportedData:
-        """The type of data supported by this policy.
+        """
+        The type of data supported by this policy.
 
         By default, this is only ML-based training data. If policies support rule data,
         or both ML-based data and rule data, they need to override this method.

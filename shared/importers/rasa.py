@@ -93,13 +93,16 @@ class RasaFileImporter(TrainingDataImporter): # 默认的IMPORTER
         domain = Domain.empty()
 
         # If domain path is None, return an empty domain
-        if not self._domain_path:
+        if not self._domain_path: # ./domain.yml
             #
             return domain
 
         try:
+
             domain = Domain.load(self._domain_path)
+
         except InvalidDomain as e:
+
             rasa.shared.utils.io.raise_warning(
                 f"Loading domain from '{self._domain_path}' failed. Using "
                 f"empty domain. Error: '{e}'"

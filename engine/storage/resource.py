@@ -10,6 +10,7 @@ import rasa.utils.common
 import rasa.utils.io
 
 if typing.TYPE_CHECKING:
+    #
     from rasa.engine.storage.storage import ModelStorage
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Resource:
-    """Represents a persisted graph component in the graph.
+    """
+    Represents a persisted graph component in the graph.
 
     Attributes:
         name: The unique identifier for the `Resource`. Used to locate the associated
@@ -30,6 +32,7 @@ class Resource:
     """
 
     name: Text
+
     output_fingerprint: Text = field(
         default_factory=lambda: uuid.uuid4().hex,
         # We do not use this for comparison as it is not consistent after serialization.
@@ -44,7 +47,8 @@ class Resource:
         model_storage: ModelStorage,
         output_fingerprint: Text,
     ) -> Resource:
-        """Loads a `Resource` from the cache.
+        """
+        Loads a `Resource` from the cache.
 
         This automatically loads the persisted resource into the given `ModelStorage`.
 
@@ -61,13 +65,19 @@ class Resource:
         logger.debug(f"Loading resource '{node_name}' from cache.")
 
         resource = Resource(node_name, output_fingerprint=output_fingerprint)
+
         if not any(directory.glob("*")):
+
             logger.debug(f"Cached resource for '{node_name}' was empty.")
+
             return resource
 
         try:
+
             with model_storage.write_to(resource) as resource_directory:
+
                 rasa.utils.common.copy_directory(directory, resource_directory)
+
         except ValueError:
             # This might happen during finetuning as in this case the model storage
             # is already filled
@@ -81,7 +91,8 @@ class Resource:
         return resource
 
     def to_cache(self, directory: Path, model_storage: ModelStorage) -> None:
-        """Persists the `Resource` to the cache.
+        """
+        Persists the `Resource` to the cache.
 
         Args:
             directory: The directory which receives the persisted `Resource`.
@@ -89,16 +100,21 @@ class Resource:
                 `Resource`.
         """
         try:
+
             with model_storage.read_from(self) as resource_directory:
+
                 rasa.utils.common.copy_directory(resource_directory, directory)
+
         except ValueError:
+
             logger.debug(
                 f"Skipped caching resource '{self.name}' as no persisted "
                 f"data was found."
             )
 
     def fingerprint(self) -> Text:
-        """Provides fingerprint for `Resource`.
+        """
+        Provides fingerprint for `Resource`.
 
         A unique fingerprint is created on initialization of a `Resource` however we
         also allow a value to be provided for when we retrieve a `Resource` from the

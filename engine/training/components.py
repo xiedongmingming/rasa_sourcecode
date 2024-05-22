@@ -63,7 +63,8 @@ class PrecomputedValueProvider(GraphComponent):
 
 @dataclasses.dataclass
 class FingerprintStatus:
-    """Holds the output of a `FingerprintComponent` and is used to prune the graph.
+    """
+    Holds the output of a `FingerprintComponent` and is used to prune the graph.
 
     Attributes:
         output_fingerprint: A fingerprint of the node's output value.
@@ -71,10 +72,12 @@ class FingerprintStatus:
     """
 
     output_fingerprint: Optional[Text]
+
     is_hit: bool
 
     def fingerprint(self) -> Text:
-        """Returns the internal fingerprint.
+        """
+        Returns the internal fingerprint.
 
         If there is no fingerprint returns a random string that will never match.
         """
@@ -82,7 +85,9 @@ class FingerprintStatus:
 
 
 class FingerprintComponent(GraphComponent):
-    """Replaces non-input nodes during a fingerprint run."""
+    """
+    Replaces non-input nodes during a fingerprint run.
+    """
 
     def __init__(
         self,
@@ -90,7 +95,8 @@ class FingerprintComponent(GraphComponent):
         config_of_replaced_component: Dict[Text, Any],
         class_of_replaced_component: Type,
     ) -> None:
-        """Initializes a `FingerprintComponent`.
+        """
+        Initializes a `FingerprintComponent`.
 
         Args:
             cache: Training cache used to determine if the run is a hit or not.
@@ -109,7 +115,9 @@ class FingerprintComponent(GraphComponent):
         resource: Resource,
         execution_context: ExecutionContext,
     ) -> FingerprintComponent:
-        """Creates a `FingerprintComponent` (see parent class for full docstring)."""
+        """
+        Creates a `FingerprintComponent` (see parent class for full docstring).
+        """
         return cls(
             cache=config["cache"],
             config_of_replaced_component=config["config_of_replaced_component"],
@@ -117,7 +125,8 @@ class FingerprintComponent(GraphComponent):
         )
 
     def run(self, **kwargs: Any) -> FingerprintStatus:
-        """Calculates the fingerprint key to determine if cached output can be used.
+        """
+        Calculates the fingerprint key to determine if cached output can be used.
 
         If the fingerprint key matches an entry in the cache it means that there has
         been a previous node execution which matches the same component class, component
@@ -148,7 +157,8 @@ class FingerprintComponent(GraphComponent):
 
     @classmethod
     def replace_schema_node(cls, node: SchemaNode, cache: TrainingCache) -> None:
-        """Updates a `SchemaNode` to use a `FingerprintComponent`.
+        """
+        Updates a `SchemaNode` to use a `FingerprintComponent`.
 
         This is for when we want to do a fingerprint run. During the fingerprint run we
         replace all non-input nodes with `FingerprintComponent`s so we can determine
@@ -162,7 +172,9 @@ class FingerprintComponent(GraphComponent):
                 fingerprint key.
         """
         graph_component_class = node.uses
+
         node.uses = cls
+
         # We update the node to be "eager" so that `FingerprintComponent.run` sees
         # ALL the inputs to the node. If it was not eager, we would miss any args used
         # by the constructor.

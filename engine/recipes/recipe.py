@@ -14,11 +14,14 @@ class InvalidRecipeException(RasaException):
 
 
 class Recipe(abc.ABC):
-    """Base class for `Recipe`s which convert configs to graph schemas."""
+    """
+    Base class for `Recipe`s which convert configs to graph schemas.
+    """
 
     @staticmethod
-    def recipe_for_name(name: Optional[Text]) -> Recipe:
-        """Returns `Recipe` based on an optional recipe identifier.
+    def recipe_for_name(name: Optional[Text]) -> Recipe: # default.v1
+        """
+        Returns `Recipe` based on an optional recipe identifier.
 
         Args:
             name: The identifier which is used to select a certain `Recipe`. If `None`
@@ -28,23 +31,29 @@ class Recipe(abc.ABC):
             A recipe which can be used to convert a given config to train and predict
             graph schemas.
         """
+
         from rasa.engine.recipes.default_recipe import DefaultV1Recipe
         from rasa.engine.recipes.graph_recipe import GraphV1Recipe
 
         if name is None:
+
             rasa.shared.utils.io.raise_deprecation_warning(
                 "From Rasa Open Source 4.0.0 onwards it will be required to specify "
                 "a recipe in your model configuration. Defaulting to recipe "
                 f"'{DefaultV1Recipe.name}'."
             )
+
             return DefaultV1Recipe()
+
         recipes = {
             DefaultV1Recipe.name: DefaultV1Recipe,
             GraphV1Recipe.name: GraphV1Recipe,
         }
 
         recipe_constructor = recipes.get(name)
+
         if recipe_constructor:
+
             return recipe_constructor()
 
         raise InvalidRecipeException(
@@ -59,7 +68,8 @@ class Recipe(abc.ABC):
         config: Dict,
         training_type: Optional[TrainingType] = TrainingType.BOTH,
     ) -> Tuple[Dict[Text, Any], Set[str], Set[str]]:
-        """Adds missing options with defaults and dumps the configuration.
+        """
+        Adds missing options with defaults and dumps the configuration.
 
         Override in child classes if this functionality is needed, each recipe
         will have different auto configuration values.
@@ -74,7 +84,8 @@ class Recipe(abc.ABC):
         training_type: TrainingType = TrainingType.BOTH,
         is_finetuning: bool = False,
     ) -> GraphModelConfiguration:
-        """Converts a config to a graph compatible model configuration.
+        """
+        Converts a config to a graph compatible model configuration.
 
         Args:
             config: The config which the `Recipe` is supposed to convert.

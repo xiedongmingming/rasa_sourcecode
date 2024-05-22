@@ -237,7 +237,7 @@ class Domain:
 
             rasa.shared.utils.validation.validate_yaml_schema(yaml, DOMAIN_SCHEMA_FILE)
 
-            data = rasa.shared.utils.io.read_yaml(yaml)
+            data = rasa.shared.utils.io.read_yaml(yaml) # dict: {'version': '3.1', 'intents': ['greet', 'goodbye', 'affirm', 'deny', 'mood_great', 'mood_unhappy', 'bot_challenge'], 'responses': {'utter_greet': [{'text': 'Hey! How are you?'}], 'utter_cheer_up': [{'text': 'Here is something to cheer you up:', 'image': 'https://i.imgur.com/nGF1K8f.jpg'}], 'utter_did_that_help': [{'text': 'Did that help you?'}], 'utter_happy': [{'text': 'Great, carry on!'}], 'utter_goodbye': [{'text': 'Bye'}], 'utter_iamabot': [{'text': 'I am a bot, powered by Rasa.'}]}, 'session_config': {'session_expiration_time': 60, 'carry_over_slots_to_new_session': True}}
 
             if not rasa.shared.utils.validation.validate_training_data_format_version(
                 data, original_filename
@@ -869,10 +869,10 @@ class Domain:
 
     def __init__(
         self,
-        intents: Union[Set[Text], List[Text], List[Dict[Text, Any]]],
-        entities: List[Union[Text, Dict[Text, Any]]],
-        slots: List[Slot],
-        responses: Dict[Text, List[Dict[Text, Any]]],
+        intents: Union[Set[Text], List[Text], List[Dict[Text, Any]]], # 意图
+        entities: List[Union[Text, Dict[Text, Any]]], # 实体
+        slots: List[Slot], # 槽位
+        responses: Dict[Text, List[Dict[Text, Any]]], # 响应
         action_names: List[Text],
         forms: Union[Dict[Text, Any], List[Text]],
         data: Dict,

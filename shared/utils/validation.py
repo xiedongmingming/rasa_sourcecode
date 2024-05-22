@@ -132,6 +132,7 @@ def validate_yaml_schema(yaml_file_content: Text, schema_path: Text) -> None:
     import logging
 
     log = logging.getLogger("pykwalify")
+
     log.setLevel(logging.CRITICAL)
 
     try:
@@ -143,10 +144,13 @@ def validate_yaml_schema(yaml_file_content: Text, schema_path: Text) -> None:
         source_data = rasa.shared.utils.io.read_yaml(
             yaml_file_content, reader_type=["safe", "rt"]
         )
+
     except (YAMLError, DuplicateKeyError) as e:
+
         raise YamlSyntaxException(underlying_yaml_exception=e)
 
     schema_file = pkg_resources.resource_filename(PACKAGE_NAME, schema_path)
+
     schema_utils_file = pkg_resources.resource_filename(
         PACKAGE_NAME, RESPONSES_SCHEMA_FILE
     )
@@ -167,8 +171,11 @@ def validate_yaml_schema(yaml_file_content: Text, schema_path: Text) -> None:
     )
 
     try:
+
         c.validate(raise_exception=True)
+
     except SchemaError:
+
         raise YamlValidationException(
             "Please make sure the file is correct and all "
             "mandatory parameters are specified. Here are the errors "

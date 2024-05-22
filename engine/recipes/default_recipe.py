@@ -80,11 +80,15 @@ class DefaultV1RecipeRegisterException(RasaException):
 
 
 class DefaultV1Recipe(Recipe):
-    """Recipe which converts the normal model config to train and predict graph."""
+    """
+    Recipe which converts the normal model config to train and predict graph.
+    """
 
     @enum.unique
     class ComponentType(Enum):
-        """Enum to categorize and place custom components correctly in the graph."""
+        """
+        Enum to categorize and place custom components correctly in the graph.
+        """
 
         MESSAGE_TOKENIZER = 0
         MESSAGE_FEATURIZER = 1
@@ -95,10 +99,13 @@ class DefaultV1Recipe(Recipe):
         MODEL_LOADER = 6
 
     name = "default.v1"
-    _registered_components: Dict[Text, RegisteredComponent] = {}
+
+    _registered_components: Dict[Text, RegisteredComponent] = {} # 共计31个组件
 
     def __init__(self) -> None:
-        """Creates recipe."""
+        """
+        Creates recipe.
+        """
         self._use_core = True
         self._use_nlu = True
         self._use_end_to_end = True
@@ -106,11 +113,16 @@ class DefaultV1Recipe(Recipe):
 
     @dataclasses.dataclass()
     class RegisteredComponent:
-        """Describes a graph component which was registered with the decorator."""
+        """
+        Describes a graph component which was registered with the decorator.
+        """
 
         clazz: Type[GraphComponent]
+
         types: Set[DefaultV1Recipe.ComponentType]
+
         is_trainable: bool
+
         model_from: Optional[Text]
 
     @classmethod
@@ -120,7 +132,8 @@ class DefaultV1Recipe(Recipe):
         is_trainable: bool,
         model_from: Optional[Text] = None,
     ) -> Callable[[Type[GraphComponent]], Type[GraphComponent]]:
-        """This decorator can be used to register classes with the recipe.
+        """
+        This decorator can be used to register classes with the recipe.
 
         Args:
             component_types: Describes the types of a component which are then used
@@ -134,7 +147,9 @@ class DefaultV1Recipe(Recipe):
         """
 
         def decorator(registered_class: Type[GraphComponent]) -> Type[GraphComponent]:
+
             if not issubclass(registered_class, GraphComponent):
+
                 raise DefaultV1RecipeRegisterException(
                     f"Failed to register class '{registered_class.__name__}' with "
                     f"the recipe '{cls.name}'. The class has to be of type "
@@ -151,6 +166,7 @@ class DefaultV1Recipe(Recipe):
             ] = cls.RegisteredComponent(
                 registered_class, unique_types, is_trainable, model_from
             )
+
             return registered_class
 
         return decorator
@@ -161,11 +177,15 @@ class DefaultV1Recipe(Recipe):
         from rasa.engine.recipes.default_components import DEFAULT_COMPONENTS  # noqa
 
         if name in cls._registered_components:
+
             return cls._registered_components[name]
 
         if "." in name:
+
             clazz = class_from_module_path(name)
+
             if clazz.__name__ in cls._registered_components:
+
                 return cls._registered_components[clazz.__name__]
 
         raise InvalidConfigException(
@@ -176,12 +196,14 @@ class DefaultV1Recipe(Recipe):
 
     def graph_config_for_recipe(
         self,
-        config: Dict,
-        cli_parameters: Dict[Text, Any],
+        config: Dict, # 已经自动配置过的配置DICT
+        cli_parameters: Dict[Text, Any], # {'finetuning_epoch_fraction': 1.0, 'persist_nlu_training_data': False}
         training_type: TrainingType = TrainingType.BOTH,
         is_finetuning: bool = False,
     ) -> GraphModelConfiguration:
-        """Converts the default config to graphs (see interface for full docstring)."""
+        """
+        Converts the default config to graphs (see interface for full docstring).
+        """
         self._use_core = (
             bool(config.get("policies")) and not training_type == TrainingType.NLU
         )
@@ -190,12 +212,14 @@ class DefaultV1Recipe(Recipe):
         )
 
         if not self._use_nlu and training_type == TrainingType.NLU:
+
             raise InvalidConfigException(
                 "Can't train an NLU model without a specified pipeline. Please make "
                 "sure to specify a valid pipeline in your configuration."
             )
 
         if not self._use_core and training_type == TrainingType.CORE:
+
             raise InvalidConfigException(
                 "Can't train an Core model without policies. Please make "
                 "sure to specify a valid policy in your configuration."
@@ -210,6 +234,7 @@ class DefaultV1Recipe(Recipe):
         self._is_finetuning = is_finetuning
 
         train_nodes, preprocessors = self._create_train_nodes(config, cli_parameters)
+
         predict_nodes = self._create_predict_nodes(config, preprocessors, train_nodes)
 
         core_target = "select_prediction" if self._use_core else None
@@ -228,6 +253,7 @@ class DefaultV1Recipe(Recipe):
     def _create_train_nodes(
         self, config: Dict[Text, Any], cli_parameters: Dict[Text, Any]
     ) -> Tuple[Dict[Text, SchemaNode], List[Text]]:
+
         from rasa.graph_components.validators.default_recipe_validator import (
             DefaultV1RecipeValidator,
         )
@@ -259,16 +285,18 @@ class DefaultV1Recipe(Recipe):
         preprocessors = []
 
         if self._use_nlu:
+
             preprocessors = self._add_nlu_train_nodes(
                 train_config, train_nodes, cli_parameters
             )
 
         if self._use_core:
+
             self._add_core_train_nodes(
                 train_config, train_nodes, preprocessors, cli_parameters
             )
 
-        return train_nodes, preprocessors
+        return train_nodes, preprocessors # 23个TRAINNODE和5个PREPROCESSOR
 
     def _add_nlu_train_nodes(
         self,
@@ -276,7 +304,9 @@ class DefaultV1Recipe(Recipe):
         train_nodes: Dict[Text, SchemaNode],
         cli_parameters: Dict[Text, Any],
     ) -> List[Text]:
+
         persist_nlu_data = bool(cli_parameters.get("persist_nlu_training_data"))
+
         train_nodes["nlu_training_data_provider"] = SchemaNode(
             needs={"importer": "finetuning_validator"},
             uses=NLUTrainingDataProvider,
@@ -291,15 +321,21 @@ class DefaultV1Recipe(Recipe):
         )
 
         last_run_node = "nlu_training_data_provider"
+
         preprocessors: List[Text] = []
 
         for idx, config in enumerate(train_config["pipeline"]):
+
             component_name = config.pop("name")
+
             component = self._from_registry(component_name)
+
             component_name = f"{component_name}{idx}"
 
             if self.ComponentType.MODEL_LOADER in component.types:
+
                 node_name = f"provide_{component_name}"
+
                 train_nodes[node_name] = SchemaNode(
                     needs={},
                     uses=component.clazz,
@@ -309,7 +345,9 @@ class DefaultV1Recipe(Recipe):
                 )
 
             from_resource = None
+
             if component.is_trainable:
+
                 from_resource = self._add_nlu_train_node(
                     train_nodes,
                     component.clazz,
@@ -319,12 +357,13 @@ class DefaultV1Recipe(Recipe):
                     cli_parameters,
                 )
 
-            if component.types.intersection(
+            if component.types.intersection( # 有交集
                 {
                     self.ComponentType.MESSAGE_TOKENIZER,
                     self.ComponentType.MESSAGE_FEATURIZER,
                 }
             ):
+
                 last_run_node = self._add_nlu_process_node(
                     train_nodes,
                     component.clazz,
@@ -334,8 +373,7 @@ class DefaultV1Recipe(Recipe):
                     from_resource=from_resource,
                 )
 
-                # Remember for End-to-End-Featurization
-                preprocessors.append(last_run_node)
+                preprocessors.append(last_run_node) # Remember for End-to-End-Featurization
 
         return preprocessors
 
@@ -348,10 +386,13 @@ class DefaultV1Recipe(Recipe):
         config: Dict[Text, Any],
         cli_parameters: Dict[Text, Any],
     ) -> Text:
+
         config_from_cli = self._extra_config_from_cli(cli_parameters, component, config)
+
         model_provider_needs = self._get_model_provider_needs(train_nodes, component)
 
         train_node_name = f"train_{component_name}"
+
         train_nodes[train_node_name] = SchemaNode(
             needs={"training_data": last_run_node, **model_provider_needs},
             uses=component,
@@ -360,6 +401,7 @@ class DefaultV1Recipe(Recipe):
             config={**config, **config_from_cli},
             is_target=True,
         )
+
         return train_node_name
 
     def _extra_config_from_cli(
@@ -368,8 +410,11 @@ class DefaultV1Recipe(Recipe):
         component: Type[GraphComponent],
         component_config: Dict[Text, Any],
     ) -> Dict[Text, Any]:
+
         from rasa.nlu.classifiers.mitie_intent_classifier import MitieIntentClassifier
+
         from rasa.nlu.extractors.mitie_entity_extractor import MitieEntityExtractor
+
         from rasa.nlu.classifiers.sklearn_intent_classifier import (
             SklearnIntentClassifier,
         )
@@ -391,12 +436,17 @@ class DefaultV1Recipe(Recipe):
             and "finetuning_epoch_fraction" in cli_parameters
             and EPOCHS in component.get_default_config()
         ):
+
             old_number_epochs = component_config.get(
                 EPOCHS, component.get_default_config()[EPOCHS]
             )
+
             epoch_fraction = cli_parameters["finetuning_epoch_fraction"]
+
             epoch_fraction = epoch_fraction if epoch_fraction is not None else 1.0
+
             config_from_cli["finetuning_epoch_fraction"] = epoch_fraction
+
             config_from_cli[EPOCHS] = math.ceil(
                 old_number_epochs * float(epoch_fraction)
             )
@@ -412,8 +462,11 @@ class DefaultV1Recipe(Recipe):
         component_config: Dict[Text, Any],
         from_resource: Optional[Text] = None,
     ) -> Text:
+
         resource_needs = {}
+
         if from_resource:
+
             resource_needs = {"resource": from_resource}
 
         model_provider_needs = self._get_model_provider_needs(
@@ -421,6 +474,7 @@ class DefaultV1Recipe(Recipe):
         )
 
         node_name = f"run_{component_name}"
+
         train_nodes[node_name] = SchemaNode(
             needs={
                 "training_data": last_run_node,
@@ -432,15 +486,19 @@ class DefaultV1Recipe(Recipe):
             fn="process_training_data",
             config=component_config,
         )
+
         return node_name
 
     def _get_model_provider_needs(
         self, nodes: Dict[Text, SchemaNode], component_class: Type[GraphComponent]
     ) -> Dict[Text, Text]:
+
         model_provider_needs = {}
+
         component = self._from_registry(component_class.__name__)
 
         if not component.model_from:
+
             return {}
 
         node_name_of_provider = next(
@@ -451,7 +509,9 @@ class DefaultV1Recipe(Recipe):
             ),
             None,
         )
+
         if node_name_of_provider:
+
             model_provider_needs["model"] = node_name_of_provider
 
         return model_provider_needs
@@ -463,6 +523,7 @@ class DefaultV1Recipe(Recipe):
         preprocessors: List[Text],
         cli_parameters: Dict[Text, Any],
     ) -> None:
+
         train_nodes["domain_provider"] = SchemaNode(
             needs={"importer": "finetuning_validator"},
             uses=DomainProvider,
@@ -472,6 +533,7 @@ class DefaultV1Recipe(Recipe):
             is_target=True,
             is_input=True,
         )
+
         train_nodes["domain_for_core_training_provider"] = SchemaNode(
             needs={"domain": "domain_provider"},
             uses=DomainForCoreTrainingProvider,
@@ -480,6 +542,7 @@ class DefaultV1Recipe(Recipe):
             config={},
             is_input=True,
         )
+
         train_nodes["story_graph_provider"] = SchemaNode(
             needs={"importer": "finetuning_validator"},
             uses=StoryGraphProvider,
@@ -488,6 +551,7 @@ class DefaultV1Recipe(Recipe):
             config={"exclusion_percentage": cli_parameters.get("exclusion_percentage")},
             is_input=True,
         )
+
         train_nodes["training_tracker_provider"] = SchemaNode(
             needs={
                 "story_graph": "story_graph_provider",
@@ -504,8 +568,11 @@ class DefaultV1Recipe(Recipe):
         )
 
         policy_with_end_to_end_support_used = False
+
         for idx, config in enumerate(train_config["policies"]):
+
             component_name = config.pop("name")
+
             component = self._from_registry(component_name)
 
             extra_config_from_cli = self._extra_config_from_cli(
@@ -515,6 +582,7 @@ class DefaultV1Recipe(Recipe):
             requires_end_to_end_data = self._use_end_to_end and (
                 self.ComponentType.POLICY_WITH_END_TO_END_SUPPORT in component.types
             )
+
             policy_with_end_to_end_support_used = (
                 policy_with_end_to_end_support_used or requires_end_to_end_data
             )
@@ -537,11 +605,13 @@ class DefaultV1Recipe(Recipe):
             )
 
         if self._use_end_to_end and policy_with_end_to_end_support_used:
+
             self._add_end_to_end_features_for_training(preprocessors, train_nodes)
 
     def _add_end_to_end_features_for_training(
         self, preprocessors: List[Text], train_nodes: Dict[Text, SchemaNode]
     ) -> None:
+
         train_nodes["story_to_nlu_training_data_converter"] = SchemaNode(
             needs={
                 "story_graph": "story_graph_provider",
@@ -555,15 +625,21 @@ class DefaultV1Recipe(Recipe):
         )
 
         last_node_name = "story_to_nlu_training_data_converter"
+
         for preprocessor in preprocessors:
+
             node = copy.deepcopy(train_nodes[preprocessor])
+
             node.needs["training_data"] = last_node_name
 
             node_name = f"e2e_{preprocessor}"
+
             train_nodes[node_name] = node
+
             last_node_name = node_name
 
         node_with_e2e_features = "end_to_end_features_provider"
+
         train_nodes[node_with_e2e_features] = SchemaNode(
             needs={"messages": last_node_name},
             uses=CoreFeaturizationCollector,
@@ -595,15 +671,19 @@ class DefaultV1Recipe(Recipe):
         last_run_nlu_node = "nlu_message_converter"
 
         if self._use_nlu:
+
             last_run_nlu_node = self._add_nlu_predict_nodes(
                 last_run_nlu_node, predict_config, predict_nodes, train_nodes
             )
 
         domain_needs = {}
+
         if self._use_core:
+
             domain_needs["domain"] = "domain_provider"
 
         regex_handler_node_name = f"run_{RegexMessageHandler.__name__}"
+
         predict_nodes[regex_handler_node_name] = SchemaNode(
             **DEFAULT_PREDICT_KWARGS,
             needs={"messages": last_run_nlu_node, **domain_needs},
@@ -613,6 +693,7 @@ class DefaultV1Recipe(Recipe):
         )
 
         if self._use_core:
+
             self._add_core_predict_nodes(
                 predict_config, predict_nodes, train_nodes, preprocessors
             )
@@ -626,11 +707,17 @@ class DefaultV1Recipe(Recipe):
         predict_nodes: Dict[Text, SchemaNode],
         train_nodes: Dict[Text, SchemaNode],
     ) -> Text:
+
         for idx, config in enumerate(predict_config["pipeline"]):
+
             component_name = config.pop("name")
+
             component = self._from_registry(component_name)
+
             component_name = f"{component_name}{idx}"
+
             if self.ComponentType.MODEL_LOADER in component.types:
+
                 predict_nodes[f"provide_{component_name}"] = SchemaNode(
                     **DEFAULT_PREDICT_KWARGS,
                     needs={},
@@ -645,6 +732,7 @@ class DefaultV1Recipe(Recipe):
                     self.ComponentType.MESSAGE_FEATURIZER,
                 }
             ):
+
                 last_run_node = self._add_nlu_predict_node_from_train(
                     predict_nodes,
                     component_name,
@@ -653,13 +741,16 @@ class DefaultV1Recipe(Recipe):
                     config,
                     from_resource=component.is_trainable,
                 )
+
             elif component.types.intersection(
                 {
                     self.ComponentType.INTENT_CLASSIFIER,
                     self.ComponentType.ENTITY_EXTRACTOR,
                 }
             ):
+
                 if component.is_trainable:
+
                     last_run_node = self._add_nlu_predict_node_from_train(
                         predict_nodes,
                         component_name,
@@ -668,7 +759,9 @@ class DefaultV1Recipe(Recipe):
                         config,
                         from_resource=component.is_trainable,
                     )
+
                 else:
+
                     new_node = SchemaNode(
                         needs={"messages": last_run_node},
                         uses=component.clazz,
@@ -692,10 +785,15 @@ class DefaultV1Recipe(Recipe):
         item_config: Dict[Text, Any],
         from_resource: bool = False,
     ) -> Text:
+
         train_node_name = f"run_{node_name}"
+
         resource = None
+
         if from_resource:
+
             train_node_name = f"train_{node_name}"
+
             resource = Resource(train_node_name)
 
         return self._add_nlu_predict_node(
@@ -714,6 +812,7 @@ class DefaultV1Recipe(Recipe):
         component_name: Text,
         last_run_node: Text,
     ) -> Text:
+
         node_name = f"run_{component_name}"
 
         model_provider_needs = self._get_model_provider_needs(predict_nodes, node.uses)
@@ -734,6 +833,7 @@ class DefaultV1Recipe(Recipe):
         train_nodes: Dict[Text, SchemaNode],
         preprocessors: List[Text],
     ) -> None:
+
         predict_nodes["domain_provider"] = SchemaNode(
             **DEFAULT_PREDICT_KWARGS,
             needs={},
@@ -746,24 +846,31 @@ class DefaultV1Recipe(Recipe):
         node_with_e2e_features = None
 
         if "end_to_end_features_provider" in train_nodes:
+
             node_with_e2e_features = self._add_end_to_end_features_for_inference(
                 predict_nodes, preprocessors
             )
 
         rule_only_data_provider_name = "rule_only_data_provider"
+
         rule_policy_resource = None
+
         policies: List[Text] = []
 
         for idx, config in enumerate(predict_config["policies"]):
+
             component_name = config.pop("name")
+
             component = self._from_registry(component_name)
 
             train_node_name = f"train_{component_name}{idx}"
+
             node_name = f"run_{component_name}{idx}"
 
             from rasa.core.policies.rule_policy import RulePolicy
 
             if issubclass(component.clazz, RulePolicy) and not rule_policy_resource:
+
                 rule_policy_resource = train_node_name
 
             predict_nodes[node_name] = dataclasses.replace(
@@ -784,6 +891,7 @@ class DefaultV1Recipe(Recipe):
                 fn="predict_action_probabilities",
                 resource=Resource(train_node_name),
             )
+
             policies.append(node_name)
 
         predict_nodes["rule_only_data_provider"] = SchemaNode(
@@ -810,6 +918,7 @@ class DefaultV1Recipe(Recipe):
     def _add_end_to_end_features_for_inference(
         self, predict_nodes: Dict[Text, SchemaNode], preprocessors: List[Text]
     ) -> Text:
+
         predict_nodes["tracker_to_message_converter"] = SchemaNode(
             **DEFAULT_PREDICT_KWARGS,
             needs={"tracker": PLACEHOLDER_TRACKER},
@@ -819,16 +928,21 @@ class DefaultV1Recipe(Recipe):
         )
 
         last_node_name = "tracker_to_message_converter"
+
         for preprocessor in preprocessors:
+
             node = dataclasses.replace(
                 predict_nodes[preprocessor], needs={"messages": last_node_name}
             )
 
             node_name = f"e2e_{preprocessor}"
+
             predict_nodes[node_name] = node
+
             last_node_name = node_name
 
         node_with_e2e_features = "end_to_end_features_provider"
+
         predict_nodes[node_with_e2e_features] = SchemaNode(
             **DEFAULT_PREDICT_KWARGS,
             needs={"messages": last_node_name},
@@ -836,15 +950,17 @@ class DefaultV1Recipe(Recipe):
             fn="collect",
             config={},
         )
+
         return node_with_e2e_features
 
     @staticmethod
     def auto_configure(
-        config_file_path: Optional[Text],
-        config: Dict,
-        training_type: Optional[TrainingType] = TrainingType.BOTH,
+        config_file_path: Optional[Text], # './config.yml'
+        config: Dict, # {'language': 'en', 'pipeline': None, 'policies': None, 'recipe': 'default.v1'}
+        training_type: Optional[TrainingType] = TrainingType.BOTH, # <TrainingType.BOTH: 3>
     ) -> Tuple[Dict[Text, Any], Set[str], Set[str]]:
-        """Determine configuration from auto-filled configuration file.
+        """
+        Determine configuration from auto-filled configuration file.
 
         Keys that are provided and have a value in the file are kept. Keys that are not
         provided are configured automatically.
@@ -860,12 +976,15 @@ class DefaultV1Recipe(Recipe):
             both core and NLU will be auto-configured.
         """
         missing_keys = DefaultV1Recipe._get_missing_config_keys(config, training_type)
-        keys_to_configure = DefaultV1Recipe._get_unspecified_autoconfigurable_keys(
+
+        keys_to_configure = DefaultV1Recipe._get_unspecified_autoconfigurable_keys( # {'pipeline', 'policies'}
             config, training_type
         )
 
         if keys_to_configure:
+
             config = DefaultV1Recipe.complete_config(config, keys_to_configure)
+
             DefaultV1Recipe._dump_config(
                 config, config_file_path, missing_keys, keys_to_configure, training_type
             )
@@ -877,6 +996,7 @@ class DefaultV1Recipe(Recipe):
         config: Dict[Text, Any],
         training_type: Optional[TrainingType] = TrainingType.BOTH,
     ) -> Set[Text]:
+
         if training_type == TrainingType.NLU:
             all_keys = rasa.shared.constants.CONFIG_AUTOCONFIGURABLE_KEYS_NLU
         elif training_type == TrainingType.CORE:
@@ -888,15 +1008,16 @@ class DefaultV1Recipe(Recipe):
 
     @staticmethod
     def _get_missing_config_keys(
-        config: Dict[Text, Any],
+        config: Dict[Text, Any], # {'language': 'en', 'pipeline': None, 'policies': None, 'recipe': 'default.v1'}
         training_type: Optional[TrainingType] = TrainingType.BOTH,
     ) -> Set[Text]:
+
         if training_type == TrainingType.NLU:
             all_keys = rasa.shared.constants.CONFIG_KEYS_NLU
         elif training_type == TrainingType.CORE:
             all_keys = rasa.shared.constants.CONFIG_KEYS_CORE
         else:
-            all_keys = rasa.shared.constants.CONFIG_KEYS
+            all_keys = rasa.shared.constants.CONFIG_KEYS # 同时具备的KEY：policies、language、pipeline
 
         return {k for k in all_keys if k not in config.keys()}
 
@@ -904,7 +1025,8 @@ class DefaultV1Recipe(Recipe):
     def complete_config(
         config: Dict[Text, Any], keys_to_configure: Set[Text]
     ) -> Dict[Text, Any]:
-        """Complete a config by adding automatic configuration for the specified keys.
+        """
+        Complete a config by adding automatic configuration for the specified keys.
 
         Args:
             config: The provided configuration.
@@ -917,6 +1039,7 @@ class DefaultV1Recipe(Recipe):
         import pkg_resources
 
         if keys_to_configure:
+
             logger.debug(
                 f"The provided configuration does not contain the key(s) "
                 f"{transform_collection_to_sentence(keys_to_configure)}. "  # noqa: E501, W505
@@ -926,13 +1049,16 @@ class DefaultV1Recipe(Recipe):
         filename = "config_files/default_config.yml"
 
         default_config_file = pkg_resources.resource_filename(__name__, filename)
-        default_config = rasa.shared.utils.io.read_config_file(default_config_file)
+
+        default_config = rasa.shared.utils.io.read_config_file(default_config_file) # 默认配置文件的内容
 
         config = copy.deepcopy(config)
+
         for key in keys_to_configure:
+
             config[key] = default_config[key]
 
-        return config
+        return config # {'recipe': 'default.v1', 'language': 'en', 'pipeline': [{'name': 'WhitespaceTokenizer'}, {'name': 'RegexFeaturizer'}, {'name': 'LexicalSyntacticFeaturizer'}, {'name': 'CountVectorsFeaturizer'}, {'name': 'CountVectorsFeaturizer', 'analyzer': 'char_wb', 'min_ngram': 1, 'max_ngram': 4}, {'name': 'DIETClassifier', 'epochs': 100, 'constrain_similarities': True}, {'name': 'EntitySynonymMapper'}, {'name': 'ResponseSelector', 'epochs': 100, 'constrain_similarities': True}, {'name': 'FallbackClassifier', 'threshold': 0.3, 'ambiguity_threshold': 0.1}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'RulePolicy'}, {'name': 'UnexpecTEDIntentPolicy', 'max_history': 5, 'epochs': 100}, {'name': 'TEDPolicy', 'max_history': 5, 'epochs': 100, 'constrain_similarities': True}]}
 
     @staticmethod
     def _dump_config(
@@ -942,7 +1068,8 @@ class DefaultV1Recipe(Recipe):
         auto_configured_keys: Set[Text],
         training_type: Optional[TrainingType] = TrainingType.BOTH,
     ) -> None:
-        """Dump the automatically configured keys into the config file.
+        """
+        Dump the automatically configured keys into the config file.
 
         The configuration provided in the file is kept as it is (preserving the order of
         keys and comments).
@@ -964,7 +1091,9 @@ class DefaultV1Recipe(Recipe):
         config_as_expected = DefaultV1Recipe._is_config_file_as_expected(
             config_file_path, missing_keys, auto_configured_keys, training_type
         )
+
         if not config_as_expected:
+
             rasa.shared.utils.cli.print_error(
                 f"The configuration file at '{config_file_path}' has been removed or "
                 f"modified while the automatic configuration was running. The current "
@@ -972,6 +1101,7 @@ class DefaultV1Recipe(Recipe):
                 f"your model to use the configuration provided in "
                 f"'{config_file_path}' you need to re-run training."
             )
+
             return
 
         DefaultV1Recipe._add_missing_config_keys_to_file(config_file_path, missing_keys)
@@ -992,6 +1122,7 @@ class DefaultV1Recipe(Recipe):
         auto_configured_keys_text = transform_collection_to_sentence(
             auto_configured_keys
         )
+
         rasa.shared.utils.cli.print_info(
             f"The configuration for {auto_configured_keys_text} "
             f"was chosen automatically. "
@@ -1005,6 +1136,7 @@ class DefaultV1Recipe(Recipe):
         auto_configured_keys: Set[Text],
         training_type: Optional[TrainingType] = TrainingType.BOTH,
     ) -> bool:
+
         try:
             content = rasa.shared.utils.io.read_config_file(config_file_path)
         except FileNotFoundException:
@@ -1024,41 +1156,58 @@ class DefaultV1Recipe(Recipe):
     def _add_missing_config_keys_to_file(
         config_file_path: Text, missing_keys: Set[Text]
     ) -> None:
+
         if not missing_keys:
+
             return
+
         with open(
             config_file_path, "a", encoding=rasa.shared.utils.io.DEFAULT_ENCODING
         ) as f:
+
             for key in missing_keys:
+
                 f.write(f"{key}:\n")
 
     @staticmethod
     def _get_lines_including_autoconfig(
         lines: List[Text], autoconfig_lines: Dict[Text, List[Text]]
     ) -> List[Text]:
+
         auto_configured_keys = autoconfig_lines.keys()
 
         lines_with_autoconfig = []
+
         remove_comments_until_next_uncommented_line = False
+
         for line in lines:
+
             insert_section = None
 
             # remove old auto configuration
             if remove_comments_until_next_uncommented_line:
+
                 if line.startswith("#"):
+
                     continue
+
                 remove_comments_until_next_uncommented_line = False
 
             # add an explanatory comment to auto configured sections
             for key in auto_configured_keys:
+
                 if line.startswith(f"{key}:"):  # start of next auto-section
+
                     line = line + COMMENTS_FOR_KEYS[key]
+
                     insert_section = key
+
                     remove_comments_until_next_uncommented_line = True
 
             lines_with_autoconfig.append(line)
 
             if not insert_section:
+
                 continue
 
             # add the auto configuration (commented out)
@@ -1070,6 +1219,7 @@ class DefaultV1Recipe(Recipe):
     def _get_commented_out_autoconfig_lines(
         config: Dict[Text, Any], auto_configured_keys: Set[Text]
     ) -> Dict[Text, List[Text]]:
+
         import ruamel.yaml
         import ruamel.yaml.compat
 
@@ -1079,13 +1229,19 @@ class DefaultV1Recipe(Recipe):
         autoconfig_lines = {}
 
         for key in auto_configured_keys:
+
             stream = ruamel.yaml.compat.StringIO()
+
             yaml_parser.dump(config.get(key), stream)
+
             dump = stream.getvalue()
 
             lines = dump.split("\n")
+
             if not lines[-1]:
+
                 lines = lines[:-1]  # yaml dump adds an empty line at the end
+
             lines = [f"# {line}\n" for line in lines]
 
             autoconfig_lines[key] = lines

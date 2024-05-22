@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SchemaNode:
-    """Represents one node in the schema.
+    """
+    Represents one node in the schema.
 
     Args:
         needs: describes which parameters in `fn` (or `constructor_name`
@@ -65,18 +66,23 @@ class SchemaNode:
 
 @dataclass
 class GraphSchema:
-    """Represents a graph for training a model or making predictions."""
+    """
+    Represents a graph for training a model or making predictions.
+    """
 
     nodes: Dict[Text, SchemaNode]
 
     def as_dict(self) -> Dict[Text, Any]:
-        """Returns graph schema in a serializable format.
+        """
+        Returns graph schema in a serializable format.
 
         Returns:
             The graph schema in a format which can be dumped as JSON or other formats.
         """
         serializable_graph_schema: Dict[Text, Dict[Text, Any]] = {"nodes": {}}
+
         for node_name, node in self.nodes.items():
+
             serializable = dataclasses.asdict(node)
 
             # Classes are not JSON serializable (surprise)
@@ -88,7 +94,8 @@ class GraphSchema:
 
     @classmethod
     def from_dict(cls, serialized_graph_schema: Dict[Text, Any]) -> GraphSchema:
-        """Loads a graph schema which has been serialized using `schema.as_dict()`.
+        """
+        Loads a graph schema which has been serialized using `schema.as_dict()`.
 
         Args:
             serialized_graph_schema: A serialized graph schema.
@@ -101,8 +108,11 @@ class GraphSchema:
                 found.
         """
         nodes = {}
+
         for node_name, serialized_node in serialized_graph_schema["nodes"].items():
+
             try:
+
                 serialized_node[
                     "uses"
                 ] = rasa.shared.utils.common.class_from_module_path(
@@ -110,10 +120,13 @@ class GraphSchema:
                 )
 
                 resource = serialized_node["resource"]
+
                 if resource:
+
                     serialized_node["resource"] = Resource(**resource)
 
             except ImportError as e:
+
                 raise GraphSchemaException(
                     "Error deserializing graph schema. Can't "
                     "find class for graph component type "
@@ -126,11 +139,15 @@ class GraphSchema:
 
     @property
     def target_names(self) -> List[Text]:
-        """Returns the names of all target nodes."""
+        """
+        Returns the names of all target nodes.
+        """
         return [node_name for node_name, node in self.nodes.items() if node.is_target]
 
     def minimal_graph_schema(self, targets: Optional[List[Text]] = None) -> GraphSchema:
-        """Returns a new schema where all nodes are a descendant of a target."""
+        """
+        Returns a new schema where all nodes are a descendant of a target.
+        """
         dependencies = self._all_dependencies_schema(
             targets if targets else self.target_names
         )
@@ -144,13 +161,18 @@ class GraphSchema:
         )
 
     def _all_dependencies_schema(self, targets: List[Text]) -> List[Text]:
+
         required = []
+
         for target in targets:
+
             required.append(target)
+
             try:
                 target_dependencies = self.nodes[target].needs.values()
             except KeyError:  # This can happen if the target is an input placeholder.
                 continue
+
             for dependency in target_dependencies:
                 required += self._all_dependencies_schema([dependency])
 
@@ -158,11 +180,15 @@ class GraphSchema:
 
 
 class GraphComponent(ABC):
-    """Interface for any component which will run in a graph."""
+    """
+    Interface for any component which will run in a graph.
+    """
 
     @classmethod
-    def required_components(cls) -> List[Type]:
-        """Components that should be included in the pipeline before this component."""
+    def required_components(cls) -> List[Type]: # 依赖的前置组件列表
+        """
+        Components that should be included in the pipeline before this component.
+        """
         return []
 
     @classmethod
@@ -171,10 +197,11 @@ class GraphComponent(ABC):
         cls,
         config: Dict[Text, Any],
         model_storage: ModelStorage,
-        resource: Resource,
+        resource: Resource, # 代表持久化了的组件
         execution_context: ExecutionContext,
     ) -> GraphComponent:
-        """Creates a new `GraphComponent`.
+        """
+        Creates a new `GraphComponent`.
 
         Args:
             config: This config overrides the `default_config`.
@@ -191,13 +218,14 @@ class GraphComponent(ABC):
     @classmethod
     def load(
         cls,
-        config: Dict[Text, Any],
+        config: Dict[Text, Any], # 该组件的默认+用户指定的配置
         model_storage: ModelStorage,
         resource: Resource,
         execution_context: ExecutionContext,
         **kwargs: Any,
     ) -> GraphComponent:
-        """Creates a component using a persisted version of itself.
+        """
+        Creates a component using a persisted version of itself.
 
         If not overridden this method merely calls `create`.
 
@@ -218,10 +246,10 @@ class GraphComponent(ABC):
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """Returns the component's default config.
+        """
+        Returns the component's default config.
 
-        Default config and user config are merged by the `GraphNode` before the
-        config is passed to the `create` and `load` method of the component.
+        Default config and user config are merged by the `GraphNode` before the config is passed to the `create` and `load` method of the component.
 
         Returns:
             The default config of the component.
@@ -230,7 +258,8 @@ class GraphComponent(ABC):
 
     @staticmethod
     def supported_languages() -> Optional[List[Text]]:
-        """Determines which languages this component can work with.
+        """
+        Determines which languages this component can work with.
 
         Returns: A list of supported languages, or `None` to signify all are supported.
         """
@@ -238,21 +267,25 @@ class GraphComponent(ABC):
 
     @staticmethod
     def not_supported_languages() -> Optional[List[Text]]:
-        """Determines which languages this component cannot work with.
+        """
+        Determines which languages this component cannot work with.
 
-        Returns: A list of not supported languages, or
-            `None` to signify all are supported.
+        Returns: A list of not supported languages, or `None` to signify all are supported.
         """
         return None
 
     @staticmethod
     def required_packages() -> List[Text]:
-        """Any extra python dependencies required for this component to run."""
+        """
+        Any extra python dependencies required for this component to run.
+        """
         return []
 
 
 class GraphNodeHook(ABC):
-    """Holds functionality to be run before and after a `GraphNode`."""
+    """
+    Holds functionality to be run before and after a `GraphNode`.
+    """
 
     @abstractmethod
     def on_before_node(
@@ -262,7 +295,8 @@ class GraphNodeHook(ABC):
         config: Dict[Text, Any],
         received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """Runs before the `GraphNode` executes.
+        """
+        Runs before the `GraphNode` executes.
 
         Args:
             node_name: The name of the node being run.
@@ -285,7 +319,8 @@ class GraphNodeHook(ABC):
         output: Any,
         input_hook_data: Dict,
     ) -> None:
-        """Runs after the `GraphNode` as executed.
+        """
+        Runs after the `GraphNode` as executed.
 
         Args:
             node_name: The name of the node that has run.
@@ -299,7 +334,9 @@ class GraphNodeHook(ABC):
 
 @dataclass
 class ExecutionContext:
-    """Holds information about a single graph run."""
+    """
+    Holds information about a single graph run.
+    """
 
     graph_schema: GraphSchema = field(repr=False)
     model_id: Optional[Text] = None
@@ -310,7 +347,8 @@ class ExecutionContext:
 
 
 class GraphNode:
-    """Instantiates and runs a `GraphComponent` within a graph.
+    """
+    Instantiates and runs a `GraphComponent` within a graph.
 
     A `GraphNode` is a wrapper for a `GraphComponent` that allows it to be executed
     in the context of a graph. It is responsible for instantiating the component at the
@@ -332,7 +370,8 @@ class GraphNode:
         execution_context: ExecutionContext,
         hooks: Optional[List[GraphNodeHook]] = None,
     ) -> None:
-        """Initializes `GraphNode`.
+        """
+        Initializes `GraphNode`.
 
         Args:
             node_name: The name of the node in the schema.
@@ -379,6 +418,7 @@ class GraphNode:
             self._load_component()
 
     def _load_component(self, **kwargs: Any) -> None:
+
         logger.debug(
             f"Node '{self._node_name}' loading "
             f"'{self._component_class.__name__}.{self._constructor_name}' "
@@ -386,7 +426,9 @@ class GraphNode:
         )
 
         constructor = getattr(self._component_class, self._constructor_name)
+
         try:
+
             self._component: GraphComponent = constructor(  # type: ignore[no-redef]
                 config=self._component_config,
                 model_storage=self._model_storage,
@@ -394,40 +436,53 @@ class GraphNode:
                 execution_context=self._execution_context,
                 **kwargs,
             )
+
         except InvalidConfigException:
-            # Pass through somewhat expected exception to allow more fine granular
-            # handling of exceptions.
+
+            # Pass through somewhat expected exception to allow more fine granular handling of exceptions.
+
             raise
+
         except Exception as e:
+
             if not isinstance(e, RasaException):
+
                 raise GraphComponentException(
                     f"Error initializing graph component for node {self._node_name}."
                 ) from e
+
             else:
+
                 logger.error(
                     f"Error initializing graph component for node {self._node_name}."
                 )
+
                 raise
 
     def _get_resource(self, kwargs: Dict[Text, Any]) -> Resource:
+
         if "resource" in kwargs:
-            # A parent node provides resource during training. The component wrapped
-            # by this `GraphNode` will load itself from this resource.
+
+            # A parent node provides resource during training. The component wrapped by this `GraphNode` will load itself from this resource.
+
             return kwargs.pop("resource")
 
         if self._existing_resource:
+
             # The component should be loaded from a trained resource during inference.
             # E.g. a classifier might train and persist itself during training and will
             # then load itself from this resource during inference.
             return self._existing_resource
 
         # The component gets a chance to persist itself
+
         return Resource(self._node_name)
 
     def __call__(
         self, *inputs_from_previous_nodes: Tuple[Text, Any]
     ) -> Tuple[Text, Any]:
-        """Calls the `GraphComponent` run method when the node executes in the graph.
+        """
+        Calls the `GraphComponent` run method when the node executes in the graph.
 
         Args:
             *inputs_from_previous_nodes: The output of all parent nodes. Each is a
@@ -439,20 +494,27 @@ class GraphNode:
         received_inputs: Dict[Text, Any] = dict(inputs_from_previous_nodes)
 
         kwargs = {}
+
         for input_name, input_node in self._inputs.items():
+
             kwargs[input_name] = received_inputs[input_node]
 
         input_hook_outputs = self._run_before_hooks(kwargs)
 
         if not self._eager:
+
             constructor_kwargs = rasa.shared.utils.common.minimal_kwargs(
                 kwargs, self._constructor_fn
             )
+
             self._load_component(**constructor_kwargs)
+
             run_kwargs = {
                 k: v for k, v in kwargs.items() if k not in constructor_kwargs
             }
+
         else:
+
             run_kwargs = kwargs
 
         logger.debug(
@@ -463,18 +525,22 @@ class GraphNode:
         try:
             output = self._fn(self._component, **run_kwargs)
         except InvalidConfigException:
-            # Pass through somewhat expected exception to allow more fine granular
-            # handling of exceptions.
+            # Pass through somewhat expected exception to allow more fine granular handling of exceptions.
             raise
         except Exception as e:
+
             if not isinstance(e, RasaException):
+
                 raise GraphComponentException(
                     f"Error running graph component for node {self._node_name}."
                 ) from e
+
             else:
+
                 logger.error(
                     f"Error running graph component for node {self._node_name}."
                 )
+
                 raise
 
         self._run_after_hooks(input_hook_outputs, output)
@@ -482,12 +548,16 @@ class GraphNode:
         return self._node_name, output
 
     def _run_after_hooks(self, input_hook_outputs: List[Dict], output: Any) -> None:
+
         for hook, hook_data in zip(self._hooks, input_hook_outputs):
+
             try:
+
                 logger.debug(
                     f"Hook '{hook.__class__.__name__}.on_after_node' "
                     f"running for node '{self._node_name}'."
                 )
+
                 hook.on_after_node(
                     node_name=self._node_name,
                     execution_context=self._execution_context,
@@ -495,30 +565,41 @@ class GraphNode:
                     output=output,
                     input_hook_data=hook_data,
                 )
+
             except Exception as e:
+
                 raise GraphComponentException(
                     f"Error running after hook for node '{self._node_name}'."
                 ) from e
 
     def _run_before_hooks(self, received_inputs: Dict[Text, Any]) -> List[Dict]:
+
         input_hook_outputs = []
+
         for hook in self._hooks:
+
             try:
+
                 logger.debug(
                     f"Hook '{hook.__class__.__name__}.on_before_node' "
                     f"running for node '{self._node_name}'."
                 )
+
                 hook_output = hook.on_before_node(
                     node_name=self._node_name,
                     execution_context=self._execution_context,
                     config=self._component_config,
                     received_inputs=received_inputs,
                 )
+
                 input_hook_outputs.append(hook_output)
+
             except Exception as e:
+
                 raise GraphComponentException(
                     f"Error running before hook for node '{self._node_name}'."
                 ) from e
+
         return input_hook_outputs
 
     @classmethod
@@ -530,7 +611,9 @@ class GraphNode:
         execution_context: ExecutionContext,
         hooks: Optional[List[GraphNodeHook]] = None,
     ) -> GraphNode:
-        """Creates a `GraphNode` from a `SchemaNode`."""
+        """
+        Creates a `GraphNode` from a `SchemaNode`.
+        """
         return cls(
             node_name=node_name,
             component_class=schema_node.uses,
@@ -548,8 +631,9 @@ class GraphNode:
 
 @dataclass()
 class GraphModelConfiguration:
-    """The model configuration to run as a graph during training and prediction."""
-
+    """
+    The model configuration to run as a graph during training and prediction.
+    """
     train_schema: GraphSchema
     predict_schema: GraphSchema
     training_type: TrainingType

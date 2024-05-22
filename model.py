@@ -50,7 +50,8 @@ def get_local_model(model_path: Text = DEFAULT_MODELS_PATH) -> Text:
 
 
 def get_latest_model(model_path: Text = DEFAULT_MODELS_PATH) -> Optional[Text]:
-    """Get the latest model from a path.
+    """
+    Get the latest model from a path.
 
     Args:
         model_path: Path to a directory containing zipped models.
@@ -60,14 +61,17 @@ def get_latest_model(model_path: Text = DEFAULT_MODELS_PATH) -> Optional[Text]:
 
     """
     if not model_path:
+        #
         return None
 
     if not os.path.exists(model_path) or os.path.isfile(model_path):
+        #
         model_path = os.path.dirname(model_path)
 
     list_of_files = glob.glob(os.path.join(model_path, "*.tar.gz"))
 
     if len(list_of_files) == 0:
+
         return None
 
     return max(list_of_files, key=os.path.getctime)
@@ -76,7 +80,8 @@ def get_latest_model(model_path: Text = DEFAULT_MODELS_PATH) -> Optional[Text]:
 def get_model_for_finetuning(
     previous_model_file_or_dir: Union[Path, Text]
 ) -> Optional[Path]:
-    """Gets validated path for model to finetune.
+    """
+    Gets validated path for model to finetune.
 
     Args:
         previous_model_file: Path to model file which should be used for finetuning or
@@ -86,20 +91,25 @@ def get_model_for_finetuning(
         Path to model archive. `None` if there is no model.
     """
     model_file: Optional[Union[Path, Text]] = previous_model_file_or_dir
-    if Path(previous_model_file_or_dir).is_dir():
+
+    if Path(previous_model_file_or_dir).is_dir(): # 提供的参数是目录
+
         logger.debug(
             f"Trying to load latest model from '{previous_model_file_or_dir}' for "
             f"finetuning."
         )
+
         model_file = get_latest_model(previous_model_file_or_dir)
 
     if model_file and Path(model_file).is_file():
+        #
         return Path(model_file)
 
     logger.debug(
         "No valid model for finetuning found as directory either "
         "contains no model or model file cannot be found."
     )
+
     return None
 
 

@@ -94,7 +94,9 @@ class InvalidRule(RasaException):
     DefaultV1Recipe.ComponentType.POLICY_WITHOUT_END_TO_END_SUPPORT, is_trainable=True
 )
 class RulePolicy(MemoizationPolicy):
-    """Policy which handles all the rules."""
+    """
+    Policy which handles all the rules.
+    """
 
     # rules use explicit json strings
     ENABLE_FEATURE_STRING_COMPRESSION = False
