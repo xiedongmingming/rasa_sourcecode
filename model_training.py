@@ -76,16 +76,16 @@ def _dry_run_result(
 
 
 def train(
-    domain: Text, # 领域配置文件
-    config: Text, # RASA配置文件
-    training_files: Optional[Union[Text, List[Text]]], # NLU训练数据文件：data
-    output: Text = rasa.shared.constants.DEFAULT_MODELS_PATH, # NLU训练模型存放地址：models
+    domain: Text, # 领域配置文件：domain.yml
+    config: Text, # RASA配置文件：config.yml
+    training_files: Optional[Union[Text, List[Text]]], # NLU训练数据文件：['data']
+    output: Text = rasa.shared.constants.DEFAULT_MODELS_PATH, # NLU训练模型存放地址：['data']
     dry_run: bool = False,
     force_training: bool = False,
     fixed_model_name: Optional[Text] = None,
     persist_nlu_training_data: bool = False,
-    core_additional_arguments: Optional[Dict] = None,
-    nlu_additional_arguments: Optional[Dict] = None,
+    core_additional_arguments: Optional[Dict] = None, # {'augmentation_factor': 50, 'debug_plots': False}
+    nlu_additional_arguments: Optional[Dict] = None, # {'num_threads': None}
     model_to_finetune: Optional[Text] = None,
     finetuning_epoch_fraction: float = 1.0,
 ) -> TrainingResult:
@@ -119,11 +119,11 @@ def train(
 
     stories = file_importer.get_stories() # E2EImporter---->RasaFileImporter->StoryGraph
 
-    nlu_data = file_importer.get_nlu_data()
+    nlu_data = file_importer.get_nlu_data() # TrainingData
 
     training_type = TrainingType.BOTH
 
-    if nlu_data.has_e2e_examples():
+    if nlu_data.has_e2e_examples():  # 端到端训练？？？
         #
         rasa.shared.utils.common.mark_as_experimental_feature("end-to-end training")
 
@@ -185,14 +185,14 @@ def train(
 
 
 def _train_graph(
-    file_importer: TrainingDataImporter,
-    training_type: TrainingType,
-    output_path: Text,
-    fixed_model_name: Text,
-    model_to_finetune: Optional[Union[Text, Path]] = None,
-    force_full_training: bool = False,
-    dry_run: bool = False,
-    **kwargs: Any,
+    file_importer: TrainingDataImporter, # E2EImporter
+    training_type: TrainingType, # TrainingType.BOTH
+    output_path: Text,  # 'models'
+    fixed_model_name: Text, # None
+    model_to_finetune: Optional[Union[Text, Path]] = None, # None
+    force_full_training: bool = False, # False
+    dry_run: bool = False, # False
+    **kwargs: Any,      # {'persist_nlu_training_data': False, 'finetuning_epoch_fraction': None, 'augmentation_factor': 50, 'debug_plots': False, 'num_threads': None}
 ) -> TrainingResult:
 
     if model_to_finetune:
@@ -211,19 +211,24 @@ def _train_graph(
             "Incremental Training feature"
         )
 
-    is_finetuning = model_to_finetune is not None
+    is_finetuning = model_to_finetune is not None # False
 
-    config = file_importer.get_config()
+    config = file_importer.get_config() # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
 
+    # <rasa.engine.recipes.default_recipe.DefaultV1Recipe object at 0x0000019065173B08>
     recipe = Recipe.recipe_for_name(config.get("recipe"))
 
+    # {'recipe': 'default.v1', 'language': 'zh', 'pipeline': [{'name': 'JiebaTokenizer'}, {'name': 'LanguageModelFeaturizer', 'model_name': 'bert', 'model_weights': 'bert-base-chinese'}, {'name': 'DIETClassifier', 'epochs': 100, 'tensorboard_log_directory': './log', 'learning_rate': 0.001}, {'name': 'ResponseSelector'}], 'policies': [{'name': 'MemoizationPolicy'}, {'name': 'TEDPolicy'}, {'name': 'RulePolicy'}]}
+    # set()
+    # set()
     config, _missing_keys, _configured_keys = recipe.auto_configure(
         file_importer.get_config_file_for_auto_config(),
         config,
         training_type,
     )
 
-    model_configuration = recipe.graph_config_for_recipe(
+    # 从配置文件和参数中构造有向无环图--将配置转换为与图形兼容的模型配置
+    model_configuration = recipe.graph_config_for_recipe( # 构造有向无环图--DefaultV1Recipe
         config,
         kwargs,
         training_type=training_type,
@@ -232,7 +237,7 @@ def _train_graph(
 
     rasa.engine.validation.validate(model_configuration)
 
-    tempdir_name = rasa.utils.common.get_temp_dir_name()
+    tempdir_name = rasa.utils.common.get_temp_dir_name() # 'C:\\Users\\98661\\AppData\\Local\\Temp\\tmpreuwua4c'
 
     # Use `TempDirectoryPath` instead of `tempfile.TemporaryDirectory` as this
     # leads to errors on Windows when the context manager tries to delete an

@@ -1,14 +1,18 @@
 import argparse
 import os
 import sys
+
 from typing import Dict, List, Optional, Text, TYPE_CHECKING, Union
 
 from rasa.cli import SubParsersAction
+
 import rasa.cli.arguments.train as train_arguments
 
 import rasa.cli.utils
 import rasa.utils.common
+
 from rasa.core.train import do_compare_training
+
 from rasa.shared.utils.cli import print_error
 from rasa.shared.constants import (
     CONFIG_MANDATORY_KEYS_CORE,
@@ -22,11 +26,12 @@ from rasa.shared.constants import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-
+# 注册命令解析
 def add_subparser(
     subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all training parsers.
+    """
+    Add all training parsers.
 
     Args:
         subparsers: subparser we are going to attach to
@@ -64,9 +69,11 @@ def add_subparser(
     train_arguments.set_train_core_arguments(train_core_parser)
     train_arguments.set_train_nlu_arguments(train_nlu_parser)
 
-
+# 命令行命令
+# 1. 训练入口--命令行对应的执行函数
 def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[Text]:
-    """Trains a model.
+    """
+    Trains a model.
 
     Args:
         args: Namespace arguments.
@@ -78,13 +85,13 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
     """
     from rasa import train as train_all
 
-    domain = rasa.cli.utils.get_validated_path(
+    domain = rasa.cli.utils.get_validated_path( # 'domain.yml'
         args.domain, "domain", DEFAULT_DOMAIN_PATH, none_is_valid=True
     )
 
-    config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS)
+    config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS) # 'config.yml'
 
-    training_files = [
+    training_files = [ # ['data']
         rasa.cli.utils.get_validated_path(
             f, "data", DEFAULT_DATA_PATH, none_is_valid=True
         )
@@ -105,13 +112,16 @@ def run_training(args: argparse.Namespace, can_exit: bool = False) -> Optional[T
         model_to_finetune=_model_for_finetuning(args),
         finetuning_epoch_fraction=args.epoch_fraction,
     )
+
     if training_result.code != 0 and can_exit:
+        #
         sys.exit(training_result.code)
 
     return training_result.model
 
 
 def _model_for_finetuning(args: argparse.Namespace) -> Optional[Text]:
+    #
     if args.finetune == train_arguments.USE_LATEST_MODEL_FOR_FINE_TUNING:
         # We use this constant to signal that the user specified `--finetune` but
         # didn't provide a path to a model. In this case we try to load the latest
@@ -120,9 +130,10 @@ def _model_for_finetuning(args: argparse.Namespace) -> Optional[Text]:
     else:
         return args.finetune
 
-
+# 命令行命令
 def run_core_training(args: argparse.Namespace) -> Optional[Text]:
-    """Trains a Rasa Core model only.
+    """
+    Trains a Rasa Core model only.
 
     Args:
         args: Command-line arguments to configure training.
@@ -140,10 +151,11 @@ def run_core_training(args: argparse.Namespace) -> Optional[Text]:
     )
     additional_arguments = extract_core_additional_arguments(args)
 
-    # Policies might be a list for the compare training. Do normal training
-    # if only list item was passed.
+    # Policies might be a list for the compare training. Do normal training if only list item was passed.
     if not isinstance(args.config, list) or len(args.config) == 1:
+        #
         if isinstance(args.config, list):
+            #
             args.config = args.config[0]
 
         config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS_CORE)
@@ -158,13 +170,17 @@ def run_core_training(args: argparse.Namespace) -> Optional[Text]:
             model_to_finetune=_model_for_finetuning(args),
             finetuning_epoch_fraction=args.epoch_fraction,
         )
+
     else:
+
         do_compare_training(args, story_file, additional_arguments)
+
         return None
 
-
+# 命令行命令
 def run_nlu_training(args: argparse.Namespace) -> Optional[Text]:
-    """Trains an NLU model.
+    """
+    Trains an NLU model.
 
     Args:
         args: Namespace arguments.
@@ -175,11 +191,13 @@ def run_nlu_training(args: argparse.Namespace) -> Optional[Text]:
     from rasa.model_training import train_nlu
 
     config = _get_valid_config(args.config, CONFIG_MANDATORY_KEYS_NLU)
+
     nlu_data = rasa.cli.utils.get_validated_path(
         args.nlu, "nlu", DEFAULT_DATA_PATH, none_is_valid=True
     )
 
     if args.domain:
+
         args.domain = rasa.cli.utils.get_validated_path(
             args.domain, "domain", DEFAULT_DOMAIN_PATH, none_is_valid=True
         )
@@ -198,6 +216,7 @@ def run_nlu_training(args: argparse.Namespace) -> Optional[Text]:
 
 
 def extract_core_additional_arguments(args: argparse.Namespace) -> Dict:
+
     arguments = {}
 
     if "augmentation" in args:
@@ -205,24 +224,27 @@ def extract_core_additional_arguments(args: argparse.Namespace) -> Dict:
     if "debug_plots" in args:
         arguments["debug_plots"] = args.debug_plots
 
-    return arguments
+    return arguments # {'augmentation_factor': 50, 'debug_plots': False}
 
 
 def extract_nlu_additional_arguments(args: argparse.Namespace) -> Dict:
+
     arguments = {}
 
     if "num_threads" in args:
+
         arguments["num_threads"] = args.num_threads
 
-    return arguments
+    return arguments # {'num_threads': None}
 
 
 def _get_valid_config(
     config: Optional[Union[Text, "Path"]],
-    mandatory_keys: List[Text],
+    mandatory_keys: List[Text], # ['language']
     default_config: Text = DEFAULT_CONFIG_PATH,
 ) -> Text:
-    """Get a config from a config file and check if it is valid.
+    """
+    Get a config from a config file and check if it is valid.
 
     Exit if the config isn't valid.
 
@@ -233,23 +255,28 @@ def _get_valid_config(
 
     Returns: The path to the config file if the config is valid.
     """
-    config = rasa.cli.utils.get_validated_path(config, "config", default_config)
+    config = rasa.cli.utils.get_validated_path(config, "config", default_config) # 'config.yml'
 
     if not config or not os.path.exists(config):
+
         print_error(
             "The config file '{}' does not exist. Use '--config' to specify a "
             "valid config file."
             "".format(config)
         )
+
         sys.exit(1)
 
     missing_keys = rasa.cli.utils.missing_config_keys(config, mandatory_keys)
+
     if missing_keys:
+
         print_error(
             "The config file '{}' is missing mandatory parameters: "
             "'{}'. Add missing parameters to config file and try again."
             "".format(config, "', '".join(missing_keys))
         )
+
         sys.exit(1)
 
     return str(config)

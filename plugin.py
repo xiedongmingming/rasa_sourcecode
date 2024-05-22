@@ -14,7 +14,9 @@ hookspec = pluggy.HookspecMarker("rasa")
 def plugin_manager() -> pluggy.PluginManager:
     """Initialises a plugin manager which registers hook implementations."""
     _plugin_manager = pluggy.PluginManager("rasa")
-    _plugin_manager.add_hookspecs(sys.modules["rasa.plugin"])
+    _plugin_manager.add_hookspecs(
+        sys.modules["rasa.plugin"]
+    )  # ['configure_commandline', 'get_version_info', 'init_telemetry', 'refine_cli']
     _discover_plugins(_plugin_manager)
 
     return _plugin_manager

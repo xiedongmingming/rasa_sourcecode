@@ -125,17 +125,22 @@ def cancel_cause_not_found(
 
 
 def parse_last_positional_argument_as_model_path() -> None:
-    """Fixes the parsing of a potential positional model path argument."""
+    """
+    Fixes the parsing of a potential positional model path argument.
+    """
+    # ['D:/workspace/python/rasa-demo/rasa-main/rasa/__main__.py', 'train']
     if (
         len(sys.argv) >= 2
         # support relevant commands ...
         and sys.argv[1] in ["run", "shell", "interactive"]
-        # but avoid interpreting subparser commands as model paths
+        # but avoid interpreting subparser commands as model paths -- 但是要避免将子解析器命令解释为模型路径
         and sys.argv[1:] != ["run", "actions"]
         and not sys.argv[-2].startswith("-")
         and os.path.exists(sys.argv[-1])
     ):
+        # 将最后一个参数作为MODEL路径文件
         sys.argv.append(sys.argv[-1])
+
         sys.argv[-2] = "--model"
 
 

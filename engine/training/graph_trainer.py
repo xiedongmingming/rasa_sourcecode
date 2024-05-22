@@ -102,7 +102,7 @@ class GraphTrainer:
 
         logger.debug("Running the pruned train graph with real node execution.")
 
-        graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})
+        graph_runner.run(inputs={PLACEHOLDER_IMPORTER: importer})  # 执行训练：DaskGraphRunner
 
         return self._model_storage.create_model_package(
             output_filename, model_configuration, domain

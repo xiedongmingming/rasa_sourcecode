@@ -125,6 +125,19 @@ def add_data_param(
 
 def add_logging_options(parser: argparse.ArgumentParser) -> None:
     """Add options to an argument parser to configure logging levels."""
+    # 参考文档：https://vimsky.com/examples/usage/python-argparse.ArgumentParser.add_argument_group-py.html
+    # 表示输出参数时使用指定分组（而不是按位置参数和可选参数分组）
+    #
+    # >>> parser = argparse.ArgumentParser(prog='PROG', add_help=False)
+    # >>> group = parser.add_argument_group('group')
+    # >>> group.add_argument('--foo', help='foo help')
+    # >>> group.add_argument('bar', help='bar help')
+    # >>> parser.print_help()
+    # usage: PROG [--foo FOO] bar
+    #
+    # group:
+    #   bar    bar help
+    #   --foo FOO  foo help
     logging_arguments = parser.add_argument_group(
         "Python Logging Options",
         "You can control level of log messages printed. "

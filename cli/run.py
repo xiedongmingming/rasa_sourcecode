@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+
 from typing import List, Text
 
 from rasa.cli import SubParsersAction
@@ -20,7 +21,8 @@ logger = logging.getLogger(__name__)
 def add_subparser(
     subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all run parsers.
+    """
+    Add all run parsers.
 
     Args:
         subparsers: subparser we are going to attach to
@@ -28,14 +30,16 @@ def add_subparser(
     """
     run_parser = subparsers.add_parser(
         "run",
-        parents=parents,
+        parents=parents, # 公共参数（日志）
         conflict_handler="resolve",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         help="Starts a Rasa server with your trained model.",
     )
-    run_parser.set_defaults(func=run)
 
-    run_subparsers = run_parser.add_subparsers()
+    run_parser.set_defaults(func=run) # 默认命令函数
+
+    run_subparsers = run_parser.add_subparsers() # 继续添加子命令
+
     sdk_subparser = run_subparsers.add_parser(
         "actions",
         parents=parents,
@@ -43,13 +47,15 @@ def add_subparser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         help="Runs the action server.",
     )
-    sdk_subparser.set_defaults(func=run_actions)
+
+    sdk_subparser.set_defaults(func=run_actions) # 行为
 
     arguments.set_run_arguments(run_parser)
     arguments.set_run_action_arguments(sdk_subparser)
 
-
+# 命令行命令
 def run_actions(args: argparse.Namespace) -> None:
+
     import rasa_sdk.__main__ as sdk
 
     args.actions = args.actions or DEFAULT_ACTIONS_PATH
@@ -60,20 +66,25 @@ def run_actions(args: argparse.Namespace) -> None:
 def _validate_model_path(model_path: Text, parameter: Text, default: Text) -> Text:
 
     if model_path is not None and not os.path.exists(model_path):
+
         reason_str = f"'{model_path}' not found."
+
         if model_path is None:
+
             reason_str = f"Parameter '{parameter}' not set."
 
         logger.debug(f"{reason_str} Using default location '{default}' instead.")
 
         os.makedirs(default, exist_ok=True)
+
         model_path = default
 
     return model_path
 
-
+# 命令行命令
 def run(args: argparse.Namespace) -> None:
-    """Entrypoint for `rasa run`.
+    """
+    Entrypoint for `rasa run`.
 
     Args:
         args: The CLI arguments.
@@ -88,9 +99,13 @@ def run(args: argparse.Namespace) -> None:
     )
 
     if args.enable_api:
+
         if not args.remote_storage:
+
             args.model = _validate_model_path(args.model, "model", DEFAULT_MODELS_PATH)
+
         rasa.run(**vars(args))
+
         return
 
     # if the API is not enable you cannot start without a model
@@ -98,30 +113,41 @@ def run(args: argparse.Namespace) -> None:
     # configured
 
     import rasa.model
+
     from rasa.core.utils import AvailableEndpoints
 
     # start server if remote storage is configured
     if args.remote_storage is not None:
+
         rasa.run(**vars(args))
+
         return
 
     # start server if model server is configured
     endpoints = AvailableEndpoints.read_endpoints(args.endpoints)
+
     model_server = endpoints.model if endpoints and endpoints.model else None
+
     if model_server is not None:
+
         rasa.run(**vars(args))
+
         return
 
     # start server if local model found
     args.model = _validate_model_path(args.model, "model", DEFAULT_MODELS_PATH)
+
     local_model_set = True
+
     try:
         rasa.model.get_local_model(args.model)
     except ModelNotFound:
         local_model_set = False
 
     if local_model_set:
+
         rasa.run(**vars(args))
+
         return
 
     rasa.shared.utils.cli.print_error(

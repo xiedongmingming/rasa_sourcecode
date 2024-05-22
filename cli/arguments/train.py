@@ -16,7 +16,7 @@ from rasa.shared.constants import DEFAULT_CONFIG_PATH, DEFAULT_DATA_PATH
 
 USE_LATEST_MODEL_FOR_FINE_TUNING = True
 
-
+# train：添加TRAIN命令行参数
 def set_train_arguments(parser: argparse.ArgumentParser) -> None:
     """Specifies CLI arguments for `rasa train`."""
     add_data_param(parser)
@@ -38,7 +38,7 @@ def set_train_arguments(parser: argparse.ArgumentParser) -> None:
         parser, help_text="Configuration file for the connectors as a yml file."
     )
 
-
+# train core：添加TRAIN-CORE命令行参数
 def set_train_core_arguments(parser: argparse.ArgumentParser) -> None:
     """Specifies CLI arguments for `rasa train core`."""
     add_stories_param(parser)
@@ -57,7 +57,7 @@ def set_train_core_arguments(parser: argparse.ArgumentParser) -> None:
     _add_compare_params(compare_arguments)
     add_finetune_params(parser)
 
-
+# train nlu：添加TRAIN-NLU命令行参数
 def set_train_nlu_arguments(parser: argparse.ArgumentParser) -> None:
     """Specifies CLI arguments for `rasa train nlu`."""
     add_config_param(parser)

@@ -98,6 +98,7 @@ class DaskGraphRunner(GraphRunner):
         )
 
         try:
+            # ['schema_validator', 'finetuning_validator', 'nlu_training_data_provider', 'train_JiebaTokenizer0', 'run_JiebaTokenizer0', 'run_LanguageModelFeaturizer1', 'train_RegexFeaturizer2', 'run_RegexFeaturizer2', 'train_DIETClassifier3', 'train_ResponseSelector4', 'train_EntitySynonymMapper5', 'domain_provider', 'domain_for_core_training_provider', 'story_graph_provider', 'training_tracker_provider', 'train_MemoizationPolicy0', 'train_TEDPolicy1', 'train_RulePolicy2']
             dask_result = dask.get(run_graph, run_targets)
             return dict(dask_result)
         except RuntimeError as e:

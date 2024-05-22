@@ -63,7 +63,7 @@ def run(
         **kwargs,
     )
 
-
+# 对外接口（客户端执行调用）
 def train(
     domain: "Text", # 领域配置文件
     config: "Text", # RASA配置文件

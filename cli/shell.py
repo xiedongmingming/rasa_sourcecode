@@ -5,9 +5,12 @@ import uuid
 from typing import List
 
 from rasa import telemetry
+
 from rasa.cli import SubParsersAction
 from rasa.cli.arguments import shell as arguments
+
 from rasa.engine.storage.local_model_storage import LocalModelStorage
+
 from rasa.model import get_local_model
 from rasa.shared.data import TrainingType
 from rasa.shared.utils.cli import print_error
@@ -19,7 +22,8 @@ logger = logging.getLogger(__name__)
 def add_subparser(
     subparsers: SubParsersAction, parents: List[argparse.ArgumentParser]
 ) -> None:
-    """Add all shell parsers.
+    """
+    Add all shell parsers.
 
     Args:
         subparsers: subparser we are going to attach to
@@ -61,7 +65,9 @@ def add_subparser(
 
 
 def shell_nlu(args: argparse.Namespace) -> None:
-    """Talk with an NLU only bot though the command line."""
+    """
+    Talk with an NLU only bot though the command line.
+    """
     from rasa.cli.utils import get_validated_path
     from rasa.shared.constants import DEFAULT_MODELS_PATH
     import rasa.nlu.run

@@ -159,7 +159,7 @@ def configure_logging_from_file(logging_config_file: Text) -> None:
 
 def configure_logging_and_warnings(
     log_level: Optional[int] = None,
-    logging_config_file: Optional[Text] = None,
+    logging_config_file: Optional[Text] = None,  # None：日志的配置文件
     warn_only_once: bool = True,
     filter_repeated_logs: bool = True,
 ) -> None:

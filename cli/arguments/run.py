@@ -4,13 +4,13 @@ from typing import Union
 from rasa.cli.arguments.default_arguments import add_model_param, add_endpoint_param
 from rasa.core import constants
 
-
+# run：添加RUN命令行参数
 def set_run_arguments(parser: argparse.ArgumentParser) -> None:
     """Arguments for running Rasa directly using `rasa run`."""
     add_model_param(parser)
     add_server_arguments(parser)
 
-
+# run action：添加RUN-ACTION命令行参数
 def set_run_action_arguments(parser: argparse.ArgumentParser) -> None:
     """Set arguments for running Rasa SDK."""
     import rasa_sdk.cli.arguments as sdk
