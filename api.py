@@ -22,22 +22,24 @@ def run(
     credentials: "Text" = None,
     **kwargs: "Dict[Text, Any]",
 ) -> None:
-    """Runs a Rasa model.
+    """
+    Runs a Rasa model.
 
     Args:
         model: Path to model archive.
         endpoints: Path to endpoints file.
-        connector: Connector which should be use (overwrites `credentials`
-        field).
+        connector: Connector which should be use (overwrites `credentials` field).
         credentials: Path to channel credentials file.
-        **kwargs: Additional arguments which are passed to
-        `rasa.core.run.serve_application`.
+        **kwargs: Additional arguments which are passed to `rasa.core.run.serve_application`.
 
     """
     import rasa.core.run
+
     from rasa.core.utils import AvailableEndpoints
     from rasa.shared.utils.cli import print_warning
+
     import rasa.shared.utils.common
+
     from rasa.shared.constants import DOCS_BASE_URL
 
     _endpoints = AvailableEndpoints.read_endpoints(endpoints)
@@ -55,6 +57,7 @@ def run(
     kwargs = rasa.shared.utils.common.minimal_kwargs(
         kwargs, rasa.core.run.serve_application
     )
+
     rasa.core.run.serve_application(
         model,
         channel=connector,

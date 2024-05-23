@@ -98,7 +98,9 @@ def shell_nlu(args: argparse.Namespace) -> None:
 
 
 def shell(args: argparse.Namespace) -> None:
-    """Talk with a bot though the command line."""
+    """
+    Talk with a bot though the command line.
+    """
     from rasa.cli.utils import get_validated_path
     from rasa.shared.constants import DEFAULT_MODELS_PATH
 
@@ -107,23 +109,30 @@ def shell(args: argparse.Namespace) -> None:
     model = get_validated_path(args.model, "model", DEFAULT_MODELS_PATH)
 
     try:
+
         model = get_local_model(model)
+
     except ModelNotFound:
+
         print_error(
             "No model found. Train a model before running the "
             "server using `rasa train`."
         )
+
         return
 
     metadata = LocalModelStorage.metadata_from_archive(model)
 
-    if metadata.training_type == TrainingType.NLU:
+    if metadata.training_type == TrainingType.NLU: # rasa shell nlu
+
         import rasa.nlu.run
 
         telemetry.track_shell_started("nlu")
 
         rasa.nlu.run.run_cmdline(model)
-    else:
+
+    else: # rasa shell：等价于RASA RUN
+
         import rasa.cli.run
 
         telemetry.track_shell_started("rasa")

@@ -1,14 +1,20 @@
 from __future__ import annotations
+
 from asyncio import AbstractEventLoop, CancelledError
+
 import functools
 import logging
 import os
 import tempfile
+
 from pathlib import Path
+
 from typing import Any, Callable, Dict, List, Optional, Text, Union
+
 import uuid
 
 import aiohttp
+
 from aiohttp import ClientError
 
 from rasa.core import jobs
@@ -27,7 +33,9 @@ from rasa.shared.core.trackers import DialogueStateTracker, EventVerbosity
 from rasa.exceptions import ModelNotFound
 from rasa.nlu.utils import is_url
 from rasa.shared.exceptions import RasaException
+
 import rasa.shared.utils.io
+
 from rasa.utils.endpoints import EndpointConfig
 
 from rasa.core.tracker_store import TrackerStore
@@ -37,7 +45,9 @@ logger = logging.getLogger(__name__)
 
 
 async def load_from_server(agent: Agent, model_server: EndpointConfig) -> Agent:
-    """Load a persisted model from a server."""
+    """
+    Load a persisted model from a server.
+    """
     # We are going to pull the model once first, and then schedule a recurring
     # job. the benefit of this approach is that we can be sure that there
     # is a model after this function completes -> allows to do proper
@@ -49,7 +59,9 @@ async def load_from_server(agent: Agent, model_server: EndpointConfig) -> Agent:
     wait_time_between_pulls = model_server.kwargs.get("wait_time_between_pulls", 100)
 
     if wait_time_between_pulls:
+
         # continuously pull the model every `wait_time_between_pulls` seconds
+
         await _schedule_model_pulling(model_server, int(wait_time_between_pulls), agent)
 
     return agent
@@ -58,7 +70,8 @@ async def load_from_server(agent: Agent, model_server: EndpointConfig) -> Agent:
 def _load_and_set_updated_model(
     agent: Agent, model_directory: Text, fingerprint: Text
 ) -> None:
-    """Load the persisted model into memory and set the model on the agent.
+    """
+    Load the persisted model into memory and set the model on the agent.
 
     Args:
         agent: Instance of `Agent` to update with the new model.
@@ -66,18 +79,24 @@ def _load_and_set_updated_model(
         fingerprint: Fingerprint of the supplied model at `model_directory`.
     """
     logger.debug(f"Found new model with fingerprint {fingerprint}. Loading...")
+
     agent.load_model(model_directory, fingerprint)
 
     logger.debug("Finished updating agent to new model.")
 
 
 async def _update_model_from_server(model_server: EndpointConfig, agent: Agent) -> None:
-    """Load a zipped Rasa Core model from a URL and update the passed agent."""
+    """
+    Load a zipped Rasa Core model from a URL and update the passed agent.
+    """
     if not is_url(model_server.url):
+
         raise aiohttp.InvalidURL(model_server.url)
 
     with tempfile.TemporaryDirectory() as temporary_directory:
+
         try:
+
             new_fingerprint = await _pull_model_and_fingerprint(
                 model_server, agent.fingerprint, temporary_directory
             )
@@ -86,6 +105,7 @@ async def _update_model_from_server(model_server: EndpointConfig, agent: Agent) 
                 _load_and_set_updated_model(agent, temporary_directory, new_fingerprint)
             else:
                 logger.debug(f"No new model found at URL {model_server.url}")
+
         except Exception:  # skipcq: PYL-W0703
             # TODO: Make this exception more specific, possibly print different log
             # for each one.
@@ -97,7 +117,8 @@ async def _update_model_from_server(model_server: EndpointConfig, agent: Agent) 
 async def _pull_model_and_fingerprint(
     model_server: EndpointConfig, fingerprint: Optional[Text], model_directory: Text
 ) -> Optional[Text]:
-    """Queries the model server.
+    """
+    Queries the model server.
 
     Args:
         model_server: Model server endpoint information.
@@ -113,8 +134,11 @@ async def _pull_model_and_fingerprint(
     logger.debug(f"Requesting model from server {model_server.url}...")
 
     async with model_server.session() as session:
+
         try:
+
             params = model_server.combine_parameters()
+
             async with session.request(
                 "GET",
                 model_server.url,
@@ -124,33 +148,43 @@ async def _pull_model_and_fingerprint(
             ) as resp:
 
                 if resp.status in [204, 304]:
+
                     logger.debug(
                         "Model server returned {} status code, "
                         "indicating that no new model is available. "
                         "Current fingerprint: {}"
                         "".format(resp.status, fingerprint)
                     )
+
                     return None
+
                 elif resp.status == 404:
+
                     logger.debug(
                         "Model server could not find a model at the requested "
                         "endpoint '{}'. It's possible that no model has been "
                         "trained, or that the requested tag hasn't been "
                         "assigned.".format(model_server.url)
                     )
+
                     return None
+
                 elif resp.status != 200:
+
                     logger.debug(
                         "Tried to fetch model from server, but server response "
                         "status code is {}. We'll retry later..."
                         "".format(resp.status)
                     )
+
                     return None
 
                 model_path = Path(model_directory) / resp.headers.get(
                     "filename", "model.tar.gz"
                 )
+
                 with open(model_path, "wb") as file:
+
                     file.write(await resp.read())
 
                 logger.debug("Saved model to '{}'".format(os.path.abspath(model_path)))
@@ -159,21 +193,30 @@ async def _pull_model_and_fingerprint(
                 return resp.headers.get("ETag")
 
         except aiohttp.ClientError as e:
+
             logger.debug(
                 "Tried to fetch model from server, but "
                 "couldn't reach server. We'll retry later... "
                 "Error: {}.".format(e)
             )
+
             return None
 
 
 async def _run_model_pulling_worker(model_server: EndpointConfig, agent: Agent) -> None:
+
     # noinspection PyBroadException
+
     try:
+
         await _update_model_from_server(model_server, agent)
+
     except CancelledError:
+
         logger.warning("Stopping model pulling (cancelled).")
+
     except ClientError:
+
         logger.exception(
             "An exception was raised while fetching a model. Continuing anyways..."
         )
@@ -182,6 +225,7 @@ async def _run_model_pulling_worker(model_server: EndpointConfig, agent: Agent) 
 async def _schedule_model_pulling(
     model_server: EndpointConfig, wait_time_between_pulls: int, agent: Agent
 ) -> None:
+
     (await jobs.scheduler()).add_job(
         _run_model_pulling_worker,
         "interval",
@@ -191,7 +235,7 @@ async def _schedule_model_pulling(
         replace_existing=True,
     )
 
-
+# 从磁盘载入模型
 async def load_agent(
     model_path: Optional[Text] = None,
     model_server: Optional[EndpointConfig] = None,
@@ -199,7 +243,8 @@ async def load_agent(
     endpoints: Optional[AvailableEndpoints] = None,
     loop: Optional[AbstractEventLoop] = None,
 ) -> Agent:
-    """Loads agent from server, remote storage or disk.
+    """
+    Loads agent from server, remote storage or disk.
 
     Args:
         model_path: Path to the model if it's on disk.
@@ -221,15 +266,23 @@ async def load_agent(
     http_interpreter = None
 
     if endpoints:
+
         broker = await EventBroker.create(endpoints.event_broker, loop=loop)
+
         tracker_store = TrackerStore.create(
             endpoints.tracker_store, event_broker=broker
         )
+
         lock_store = LockStore.create(endpoints.lock_store)
+
         generator = endpoints.nlg
+
         action_endpoint = endpoints.action
+
         model_server = endpoints.model if endpoints.model else model_server
+
         if endpoints.nlu:
+
             http_interpreter = RasaNLUHttpInterpreter(endpoints.nlu)
 
     agent = Agent(
@@ -243,48 +296,66 @@ async def load_agent(
     )
 
     try:
+
         if model_server is not None:
-            return await load_from_server(agent, model_server)
+
+            return await load_from_server(agent, model_server) # 从自己的HTTP服务器获取模型
 
         elif remote_storage is not None:
-            agent.load_model_from_remote_storage(model_path)
+
+            agent.load_model_from_remote_storage(model_path) # 从云存储（如 S3）获取模型
 
         elif model_path is not None and os.path.exists(model_path):
+
             try:
-                agent.load_model(model_path)
+
+                agent.load_model(model_path) # 从本地磁盘加载模型
+
             except ModelNotFound:
+
                 rasa.shared.utils.io.raise_warning(
                     f"No valid model found at {model_path}!"
                 )
+
         else:
+
             rasa.shared.utils.io.raise_warning(
                 "No valid configuration given to load agent. "
                 "Agent loaded with no model!"
             )
+
         return agent
 
     except Exception as e:
+
         logger.error(f"Could not load model due to {e}.")
+
         return agent
 
 
 def agent_must_be_ready(f: Callable[..., Any]) -> Callable[..., Any]:
-    """Any Agent method decorated with this will raise if the agent is not ready."""
+    """
+    Any Agent method decorated with this will raise if the agent is not ready.
+    """
 
     @functools.wraps(f)
     def decorated(self: Agent, *args: Any, **kwargs: Any) -> Any:
+
         if not self.is_ready():
+
             raise AgentNotReady(
                 "Agent needs to be prepared before usage. You need to set a "
                 "processor and a tracker store."
             )
+
         return f(self, *args, **kwargs)
 
     return decorated
 
 
 class Agent:
-    """The Agent class provides an interface for the most important Rasa functionality.
+    """
+    The Agent class provides an interface for the most important Rasa functionality.
 
     This includes training, handling messages, loading a dialogue model,
     getting the next action, and handling a channel.
@@ -302,9 +373,11 @@ class Agent:
         remote_storage: Optional[Text] = None,
         http_interpreter: Optional[RasaNLUHttpInterpreter] = None,
     ):
-        """Initializes an `Agent`."""
+        """
+        Initializes an `Agent`.
+        """
         self.domain = domain
-        self.processor: Optional[MessageProcessor] = None
+        self.processor: Optional[MessageProcessor] = None # 是与机器人的通信的接口 -- 会从磁盘中加载模型并还原成推理所用的有向无环图
 
         self.nlg = NaturalLanguageGenerator.create(generator, self.domain)
         self.tracker_store = self._create_tracker_store(tracker_store, self.domain)
@@ -330,7 +403,9 @@ class Agent:
         remote_storage: Optional[Text] = None,
         http_interpreter: Optional[RasaNLUHttpInterpreter] = None,
     ) -> Agent:
-        """Constructs a new agent and loads the processer and model."""
+        """
+        Constructs a new agent and loads the processer and model.
+        """
         agent = Agent(
             domain=domain,
             generator=generator,
@@ -342,13 +417,17 @@ class Agent:
             remote_storage=remote_storage,
             http_interpreter=http_interpreter,
         )
+
         agent.load_model(model_path=model_path, fingerprint=fingerprint)
+
         return agent
 
     def load_model(
         self, model_path: Union[Text, Path], fingerprint: Optional[Text] = None
     ) -> None:
-        """Loads the agent's model and processor given a new model path."""
+        """
+        Loads the agent's model and processor given a new model path.
+        """
         self.processor = MessageProcessor(
             model_path=model_path,
             tracker_store=self.tracker_store,
@@ -357,32 +436,42 @@ class Agent:
             generator=self.nlg,
             http_interpreter=self.http_interpreter,
         )
+
         self.domain = self.processor.domain
 
         self._set_fingerprint(fingerprint)
 
         # update domain on all instances
         self.tracker_store.domain = self.domain
+
         if isinstance(self.nlg, TemplatedNaturalLanguageGenerator):
+
             self.nlg.responses = self.domain.responses if self.domain else {}
 
     @property
     def model_id(self) -> Optional[Text]:
-        """Returns the model_id from processor's model_metadata."""
+        """
+        Returns the model_id from processor's model_metadata.
+        """
         return self.processor.model_metadata.model_id if self.processor else None
 
     @property
     def model_name(self) -> Optional[Text]:
-        """Returns the model name from processor's model_path."""
+        """
+        Returns the model name from processor's model_path.
+        """
         return self.processor.model_path.name if self.processor else None
 
     def is_ready(self) -> bool:
-        """Check if all necessary components are instantiated to use agent."""
+        """
+        Check if all necessary components are instantiated to use agent.
+        """
         return self.tracker_store is not None and self.processor is not None
 
     @agent_must_be_ready
     async def parse_message(self, message_data: Text) -> Dict[Text, Any]:
-        """Handles message text and intent payload input messages.
+        """
+        Handles message text and intent payload input messages.
 
         The return value of this function is parsed_data.
 
@@ -411,12 +500,17 @@ class Agent:
     async def handle_message(
         self, message: UserMessage
     ) -> Optional[List[Dict[Text, Any]]]:
-        """Handle a single message."""
+        """
+        Handle a single message.
+        """
         if not self.is_ready():
+
             logger.info("Ignoring message as there is no agent to handle it.")
+
             return None
 
         async with self.lock_store.lock(message.sender_id):
+
             return await self.processor.handle_message(  # type: ignore[union-attr]
                 message
             )
@@ -425,7 +519,9 @@ class Agent:
     async def predict_next_for_sender_id(
         self, sender_id: Text
     ) -> Optional[Dict[Text, Any]]:
-        """Predict the next action for a sender id."""
+        """
+        Predict the next action for a sender id.
+        """
         return await self.processor.predict_next_for_sender_id(  # type: ignore[union-attr] # noqa:E501
             sender_id
         )
@@ -436,14 +532,18 @@ class Agent:
         tracker: DialogueStateTracker,
         verbosity: EventVerbosity = EventVerbosity.AFTER_RESTART,
     ) -> Optional[Dict[Text, Any]]:
-        """Predicts the next action."""
+        """
+        Predicts the next action.
+        """
         return self.processor.predict_next_with_tracker(  # type: ignore[union-attr]
             tracker, verbosity
         )
 
     @agent_must_be_ready
     async def log_message(self, message: UserMessage) -> DialogueStateTracker:
-        """Append a message to a dialogue - does not predict actions."""
+        """
+        Append a message to a dialogue - does not predict actions.
+        """
         return await self.processor.log_message(message)  # type: ignore[union-attr]
 
     @agent_must_be_ready
@@ -455,10 +555,13 @@ class Agent:
         policy: Optional[Text],
         confidence: Optional[float],
     ) -> Optional[DialogueStateTracker]:
-        """Executes an action."""
+        """
+        Executes an action.
+        """
         prediction = PolicyPrediction.for_action_name(
             self.domain, action, policy, confidence or 0.0
         )
+
         return await self.processor.execute_action(  # type: ignore[union-attr]
             sender_id, action, output_channel, self.nlg, prediction
         )
@@ -471,7 +574,9 @@ class Agent:
         output_channel: OutputChannel,
         tracker: DialogueStateTracker,
     ) -> None:
-        """Trigger a user intent, e.g. triggered by an external event."""
+        """
+        Trigger a user intent, e.g. triggered by an external event.
+        """
         await self.processor.trigger_external_user_uttered(  # type: ignore[union-attr]
             intent_name, entities, tracker, output_channel
         )
@@ -483,7 +588,8 @@ class Agent:
         output_channel: Optional[OutputChannel] = None,
         sender_id: Optional[Text] = DEFAULT_SENDER_ID,
     ) -> Optional[List[Dict[Text, Any]]]:
-        """Handle a single message.
+        """
+        Handle a single message.
 
         If a message preprocessor is passed, the message will be passed to that
         function first and the return value is then used as the
@@ -503,6 +609,7 @@ class Agent:
 
         """
         if isinstance(text_message, str):
+
             text_message = {"text": text_message}
 
         msg = UserMessage(text_message.get("text"), output_channel, sender_id)
@@ -520,6 +627,7 @@ class Agent:
     def _create_tracker_store(
         store: Optional[TrackerStore], domain: Domain
     ) -> TrackerStore:
+
         if store is not None:
             store.domain = domain
             tracker_store = store
@@ -530,23 +638,31 @@ class Agent:
 
     @staticmethod
     def _create_lock_store(store: Optional[LockStore]) -> LockStore:
+
         if store is not None:
+
             return store
 
         return InMemoryLockStore()
 
     def load_model_from_remote_storage(self, model_name: Text) -> None:
-        """Loads an Agent from remote storage."""
+        """
+        Loads an Agent from remote storage.
+        """
         from rasa.nlu.persistor import get_persistor
 
         persistor = get_persistor(self.remote_storage)
 
         if persistor is not None:
+
             with tempfile.TemporaryDirectory() as temporary_directory:
+
                 persistor.retrieve(model_name, temporary_directory)
+
                 self.load_model(temporary_directory)
 
         else:
+
             raise RasaException(
                 f"Persistor not found for remote storage: '{self.remote_storage}'."
             )

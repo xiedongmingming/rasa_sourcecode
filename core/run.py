@@ -147,7 +147,7 @@ def configure_app(
 
     return app
 
-
+# 推理阶段
 def serve_application(
     model_path: Optional[Text] = None,
     channel: Optional[Text] = None,
@@ -175,11 +175,16 @@ def serve_application(
     syslog_protocol: Optional[Text] = None,
     request_timeout: Optional[int] = None,
 ) -> None:
-    """Run the API entrypoint."""
-    if not channel and not credentials:
+    """
+    Run the API entrypoint.
+    """
+    if not channel and not credentials: # 在RASA SHELL中指定CONNECTOR为CMDLINE，这样用户就可以通过命令行与RASA进行交互
+
         channel = "cmdline"
 
-    input_channels = create_http_input_channels(channel, credentials)
+    # 第一步：将CHANNEL指定为CMDLINE
+    # 正在连接到由"--connector"参数指定的通道"cmdline"。任何其他通道都将被忽略。要连接到所有给定的通道，请省略'--connector'参数。
+    input_channels = create_http_input_channels(channel, credentials) # 建立CONNECTOR，对外提供访问接口
 
     app = configure_app(
         input_channels,
@@ -204,6 +209,7 @@ def serve_application(
     ssl_context = server.create_ssl_context(
         ssl_certificate, ssl_keyfile, ssl_ca_file, ssl_password
     )
+
     protocol = "https" if ssl_context else "http"
 
     logger.info(f"Starting Rasa server on {protocol}://{interface}:{port}")
@@ -243,7 +249,8 @@ async def load_agent_on_start(
     app: Sanic,
     loop: AbstractEventLoop,
 ) -> Agent:
-    """Load an agent.
+    """
+    Load an agent.
 
     Used to be scheduled on server start
     (hence the `app` and `loop` arguments).
@@ -254,22 +261,30 @@ async def load_agent_on_start(
         endpoints=endpoints,
         loop=loop,
     )
+
     logger.info("Rasa server is up and running.")
+
     return app.ctx.agent
 
 
 async def close_resources(app: Sanic, _: AbstractEventLoop) -> None:
-    """Gracefully closes resources when shutting down server.
+    """
+    Gracefully closes resources when shutting down server.
 
     Args:
         app: The Sanic application.
         _: The current Sanic worker event loop.
     """
     current_agent = getattr(app.ctx, "agent", None)
+
     if not current_agent:
+
         logger.debug("No agent found when shutting down server.")
+
         return
 
     event_broker = current_agent.tracker_store.event_broker
+
     if event_broker:
+
         await event_broker.close()

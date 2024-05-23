@@ -168,18 +168,26 @@ def file_as_bytes(path: Text) -> bytes:
 
 
 class AvailableEndpoints:
-    """Collection of configured endpoints."""
+    """
+    Collection of configured endpoints.
+    """
 
     @classmethod
     def read_endpoints(cls, endpoint_file: Text) -> "AvailableEndpoints":
+
         nlg = read_endpoint_config(endpoint_file, endpoint_type="nlg")
         nlu = read_endpoint_config(endpoint_file, endpoint_type="nlu")
+
         action = read_endpoint_config(endpoint_file, endpoint_type="action_endpoint")
+
         model = read_endpoint_config(endpoint_file, endpoint_type="models")
+
         tracker_store = read_endpoint_config(
             endpoint_file, endpoint_type="tracker_store"
         )
+
         lock_store = read_endpoint_config(endpoint_file, endpoint_type="lock_store")
+
         event_broker = read_endpoint_config(endpoint_file, endpoint_type="event_broker")
 
         return cls(nlg, nlu, action, model, tracker_store, lock_store, event_broker)
@@ -206,7 +214,8 @@ class AvailableEndpoints:
 def read_endpoints_from_path(
     endpoints_path: Optional[Union[Path, Text]] = None
 ) -> AvailableEndpoints:
-    """Get `AvailableEndpoints` object from specified path.
+    """
+    Get `AvailableEndpoints` object from specified path.
 
     Args:
         endpoints_path: Path of the endpoints file to be read. If `None` the
@@ -219,11 +228,13 @@ def read_endpoints_from_path(
     endpoints_config_path = cli_utils.get_validated_path(
         endpoints_path, "endpoints", DEFAULT_ENDPOINTS_PATH, True
     )
+
     return AvailableEndpoints.read_endpoints(endpoints_config_path)
 
 
 def replace_floats_with_decimals(obj: Any, round_digits: int = 9) -> Any:
-    """Convert all instances in `obj` of `float` to `Decimal`.
+    """
+    Convert all instances in `obj` of `float` to `Decimal`.
 
     Args:
         obj: Input object.
@@ -235,16 +246,20 @@ def replace_floats_with_decimals(obj: Any, round_digits: int = 9) -> Any:
     """
 
     def _float_to_rounded_decimal(s: Text) -> Decimal:
+
         return Decimal(s).quantize(Decimal(10) ** -round_digits)
 
     return json.loads(json.dumps(obj), parse_float=_float_to_rounded_decimal)
 
 
 class DecimalEncoder(json.JSONEncoder):
-    """`json.JSONEncoder` that dumps `Decimal`s as `float`s."""
+    """
+    `json.JSONEncoder` that dumps `Decimal`s as `float`s.
+    """
 
     def default(self, obj: Any) -> Any:
-        """Get serializable object for `o`.
+        """
+        Get serializable object for `o`.
 
         Args:
             obj: Object to serialize.
@@ -254,12 +269,15 @@ class DecimalEncoder(json.JSONEncoder):
             `default()` method.
         """
         if isinstance(obj, Decimal):
+
             return float(obj)
+
         return super().default(obj)
 
 
 def replace_decimals_with_floats(obj: Any) -> Any:
-    """Convert all instances in `obj` of `Decimal` to `float`.
+    """
+    Convert all instances in `obj` of `Decimal` to `float`.
 
     Args:
         obj: A `List` or `Dict` object.
@@ -273,10 +291,13 @@ def replace_decimals_with_floats(obj: Any) -> Any:
 def _lock_store_is_multi_worker_compatible(
     lock_store: Union[EndpointConfig, LockStore, None]
 ) -> bool:
+
     if isinstance(lock_store, InMemoryLockStore):
+
         return False
 
     if isinstance(lock_store, RedisLockStore):
+
         return True
 
     # `lock_store` is `None` or `EndpointConfig`
@@ -288,7 +309,8 @@ def _lock_store_is_multi_worker_compatible(
 
 
 def number_of_sanic_workers(lock_store: Union[EndpointConfig, LockStore, None]) -> int:
-    """Get the number of Sanic workers to use in `app.run()`.
+    """
+    Get the number of Sanic workers to use in `app.run()`.
 
     If the environment variable constants.ENV_SANIC_WORKERS is set and is not equal to
     1, that value will only be permitted if the used lock store is not the
@@ -296,32 +318,43 @@ def number_of_sanic_workers(lock_store: Union[EndpointConfig, LockStore, None]) 
     """
 
     def _log_and_get_default_number_of_workers() -> int:
+
         logger.debug(
             f"Using the default number of Sanic workers ({DEFAULT_SANIC_WORKERS})."
         )
+
         return DEFAULT_SANIC_WORKERS
 
     try:
+
         env_value = int(os.environ.get(ENV_SANIC_WORKERS, DEFAULT_SANIC_WORKERS))
+
     except ValueError:
+
         logger.error(
             f"Cannot convert environment variable `{ENV_SANIC_WORKERS}` "
             f"to int ('{os.environ[ENV_SANIC_WORKERS]}')."
         )
+
         return _log_and_get_default_number_of_workers()
 
     if env_value == DEFAULT_SANIC_WORKERS:
+
         return _log_and_get_default_number_of_workers()
 
     if env_value < 1:
+
         logger.debug(
             f"Cannot set number of Sanic workers to the desired value "
             f"({env_value}). The number of workers must be at least 1."
         )
+
         return _log_and_get_default_number_of_workers()
 
     if _lock_store_is_multi_worker_compatible(lock_store):
+
         logger.debug(f"Using {env_value} Sanic workers.")
+
         return env_value
 
     logger.debug(
@@ -329,4 +362,5 @@ def number_of_sanic_workers(lock_store: Union[EndpointConfig, LockStore, None]) 
         f"no `RedisLockStore` or custom `LockStore` endpoint "
         f"configuration has been found."
     )
+
     return _log_and_get_default_number_of_workers()
