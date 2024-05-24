@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from typing import Any, Dict, Optional, Text, Type
+
 import dataclasses
+
 import uuid
 
 from rasa.engine.caching import Cacheable, TrainingCache
@@ -11,7 +14,8 @@ from rasa.engine.training import fingerprinting
 
 
 class PrecomputedValueProvider(GraphComponent):
-    """Holds the precomputed values of a `GraphNode` from a previous training.
+    """
+    Holds the precomputed values of a `GraphNode` from a previous training.
 
     Pre-computed values can either be
     - values loaded from cache
@@ -19,7 +23,8 @@ class PrecomputedValueProvider(GraphComponent):
     """
 
     def __init__(self, output: Cacheable):
-        """Initializes a `PrecomputedValueProvider`.
+        """
+        Initializes a `PrecomputedValueProvider`.
 
         Args:
             output: The precomputed output to return.
@@ -34,16 +39,21 @@ class PrecomputedValueProvider(GraphComponent):
         resource: Resource,
         execution_context: ExecutionContext,
     ) -> PrecomputedValueProvider:
-        """Creates instance (see parent class for full docstring)."""
+        """
+        Creates instance (see parent class for full docstring).
+        """
         return cls(output=config["output"])
 
     def get_value(self) -> Cacheable:
-        """Returns the precomputed output."""
+        """
+        Returns the precomputed output.
+        """
         return self._output
 
     @classmethod
     def replace_schema_node(cls, node: SchemaNode, output: Any) -> None:
-        """Updates a `SchemaNode` to use a `PrecomputedValueProvider`.
+        """
+        Updates a `SchemaNode` to use a `PrecomputedValueProvider`.
 
         This is for when we want to use the precomputed output value of a node from a
         previous training in a subsequent training. We replace the class in the `uses`

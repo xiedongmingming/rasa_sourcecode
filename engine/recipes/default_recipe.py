@@ -4,7 +4,9 @@ import copy
 import enum
 import logging
 import math
+
 from enum import Enum
+
 from typing import Dict, Text, Any, Tuple, Type, Optional, List, Callable, Set, Union
 
 import dataclasses
@@ -13,6 +15,7 @@ from rasa.core.featurizers.precomputation import (
     CoreFeaturizationInputConverter,
     CoreFeaturizationCollector,
 )
+
 from rasa.shared.exceptions import FileNotFoundException
 from rasa.core.policies.ensemble import DefaultPolicyPredictionEnsemble
 
@@ -29,6 +32,7 @@ from rasa.engine.constants import (
 )
 from rasa.engine.recipes.recipe import Recipe
 from rasa.engine.storage.resource import Resource
+
 from rasa.graph_components.converters.nlu_message_converter import NLUMessageConverter
 from rasa.graph_components.providers.domain_provider import DomainProvider
 from rasa.graph_components.providers.domain_for_core_training_provider import (
@@ -42,11 +46,14 @@ from rasa.graph_components.providers.story_graph_provider import StoryGraphProvi
 from rasa.graph_components.providers.training_tracker_provider import (
     TrainingTrackerProvider,
 )
+
 import rasa.shared.constants
+
 from rasa.shared.exceptions import RasaException, InvalidConfigException
 from rasa.shared.data import TrainingType
 
 from rasa.utils.tensorflow.constants import EPOCHS
+
 from rasa.shared.utils.common import (
     class_from_module_path,
     transform_collection_to_sentence,
@@ -74,7 +81,9 @@ COMMENTS_FOR_KEYS = {
 
 
 class DefaultV1RecipeRegisterException(RasaException):
-    """If you register a class which is not of type `GraphComponent`."""
+    """
+    If you register a class which is not of type `GraphComponent`.
+    """
 
     pass
 

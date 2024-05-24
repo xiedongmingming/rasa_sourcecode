@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class TrainingHook(GraphNodeHook):
-    """Caches fingerprints and outputs of nodes during model training."""
+    """
+    Caches fingerprints and outputs of nodes during model training.
+    """
 
     def __init__(
         self,
@@ -20,7 +22,8 @@ class TrainingHook(GraphNodeHook):
         model_storage: ModelStorage,
         pruned_schema: GraphSchema,
     ) -> None:
-        """Initializes a `TrainingHook`.
+        """
+        Initializes a `TrainingHook`.
 
         Args:
             cache: Cache used to store fingerprints and outputs.
@@ -38,7 +41,9 @@ class TrainingHook(GraphNodeHook):
         config: Dict[Text, Any],
         received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """Calculates the run fingerprint for use in `on_after_node`."""
+        """
+        Calculates the run fingerprint for use in `on_after_node`.
+        """
         graph_component_class = self._get_graph_component_class(
             execution_context, node_name
         )
@@ -59,14 +64,18 @@ class TrainingHook(GraphNodeHook):
         output: Any,
         input_hook_data: Dict,
     ) -> None:
-        """Stores the fingerprints and caches the output of the node."""
+        """
+        Stores the fingerprints and caches the output of the node.
+        """
         # We should not re-cache the output of a PrecomputedValueProvider.
         graph_component_class = self._pruned_schema.nodes[node_name].uses
 
         if graph_component_class == PrecomputedValueProvider:
+
             return None
 
         output_fingerprint = rasa.shared.utils.io.deep_container_fingerprint(output)
+
         fingerprint_key = input_hook_data["fingerprint_key"]
 
         logger.debug(
@@ -85,15 +94,20 @@ class TrainingHook(GraphNodeHook):
     def _get_graph_component_class(
         execution_context: ExecutionContext, node_name: Text
     ) -> Type:
+
         graph_component_class = execution_context.graph_schema.nodes[node_name].uses
+
         return graph_component_class
 
 
 class LoggingHook(GraphNodeHook):
-    """Logs the training of components."""
+    """
+    Logs the training of components.
+    """
 
     def __init__(self, pruned_schema: GraphSchema) -> None:
-        """Creates hook.
+        """
+        Creates hook.
 
         Args:
             pruned_schema: The pruned schema provides us with the information whether
@@ -108,10 +122,13 @@ class LoggingHook(GraphNodeHook):
         config: Dict[Text, Any],
         received_inputs: Dict[Text, Any],
     ) -> Dict:
-        """Logs the training start of a graph node."""
+        """
+        Logs the training start of a graph node.
+        """
         node = self._pruned_schema.nodes[node_name]
 
         if not self._is_cached_node(node) and self._does_node_train(node):
+
             logger.info(f"Starting to train component '{node.uses.__name__}'.")
 
         return {}
@@ -125,6 +142,7 @@ class LoggingHook(GraphNodeHook):
 
     @staticmethod
     def _is_cached_node(node: SchemaNode) -> bool:
+
         return node.uses == PrecomputedValueProvider
 
     def on_after_node(
@@ -135,16 +153,23 @@ class LoggingHook(GraphNodeHook):
         output: Any,
         input_hook_data: Dict,
     ) -> None:
-        """Logs when a component finished its training."""
+        """
+        Logs when a component finished its training.
+        """
         node = self._pruned_schema.nodes[node_name]
 
         if not self._does_node_train(node):
+
             return
 
         if self._is_cached_node(node):
+
             actual_component = execution_context.graph_schema.nodes[node_name]
+
             logger.info(
                 f"Restored component '{actual_component.uses.__name__}' from cache."
             )
+
         else:
+
             logger.info(f"Finished training component '{node.uses.__name__}'.")

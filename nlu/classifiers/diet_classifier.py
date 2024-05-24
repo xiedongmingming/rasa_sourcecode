@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import copy
 import logging
+
 from collections import defaultdict
 from pathlib import Path
 
@@ -128,7 +130,8 @@ DIETClassifierT = TypeVar("DIETClassifierT", bound="DIETClassifier")
     is_trainable=True,
 )
 class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
-    """A multi-task model for intent classification and entity extraction.
+    """
+    A multi-task model for intent classification and entity extraction.
 
     DIET is Dual Intent and Entity Transformer.
     The architecture is based on a transformer which is shared for both tasks.
@@ -142,12 +145,16 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
 
     @classmethod
     def required_components(cls) -> List[Type]:
-        """Components that should be included in the pipeline before this component."""
+        """
+        Components that should be included in the pipeline before this component.
+        """
         return [Featurizer]
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """The component's default config (see parent class for full docstring)."""
+        """
+        The component's default config (see parent class for full docstring).
+        """
         # please make sure to update the docs when changing a default parameter
         return {
             # ## Architecture of the used neural network
@@ -295,8 +302,11 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         model: Optional[RasaModel] = None,
         sparse_feature_sizes: Optional[Dict[Text, Dict[Text, List[int]]]] = None,
     ) -> None:
-        """Declare instance variables with default values."""
+        """
+        Declare instance variables with default values.
+        """
         if EPOCHS not in config:
+
             rasa.shared.utils.io.raise_warning(
                 f"Please configure the number of '{EPOCHS}' in your configuration file."
                 f" We will change the default value of '{EPOCHS}' in the future to 1. "
@@ -317,7 +327,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         self.model = model
 
         self.tmp_checkpoint_dir = None
+
         if self.component_config[CHECKPOINT_MODEL]:
+
             self.tmp_checkpoint_dir = Path(rasa.utils.io.create_temporary_directory())
 
         self._label_data: Optional[RasaModelData] = None
@@ -337,16 +349,20 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             self.component_config[MASKED_LM]
             and self.component_config[NUM_TRANSFORMER_LAYERS] == 0
         ):
+
             raise ValueError(
                 f"If number of transformer layers is 0, "
                 f"'{MASKED_LM}' option should be 'False'."
             )
 
     def _check_share_hidden_layers_sizes(self) -> None:
+
         if self.component_config.get(SHARE_HIDDEN_LAYERS):
+
             first_hidden_layer_sizes = next(
                 iter(self.component_config[HIDDEN_LAYERS_SIZES].values())
             )
+
             # check that all hidden layer sizes are the same
             identical_hidden_layer_sizes = all(
                 current_hidden_layer_sizes == first_hidden_layer_sizes
@@ -354,13 +370,16 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
                     HIDDEN_LAYERS_SIZES
                 ].values()
             )
+
             if not identical_hidden_layer_sizes:
+
                 raise ValueError(
                     f"If hidden layer weights are shared, "
                     f"{HIDDEN_LAYERS_SIZES} must coincide."
                 )
 
     def _check_config_parameters(self) -> None:
+
         self.component_config = train_utils.check_deprecated_options(
             self.component_config
         )
@@ -389,21 +408,28 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         resource: Resource,
         execution_context: ExecutionContext,
     ) -> DIETClassifier:
-        """Creates a new untrained component (see parent class for full docstring)."""
+        """
+        Creates a new untrained component (see parent class for full docstring).
+        """
         return cls(config, model_storage, resource, execution_context)
 
     @property
     def label_key(self) -> Optional[Text]:
-        """Return key if intent classification is activated."""
+        """
+        Return key if intent classification is activated.
+        """
         return LABEL_KEY if self.component_config[INTENT_CLASSIFICATION] else None
 
     @property
     def label_sub_key(self) -> Optional[Text]:
-        """Return sub key if intent classification is activated."""
+        """
+        Return sub key if intent classification is activated.
+        """
         return LABEL_SUB_KEY if self.component_config[INTENT_CLASSIFICATION] else None
 
     @staticmethod
     def model_class() -> Type[RasaModel]:
+
         return DIET
 
     # training data helpers:
@@ -411,37 +437,48 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     def _label_id_index_mapping(
         training_data: TrainingData, attribute: Text
     ) -> Dict[Text, int]:
-        """Create label_id dictionary."""
+        """
+        Create label_id dictionary.
+        """
 
         distinct_label_ids = {
             example.get(attribute) for example in training_data.intent_examples
         } - {None}
+
         return {
             label_id: idx for idx, label_id in enumerate(sorted(distinct_label_ids))
         }
 
     @staticmethod
     def _invert_mapping(mapping: Dict) -> Dict:
+
         return {value: key for key, value in mapping.items()}
 
     def _create_entity_tag_specs(
         self, training_data: TrainingData
     ) -> List[EntityTagSpec]:
-        """Create entity tag specifications with their respective tag id mappings."""
+        """
+        Create entity tag specifications with their respective tag id mappings.
+        """
 
         _tag_specs = []
 
         for tag_name in POSSIBLE_TAGS:
+
             if self.component_config[BILOU_FLAG]:
+
                 tag_id_index_mapping = bilou_utils.build_tag_id_dict(
                     training_data, tag_name
                 )
+
             else:
+
                 tag_id_index_mapping = self._tag_id_index_mapping_for(
                     tag_name, training_data
                 )
 
             if tag_id_index_mapping:
+
                 _tag_specs.append(
                     EntityTagSpec(
                         tag_name=tag_name,
@@ -457,7 +494,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     def _tag_id_index_mapping_for(
         tag_name: Text, training_data: TrainingData
     ) -> Optional[Dict[Text, int]]:
-        """Create mapping from tag name to id."""
+        """
+        Create mapping from tag name to id.
+        """
         if tag_name == ENTITY_ATTRIBUTE_ROLE:
             distinct_tags = training_data.entity_roles
         elif tag_name == ENTITY_ATTRIBUTE_GROUP:
@@ -468,11 +507,13 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         distinct_tags = distinct_tags - {NO_ENTITY_TAG} - {None}
 
         if not distinct_tags:
+
             return None
 
         tag_id_dict = {
             tag_id: idx for idx, tag_id in enumerate(sorted(distinct_tags), 1)
         }
+
         # NO_ENTITY_TAG corresponds to non-entity which should correspond to 0 index
         # needed for correct prediction for padding
         tag_id_dict[NO_ENTITY_TAG] = 0
@@ -483,15 +524,21 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     def _find_example_for_label(
         label: Text, examples: List[Message], attribute: Text
     ) -> Optional[Message]:
+
         for ex in examples:
+
             if ex.get(attribute) == label:
+
                 return ex
+
         return None
 
     def _check_labels_features_exist(
         self, labels_example: List[Message], attribute: Text
     ) -> bool:
-        """Checks if all labels have features set."""
+        """
+        Checks if all labels have features set.
+        """
 
         return all(
             label_example.features_present(
@@ -508,25 +555,31 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             sparse_sequence_features,
             sparse_sentence_features,
         ) = message.get_sparse_features(attribute, self.component_config[FEATURIZERS])
+
         dense_sequence_features, dense_sentence_features = message.get_dense_features(
             attribute, self.component_config[FEATURIZERS]
         )
 
         if dense_sequence_features is not None and sparse_sequence_features is not None:
+
             if (
                 dense_sequence_features.features.shape[0]
                 != sparse_sequence_features.features.shape[0]
             ):
+
                 raise ValueError(
                     f"Sequence dimensions for sparse and dense sequence features "
                     f"don't coincide in '{message.get(TEXT)}'"
                     f"for attribute '{attribute}'."
                 )
+
         if dense_sentence_features is not None and sparse_sentence_features is not None:
+
             if (
                 dense_sentence_features.features.shape[0]
                 != sparse_sentence_features.features.shape[0]
             ):
+
                 raise ValueError(
                     f"Sequence dimensions for sparse and dense sentence features "
                     f"don't coincide in '{message.get(TEXT)}'"
@@ -542,7 +595,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             and not self.component_config[ENTITY_RECOGNITION]
             and attribute not in [INTENT, INTENT_RESPONSE_KEY]
         ):
+
             sparse_sequence_features = None
+
             dense_sequence_features = None
 
         out = {}
@@ -559,8 +614,11 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return out
 
     def _check_input_dimension_consistency(self, model_data: RasaModelData) -> None:
-        """Checks if features have same dimensionality if hidden layers are shared."""
+        """
+        Checks if features have same dimensionality if hidden layers are shared.
+        """
         if self.component_config.get(SHARE_HIDDEN_LAYERS):
+
             num_text_sentence_features = model_data.number_of_units(TEXT, SENTENCE)
             num_label_sentence_features = model_data.number_of_units(LABEL, SENTENCE)
             num_text_sequence_features = model_data.number_of_units(TEXT, SEQUENCE)
@@ -569,6 +627,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             if (0 < num_text_sentence_features != num_label_sentence_features > 0) or (
                 0 < num_text_sequence_features != num_label_sequence_features > 0
             ):
+
                 raise ValueError(
                     "If embeddings are shared text features and label features "
                     "must coincide. Check the output dimensions of previous components."
@@ -577,35 +636,52 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     def _extract_labels_precomputed_features(
         self, label_examples: List[Message], attribute: Text = INTENT
     ) -> Tuple[List[FeatureArray], List[FeatureArray]]:
-        """Collects precomputed encodings."""
+        """
+        Collects precomputed encodings.
+        """
         features = defaultdict(list)
 
         for e in label_examples:
+
             label_features = self._extract_features(e, attribute)
+
             for feature_key, feature_value in label_features.items():
+
                 features[feature_key].append(feature_value)
+
         sequence_features = []
         sentence_features = []
+
         for feature_name, feature_value in features.items():
+
             if SEQUENCE in feature_name:
+
                 sequence_features.append(
                     FeatureArray(np.array(feature_value), number_of_dimensions=3)
                 )
+
             else:
+
                 sentence_features.append(
                     FeatureArray(np.array(feature_value), number_of_dimensions=3)
                 )
+
         return sequence_features, sentence_features
 
     @staticmethod
     def _compute_default_label_features(
         labels_example: List[Message],
     ) -> List[FeatureArray]:
-        """Computes one-hot representation for the labels."""
+        """
+        Computes one-hot representation for the labels.
+        """
+
         logger.debug("No label features found. Computing default label features.")
 
         eye_matrix = np.eye(len(labels_example), dtype=np.float32)
+
         # add sequence dimension to one-hot labels
+
         return [
             FeatureArray(
                 np.array([np.expand_dims(a, 0) for a in eye_matrix]),
@@ -619,7 +695,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         label_id_dict: Dict[Text, int],
         attribute: Text,
     ) -> RasaModelData:
-        """Create matrix with label_ids encoded in rows as bag of words.
+        """
+        Create matrix with label_ids encoded in rows as bag of words.
 
         Find a training example for each label and get the encoded features
         from the corresponding Message object.
@@ -627,39 +704,52 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         else compute a one hot encoding for the label as the feature vector.
         """
         # Collect one example for each label
+
         labels_idx_examples = []
+
         for label_name, idx in label_id_dict.items():
+
             label_example = self._find_example_for_label(
                 label_name, training_data.intent_examples, attribute
             )
+
             labels_idx_examples.append((idx, label_example))
 
         # Sort the list of tuples based on label_idx
         labels_idx_examples = sorted(labels_idx_examples, key=lambda x: x[0])
+
         labels_example = [example for (_, example) in labels_idx_examples]
+
         # Collect features, precomputed if they exist, else compute on the fly
         if self._check_labels_features_exist(labels_example, attribute):
+
             (
                 sequence_features,
                 sentence_features,
             ) = self._extract_labels_precomputed_features(labels_example, attribute)
+
         else:
+
             sequence_features = None
+
             sentence_features = self._compute_default_label_features(labels_example)
 
         label_data = RasaModelData()
+
         label_data.add_features(LABEL, SEQUENCE, sequence_features)
         label_data.add_features(LABEL, SENTENCE, sentence_features)
+
         if label_data.does_feature_not_exist(
             LABEL, SENTENCE
         ) and label_data.does_feature_not_exist(LABEL, SEQUENCE):
+
             raise ValueError(
                 "No label features are present. Please check your configuration file."
             )
 
         label_ids = np.array([idx for (idx, _) in labels_idx_examples])
-        # explicitly add last dimension to label_ids
-        # to track correctly dynamic sequences
+
+        # explicitly add last dimension to label_ids to track correctly dynamic sequences
         label_data.add_features(
             LABEL_KEY,
             LABEL_SUB_KEY,
@@ -676,11 +766,15 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         return label_data
 
     def _use_default_label_features(self, label_ids: np.ndarray) -> List[FeatureArray]:
+
         if self._label_data is None:
+
             return []
 
         feature_arrays = self._label_data.get(LABEL, SENTENCE)
+
         all_label_features = feature_arrays[0]
+
         return [
             FeatureArray(
                 np.array([all_label_features[label_id] for label_id in label_ids]),
@@ -695,14 +789,17 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         label_attribute: Optional[Text] = None,
         training: bool = True,
     ) -> RasaModelData:
-        """Prepare data for training and create a RasaModelData object."""
+        """
+        Prepare data for training and create a RasaModelData object.
+        """
         from rasa.utils.tensorflow import model_data_utils
 
         attributes_to_consider = [TEXT]
+
         if training and self.component_config[INTENT_CLASSIFICATION]:
-            # we don't have any intent labels during prediction, just add them during
-            # training
+            # we don't have any intent labels during prediction, just add them duringbtraining
             attributes_to_consider.append(label_attribute)
+
         if (
             training
             and self.component_config[ENTITY_RECOGNITION]
@@ -741,6 +838,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             featurizers=self.component_config[FEATURIZERS],
             bilou_tagging=self.component_config[BILOU_FLAG],
         )
+
         attribute_data, _ = model_data_utils.convert_to_data_format(
             features_for_examples, consider_dialogue_dimension=False
         )
@@ -748,6 +846,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         model_data = RasaModelData(
             label_key=self.label_key, label_sub_key=self.label_sub_key
         )
+
         model_data.add_data(attribute_data)
         model_data.add_lengths(TEXT, SEQUENCE_LENGTH, TEXT, SEQUENCE)
         # Current implementation doesn't yet account for updating sparse
@@ -775,7 +874,9 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
     ) -> Dict[Text, Dict[Text, List[int]]]:
 
         if label_attribute in sparse_feature_sizes:
+
             del sparse_feature_sizes[label_attribute]
+
         return sparse_feature_sizes
 
     def _add_label_features(
@@ -786,10 +887,15 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
         label_id_dict: Dict[Text, int],
         training: bool = True,
     ) -> None:
+
         label_ids = []
+
         if training and self.component_config[INTENT_CLASSIFICATION]:
+
             for example in training_data:
+
                 if example.get(label_attribute):
+                    
                     label_ids.append(label_id_dict[example.get(label_attribute)])
             # explicitly add last dimension to label_ids
             # to track correctly dynamic sequences

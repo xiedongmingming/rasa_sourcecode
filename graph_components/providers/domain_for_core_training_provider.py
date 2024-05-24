@@ -11,7 +11,8 @@ from rasa.shared.core.domain import KEY_RESPONSES, Domain, SESSION_CONFIG_KEY, K
 
 
 class DomainForCoreTrainingProvider(GraphComponent):
-    """Provides domain without information that is irrelevant for core training.
+    """
+    Provides domain without information that is irrelevant for core training.
 
     The information that we retain includes:
     - intents and their "used" and "ignored" entities because intents influence the
@@ -52,11 +53,14 @@ class DomainForCoreTrainingProvider(GraphComponent):
         resource: Resource,
         execution_context: ExecutionContext,
     ) -> DomainForCoreTrainingProvider:
-        """Creates component (see parent class for full docstring)."""
+        """
+        Creates component (see parent class for full docstring).
+        """
         return cls()
 
     def provide(self, domain: Domain) -> Domain:
-        """Recreates the given domain but drops information that is irrelevant for core.
+        """
+        Recreates the given domain but drops information that is irrelevant for core.
 
         Args:
             domain: A domain.
@@ -68,7 +72,8 @@ class DomainForCoreTrainingProvider(GraphComponent):
 
     @staticmethod
     def create_pruned_version(domain: Domain) -> Domain:
-        """Recreates the given domain but drops information that is irrelevant for core.
+        """
+        Recreates the given domain but drops information that is irrelevant for core.
 
         Args:
             domain: A domain.
@@ -79,9 +84,12 @@ class DomainForCoreTrainingProvider(GraphComponent):
         serialized_domain = copy.deepcopy(domain.as_dict())
 
         serialized_domain.pop("config", None)  # `store_entities_as_slots`
+
         serialized_domain.pop(SESSION_CONFIG_KEY, None)
+
         for response_name in serialized_domain.get(KEY_RESPONSES, []):
             serialized_domain[KEY_RESPONSES][response_name] = []
         for form_name in serialized_domain.get(KEY_FORMS, []):
             serialized_domain[KEY_FORMS][form_name] = {REQUIRED_SLOTS_KEY: []}
+
         return Domain.from_dict(serialized_domain)

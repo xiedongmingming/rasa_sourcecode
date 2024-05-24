@@ -10,15 +10,21 @@ from rasa.shared.core.training_data.structures import StoryGraph
 
 
 class TrainingTrackerProvider(GraphComponent):
-    """Provides training trackers to policies based on training stories."""
+    """
+    Provides training trackers to policies based on training stories.
+    """
 
     def __init__(self, config: Dict[Text, Any]) -> None:
-        """Creates provider from config."""
+        """
+        Creates provider from config.
+        """
         self._config = config
 
     @staticmethod
     def get_default_config() -> Dict[Text, Any]:
-        """Returns default configuration (see parent class for full docstring)."""
+        """
+        Returns default configuration (see parent class for full docstring).
+        """
         return {
             "remove_duplicates": True,
             "unique_last_num_states": None,
@@ -36,13 +42,16 @@ class TrainingTrackerProvider(GraphComponent):
         resource: Resource,
         execution_context: ExecutionContext,
     ) -> TrainingTrackerProvider:
-        """Creates component (see parent class for full docstring)."""
+        """
+        Creates component (see parent class for full docstring).
+        """
         return cls(config)
 
     def provide(
         self, story_graph: StoryGraph, domain: Domain
     ) -> List[TrackerWithCachedStates]:
-        """Generates the training trackers from the training data.
+        """
+        Generates the training trackers from the training data.
 
         Args:
             story_graph: The story graph containing the test stories and rules.
@@ -52,4 +61,5 @@ class TrainingTrackerProvider(GraphComponent):
             The trackers which can be used to train dialogue policies.
         """
         generator = TrainingDataGenerator(story_graph, domain, **self._config)
+
         return generator.generate()

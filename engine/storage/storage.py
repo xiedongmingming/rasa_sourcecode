@@ -1,12 +1,17 @@
 from __future__ import annotations
+
 import abc
 import logging
 import typing
+
 from contextlib import contextmanager
+
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+
 from typing import Tuple, Union, Text, Generator, Dict, Any, Optional
+
 from packaging import version
 
 from rasa.constants import MINIMUM_COMPATIBLE_VERSION
@@ -16,6 +21,7 @@ from rasa.shared.core.domain import Domain
 from rasa.shared.data import TrainingType
 
 if typing.TYPE_CHECKING:
+    #
     from rasa.engine.graph import GraphSchema, GraphModelConfiguration
 
 logger = logging.getLogger(__name__)
@@ -158,8 +164,11 @@ class ModelMetadata:
             than the minimum compatible version
         """
         minimum_version = version.parse(MINIMUM_COMPATIBLE_VERSION)
+
         model_version = version.parse(self.rasa_open_source_version)
+
         if model_version < minimum_version:
+
             raise UnsupportedModelVersionError(model_version=model_version)
 
     def as_dict(self) -> Dict[Text, Any]:

@@ -10,7 +10,9 @@ from rasa.shared.data import TrainingType
 
 
 class InvalidRecipeException(RasaException):
-    """Exception in case the specified recipe is invalid."""
+    """
+    Exception in case the specified recipe is invalid.
+    """
 
 
 class Recipe(abc.ABC):

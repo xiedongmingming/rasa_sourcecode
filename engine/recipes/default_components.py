@@ -6,12 +6,14 @@ from rasa.nlu.classifiers.logistic_regression_classifier import (
 )
 from rasa.nlu.classifiers.mitie_intent_classifier import MitieIntentClassifier
 from rasa.nlu.classifiers.sklearn_intent_classifier import SklearnIntentClassifier
+
 from rasa.nlu.extractors.crf_entity_extractor import CRFEntityExtractor
 from rasa.nlu.extractors.duckling_entity_extractor import DucklingEntityExtractor
 from rasa.nlu.extractors.entity_synonyms import EntitySynonymMapper
 from rasa.nlu.extractors.mitie_entity_extractor import MitieEntityExtractor
 from rasa.nlu.extractors.spacy_entity_extractor import SpacyEntityExtractor
 from rasa.nlu.extractors.regex_entity_extractor import RegexEntityExtractor
+
 from rasa.nlu.featurizers.sparse_featurizer.lexical_syntactic_featurizer import (
     LexicalSyntacticFeaturizer,
 )
@@ -23,11 +25,14 @@ from rasa.nlu.featurizers.sparse_featurizer.count_vectors_featurizer import (
 )
 from rasa.nlu.featurizers.dense_featurizer.lm_featurizer import LanguageModelFeaturizer
 from rasa.nlu.featurizers.sparse_featurizer.regex_featurizer import RegexFeaturizer
+
 from rasa.nlu.selectors.response_selector import ResponseSelector
+
 from rasa.nlu.tokenizers.jieba_tokenizer import JiebaTokenizer
 from rasa.nlu.tokenizers.mitie_tokenizer import MitieTokenizer
 from rasa.nlu.tokenizers.spacy_tokenizer import SpacyTokenizer
 from rasa.nlu.tokenizers.whitespace_tokenizer import WhitespaceTokenizer
+
 from rasa.nlu.utils.mitie_utils import MitieNLP
 from rasa.nlu.utils.spacy_utils import SpacyNLP
 

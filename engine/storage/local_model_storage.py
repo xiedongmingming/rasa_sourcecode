@@ -33,7 +33,8 @@ def windows_safe_temporary_directory(
     prefix: Optional[Text] = None,
     dir: Optional[Text] = None,
 ) -> Generator[Text, None, None]:
-    """Like `tempfile.TemporaryDirectory`, but works with Windows and long file names.
+    """
+    Like `tempfile.TemporaryDirectory`, but works with Windows and long file names.
 
     On Windows by default there is a restriction on long path names.
     Using the prefix below allows to bypass this restriction in environments
